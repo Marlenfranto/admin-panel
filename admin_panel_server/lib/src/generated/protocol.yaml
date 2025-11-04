@@ -1,0 +1,15 @@
+admin:
+  - createOrganization:
+  - createUserAndAssignToOrg:
+  - assignManagerToOrg:
+  - getAllOrganizations:
+  - getAllUsers:
+manager:
+  - getManagedOrganization:
+  - createUserAndAssignToOrg:
+  - removeUserFromOrganization:
+publicApi:
+  - login:
+  - updateTools:
+user:
+  - getMyPermissions:

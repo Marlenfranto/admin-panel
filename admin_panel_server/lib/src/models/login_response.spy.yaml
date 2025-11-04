@@ -1,0 +1,7 @@
+class: LoginResponse
+fields:
+  success: bool
+  userInfo: module:auth:UserInfo?
+  appUser: AppUser?
+  keyId: int?
+  key: String?

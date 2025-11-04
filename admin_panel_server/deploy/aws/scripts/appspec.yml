@@ -1,0 +1,16 @@
+version: 0.0
+os: linux
+files:
+  - source: /vendor/
+    destination: /home/ec2-user/serverpod/upload/vendor/
+  - source: /admin_panel_server/
+    destination: /home/ec2-user/serverpod/upload/admin_panel_server/
+hooks:
+  BeforeInstall:
+    - location: admin_panel_server/deploy/aws/scripts/install_dependencies
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: admin_panel_server/deploy/aws/scripts/start_server
+      timeout: 300
+      runas: root

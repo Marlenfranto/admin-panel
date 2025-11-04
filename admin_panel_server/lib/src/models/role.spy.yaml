@@ -1,0 +1,6 @@
+enum: Role
+serialized: byName
+values:
+  - Admin
+  - Manager
+  - User

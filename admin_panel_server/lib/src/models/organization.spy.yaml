@@ -1,0 +1,6 @@
+class: Organization
+table: organization
+fields:
+  name: String
+  manager: AppUser?, relation(optional)
+  users: List<OrganizationUserLink>?, relation(name=organization_user_links)

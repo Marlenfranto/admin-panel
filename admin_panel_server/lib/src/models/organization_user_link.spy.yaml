@@ -1,0 +1,9 @@
+class: OrganizationUserLink
+table: organization_user_link
+fields:
+  organization: Organization?, relation(name=organization_user_links, onDelete=Cascade)
+  appUser: AppUser?, relation(name=user_organization_links, onDelete=Cascade)
+indexes:
+  organization_user_unique_idx:
+    fields: organizationId, appUserId
+    unique: true
