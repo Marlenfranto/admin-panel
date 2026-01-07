@@ -30,9 +30,9 @@ webServer:
 # If you are connecting on a public IP (e.g. on AWS or Google Cloud Run), you
 # connect on the public IP of the database e.g. database.examplepod.com.
 database:
-  host: dpg-d454i1adbo4c73b2lnn0-a
+  host: dpg-d5f5san5r7bs73c85p80-a
   port: 5432
-  name: serverpod_znhj
+  name: serverpod_znhj_ic6h
   user: serverpod_znhj_user
   requireSsl: true
   #isUnixSocket: true # defaults to false

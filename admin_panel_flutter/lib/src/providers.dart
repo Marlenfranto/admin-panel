@@ -9,7 +9,7 @@ import 'package:serverpod_flutter/serverpod_flutter.dart';
 // Creates a singleton instance of the client, configured for the local server.
 final clientProvider = Provider<Client>((ref) {
   return Client(
-    'http://localhost:8080/', // Your server's address
+    'https://admin-panel-zi8p.onrender.com/', // Your server's address
     authenticationKeyManager: FlutterAuthenticationKeyManager(),
   )..connectivityMonitor = FlutterConnectivityMonitor();
 });
