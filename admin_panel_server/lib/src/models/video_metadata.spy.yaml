@@ -1,0 +1,4 @@
+class: VideoMetadata
+fields:
+  duration: int
+  description: String?

@@ -7,13 +7,14 @@
 // ignore_for_file: public_member_api_docs
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
-
+// ignore_for_file: invalid_use_of_internal_member
 // ignore_for_file: unnecessary_null_comparison
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'organization.dart' as _i2;
 import 'app_user.dart' as _i3;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i4;
 
 abstract class OrganizationUserLink
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -34,19 +35,22 @@ abstract class OrganizationUserLink
   }) = _OrganizationUserLinkImpl;
 
   factory OrganizationUserLink.fromJson(
-      Map<String, dynamic> jsonSerialization) {
+    Map<String, dynamic> jsonSerialization,
+  ) {
     return OrganizationUserLink(
       id: jsonSerialization['id'] as int?,
       organizationId: jsonSerialization['organizationId'] as int,
       organization: jsonSerialization['organization'] == null
           ? null
-          : _i2.Organization.fromJson(
-              (jsonSerialization['organization'] as Map<String, dynamic>)),
+          : _i4.Protocol().deserialize<_i2.Organization>(
+              jsonSerialization['organization'],
+            ),
       appUserId: jsonSerialization['appUserId'] as int,
       appUser: jsonSerialization['appUser'] == null
           ? null
-          : _i3.AppUser.fromJson(
-              (jsonSerialization['appUser'] as Map<String, dynamic>)),
+          : _i4.Protocol().deserialize<_i3.AppUser>(
+              jsonSerialization['appUser'],
+            ),
     );
   }
 
@@ -81,6 +85,7 @@ abstract class OrganizationUserLink
   @override
   Map<String, dynamic> toJson() {
     return {
+      '__className__': 'OrganizationUserLink',
       if (id != null) 'id': id,
       'organizationId': organizationId,
       if (organization != null) 'organization': organization?.toJson(),
@@ -92,6 +97,7 @@ abstract class OrganizationUserLink
   @override
   Map<String, dynamic> toJsonForProtocol() {
     return {
+      '__className__': 'OrganizationUserLink',
       if (id != null) 'id': id,
       'organizationId': organizationId,
       if (organization != null)
@@ -147,12 +153,12 @@ class _OrganizationUserLinkImpl extends OrganizationUserLink {
     required int appUserId,
     _i3.AppUser? appUser,
   }) : super._(
-          id: id,
-          organizationId: organizationId,
-          organization: organization,
-          appUserId: appUserId,
-          appUser: appUser,
-        );
+         id: id,
+         organizationId: organizationId,
+         organization: organization,
+         appUserId: appUserId,
+         appUser: appUser,
+       );
 
   /// Returns a shallow copy of this [OrganizationUserLink]
   /// with some or all fields replaced by the given arguments.
@@ -177,9 +183,25 @@ class _OrganizationUserLinkImpl extends OrganizationUserLink {
   }
 }
 
+class OrganizationUserLinkUpdateTable
+    extends _i1.UpdateTable<OrganizationUserLinkTable> {
+  OrganizationUserLinkUpdateTable(super.table);
+
+  _i1.ColumnValue<int, int> organizationId(int value) => _i1.ColumnValue(
+    table.organizationId,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> appUserId(int value) => _i1.ColumnValue(
+    table.appUserId,
+    value,
+  );
+}
+
 class OrganizationUserLinkTable extends _i1.Table<int?> {
   OrganizationUserLinkTable({super.tableRelation})
-      : super(tableName: 'organization_user_link') {
+    : super(tableName: 'organization_user_link') {
+    updateTable = OrganizationUserLinkUpdateTable(this);
     organizationId = _i1.ColumnInt(
       'organizationId',
       this,
@@ -189,6 +211,8 @@ class OrganizationUserLinkTable extends _i1.Table<int?> {
       this,
     );
   }
+
+  late final OrganizationUserLinkUpdateTable updateTable;
 
   late final _i1.ColumnInt organizationId;
 
@@ -226,10 +250,10 @@ class OrganizationUserLinkTable extends _i1.Table<int?> {
 
   @override
   List<_i1.Column> get columns => [
-        id,
-        organizationId,
-        appUserId,
-      ];
+    id,
+    organizationId,
+    appUserId,
+  ];
 
   @override
   _i1.Table? getRelationTable(String relationField) {
@@ -258,9 +282,9 @@ class OrganizationUserLinkInclude extends _i1.IncludeObject {
 
   @override
   Map<String, _i1.Include?> get includes => {
-        'organization': _organization,
-        'appUser': _appUser,
-      };
+    'organization': _organization,
+    'appUser': _appUser,
+  };
 
   @override
   _i1.Table<int?> get table => OrganizationUserLink.t;
@@ -314,7 +338,7 @@ class OrganizationUserLinkRepository {
   /// );
   /// ```
   Future<List<OrganizationUserLink>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<OrganizationUserLinkTable>? where,
     int? limit,
     int? offset,
@@ -323,6 +347,8 @@ class OrganizationUserLinkRepository {
     _i1.OrderByListBuilder<OrganizationUserLinkTable>? orderByList,
     _i1.Transaction? transaction,
     OrganizationUserLinkInclude? include,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<OrganizationUserLink>(
       where: where?.call(OrganizationUserLink.t),
@@ -333,6 +359,8 @@ class OrganizationUserLinkRepository {
       offset: offset,
       transaction: transaction,
       include: include,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -354,7 +382,7 @@ class OrganizationUserLinkRepository {
   /// );
   /// ```
   Future<OrganizationUserLink?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<OrganizationUserLinkTable>? where,
     int? offset,
     _i1.OrderByBuilder<OrganizationUserLinkTable>? orderBy,
@@ -362,6 +390,8 @@ class OrganizationUserLinkRepository {
     _i1.OrderByListBuilder<OrganizationUserLinkTable>? orderByList,
     _i1.Transaction? transaction,
     OrganizationUserLinkInclude? include,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<OrganizationUserLink>(
       where: where?.call(OrganizationUserLink.t),
@@ -371,20 +401,26 @@ class OrganizationUserLinkRepository {
       offset: offset,
       transaction: transaction,
       include: include,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [OrganizationUserLink] by its [id] or null if no such row exists.
   Future<OrganizationUserLink?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
     OrganizationUserLinkInclude? include,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<OrganizationUserLink>(
       id,
       transaction: transaction,
       include: include,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -394,14 +430,20 @@ class OrganizationUserLinkRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<OrganizationUserLink>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<OrganizationUserLink> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<OrganizationUserLink>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -409,7 +451,7 @@ class OrganizationUserLinkRepository {
   ///
   /// The returned [OrganizationUserLink] will have its `id` field set.
   Future<OrganizationUserLink> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     OrganizationUserLink row, {
     _i1.Transaction? transaction,
   }) async {
@@ -425,7 +467,7 @@ class OrganizationUserLinkRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<OrganizationUserLink>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<OrganizationUserLink> rows, {
     _i1.ColumnSelections<OrganizationUserLinkTable>? columns,
     _i1.Transaction? transaction,
@@ -441,7 +483,7 @@ class OrganizationUserLinkRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<OrganizationUserLink> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     OrganizationUserLink row, {
     _i1.ColumnSelections<OrganizationUserLinkTable>? columns,
     _i1.Transaction? transaction,
@@ -453,11 +495,53 @@ class OrganizationUserLinkRepository {
     );
   }
 
+  /// Updates a single [OrganizationUserLink] by its [id] with the specified [columnValues].
+  /// Returns the updated row or null if no row with the given id exists.
+  Future<OrganizationUserLink?> updateById(
+    _i1.DatabaseSession session,
+    int id, {
+    required _i1.ColumnValueListBuilder<OrganizationUserLinkUpdateTable>
+    columnValues,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.updateById<OrganizationUserLink>(
+      id,
+      columnValues: columnValues(OrganizationUserLink.t.updateTable),
+      transaction: transaction,
+    );
+  }
+
+  /// Updates all [OrganizationUserLink]s matching the [where] expression with the specified [columnValues].
+  /// Returns the list of updated rows.
+  Future<List<OrganizationUserLink>> updateWhere(
+    _i1.DatabaseSession session, {
+    required _i1.ColumnValueListBuilder<OrganizationUserLinkUpdateTable>
+    columnValues,
+    required _i1.WhereExpressionBuilder<OrganizationUserLinkTable> where,
+    int? limit,
+    int? offset,
+    _i1.OrderByBuilder<OrganizationUserLinkTable>? orderBy,
+    _i1.OrderByListBuilder<OrganizationUserLinkTable>? orderByList,
+    bool orderDescending = false,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.updateWhere<OrganizationUserLink>(
+      columnValues: columnValues(OrganizationUserLink.t.updateTable),
+      where: where(OrganizationUserLink.t),
+      limit: limit,
+      offset: offset,
+      orderBy: orderBy?.call(OrganizationUserLink.t),
+      orderByList: orderByList?.call(OrganizationUserLink.t),
+      orderDescending: orderDescending,
+      transaction: transaction,
+    );
+  }
+
   /// Deletes all [OrganizationUserLink]s in the list and returns the deleted rows.
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<OrganizationUserLink>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<OrganizationUserLink> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -469,7 +553,7 @@ class OrganizationUserLinkRepository {
 
   /// Deletes a single [OrganizationUserLink].
   Future<OrganizationUserLink> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     OrganizationUserLink row, {
     _i1.Transaction? transaction,
   }) async {
@@ -481,7 +565,7 @@ class OrganizationUserLinkRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<OrganizationUserLink>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<OrganizationUserLinkTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -494,7 +578,7 @@ class OrganizationUserLinkRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<OrganizationUserLinkTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -502,6 +586,22 @@ class OrganizationUserLinkRepository {
     return session.db.count<OrganizationUserLink>(
       where: where?.call(OrganizationUserLink.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [OrganizationUserLink] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<OrganizationUserLinkTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<OrganizationUserLink>(
+      where: where(OrganizationUserLink.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }
@@ -513,7 +613,7 @@ class OrganizationUserLinkAttachRowRepository {
   /// Creates a relation between the given [OrganizationUserLink] and [Organization]
   /// by setting the [OrganizationUserLink]'s foreign key `organizationId` to refer to the [Organization].
   Future<void> organization(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     OrganizationUserLink organizationUserLink,
     _i2.Organization organization, {
     _i1.Transaction? transaction,
@@ -525,8 +625,9 @@ class OrganizationUserLinkAttachRowRepository {
       throw ArgumentError.notNull('organization.id');
     }
 
-    var $organizationUserLink =
-        organizationUserLink.copyWith(organizationId: organization.id);
+    var $organizationUserLink = organizationUserLink.copyWith(
+      organizationId: organization.id,
+    );
     await session.db.updateRow<OrganizationUserLink>(
       $organizationUserLink,
       columns: [OrganizationUserLink.t.organizationId],
@@ -537,7 +638,7 @@ class OrganizationUserLinkAttachRowRepository {
   /// Creates a relation between the given [OrganizationUserLink] and [AppUser]
   /// by setting the [OrganizationUserLink]'s foreign key `appUserId` to refer to the [AppUser].
   Future<void> appUser(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     OrganizationUserLink organizationUserLink,
     _i3.AppUser appUser, {
     _i1.Transaction? transaction,
@@ -549,8 +650,9 @@ class OrganizationUserLinkAttachRowRepository {
       throw ArgumentError.notNull('appUser.id');
     }
 
-    var $organizationUserLink =
-        organizationUserLink.copyWith(appUserId: appUser.id);
+    var $organizationUserLink = organizationUserLink.copyWith(
+      appUserId: appUser.id,
+    );
     await session.db.updateRow<OrganizationUserLink>(
       $organizationUserLink,
       columns: [OrganizationUserLink.t.appUserId],

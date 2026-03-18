@@ -7,7 +7,7 @@
 // ignore_for_file: public_member_api_docs
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
-
+// ignore_for_file: invalid_use_of_internal_member
 // ignore_for_file: unnecessary_null_comparison
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
@@ -16,6 +16,7 @@ import 'role.dart' as _i2;
 import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i3;
 import 'tools.dart' as _i4;
 import 'organization_user_link.dart' as _i5;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i6;
 
 abstract class AppUser
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -43,15 +44,18 @@ abstract class AppUser
       userInfoId: jsonSerialization['userInfoId'] as int,
       userInfo: jsonSerialization['userInfo'] == null
           ? null
-          : _i3.UserInfo.fromJson(
-              (jsonSerialization['userInfo'] as Map<String, dynamic>)),
-      role: _i2.Role.fromJson((jsonSerialization['role'] as String)),
-      tools: _i4.Tools.fromJson(
-          (jsonSerialization['tools'] as Map<String, dynamic>)),
-      organizations: (jsonSerialization['organizations'] as List?)
-          ?.map((e) =>
-              _i5.OrganizationUserLink.fromJson((e as Map<String, dynamic>)))
-          .toList(),
+          : _i6.Protocol().deserialize<_i3.UserInfo>(
+              jsonSerialization['userInfo'],
+            ),
+      role: jsonSerialization['role'] == null
+          ? null
+          : _i2.Role.fromJson((jsonSerialization['role'] as String)),
+      tools: _i6.Protocol().deserialize<_i4.Tools>(jsonSerialization['tools']),
+      organizations: jsonSerialization['organizations'] == null
+          ? null
+          : _i6.Protocol().deserialize<List<_i5.OrganizationUserLink>>(
+              jsonSerialization['organizations'],
+            ),
     );
   }
 
@@ -89,6 +93,7 @@ abstract class AppUser
   @override
   Map<String, dynamic> toJson() {
     return {
+      '__className__': 'AppUser',
       if (id != null) 'id': id,
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
@@ -102,14 +107,16 @@ abstract class AppUser
   @override
   Map<String, dynamic> toJsonForProtocol() {
     return {
+      '__className__': 'AppUser',
       if (id != null) 'id': id,
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJsonForProtocol(),
       'role': role.toJson(),
       'tools': tools.toJsonForProtocol(),
       if (organizations != null)
-        'organizations':
-            organizations?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
+        'organizations': organizations?.toJson(
+          valueToJson: (v) => v.toJsonForProtocol(),
+        ),
     };
   }
 
@@ -160,13 +167,13 @@ class _AppUserImpl extends AppUser {
     required _i4.Tools tools,
     List<_i5.OrganizationUserLink>? organizations,
   }) : super._(
-          id: id,
-          userInfoId: userInfoId,
-          userInfo: userInfo,
-          role: role,
-          tools: tools,
-          organizations: organizations,
-        );
+         id: id,
+         userInfoId: userInfoId,
+         userInfo: userInfo,
+         role: role,
+         tools: tools,
+         organizations: organizations,
+       );
 
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
@@ -183,8 +190,9 @@ class _AppUserImpl extends AppUser {
     return AppUser(
       id: id is int? ? id : this.id,
       userInfoId: userInfoId ?? this.userInfoId,
-      userInfo:
-          userInfo is _i3.UserInfo? ? userInfo : this.userInfo?.copyWith(),
+      userInfo: userInfo is _i3.UserInfo?
+          ? userInfo
+          : this.userInfo?.copyWith(),
       role: role ?? this.role,
       tools: tools ?? this.tools.copyWith(),
       organizations: organizations is List<_i5.OrganizationUserLink>?
@@ -194,8 +202,29 @@ class _AppUserImpl extends AppUser {
   }
 }
 
+class AppUserUpdateTable extends _i1.UpdateTable<AppUserTable> {
+  AppUserUpdateTable(super.table);
+
+  _i1.ColumnValue<int, int> userInfoId(int value) => _i1.ColumnValue(
+    table.userInfoId,
+    value,
+  );
+
+  _i1.ColumnValue<_i2.Role, _i2.Role> role(_i2.Role value) => _i1.ColumnValue(
+    table.role,
+    value,
+  );
+
+  _i1.ColumnValue<_i4.Tools, _i4.Tools> tools(_i4.Tools value) =>
+      _i1.ColumnValue(
+        table.tools,
+        value,
+      );
+}
+
 class AppUserTable extends _i1.Table<int?> {
   AppUserTable({super.tableRelation}) : super(tableName: 'app_user') {
+    updateTable = AppUserUpdateTable(this);
     userInfoId = _i1.ColumnInt(
       'userInfoId',
       this,
@@ -206,11 +235,13 @@ class AppUserTable extends _i1.Table<int?> {
       _i1.EnumSerialization.byName,
       hasDefault: true,
     );
-    tools = _i1.ColumnSerializable(
+    tools = _i1.ColumnSerializable<_i4.Tools>(
       'tools',
       this,
     );
   }
+
+  late final AppUserUpdateTable updateTable;
 
   late final _i1.ColumnInt userInfoId;
 
@@ -218,7 +249,7 @@ class AppUserTable extends _i1.Table<int?> {
 
   late final _i1.ColumnEnum<_i2.Role> role;
 
-  late final _i1.ColumnSerializable tools;
+  late final _i1.ColumnSerializable<_i4.Tools> tools;
 
   _i5.OrganizationUserLinkTable? ___organizations;
 
@@ -263,18 +294,19 @@ class AppUserTable extends _i1.Table<int?> {
     _organizations = _i1.ManyRelation<_i5.OrganizationUserLinkTable>(
       tableWithRelations: relationTable,
       table: _i5.OrganizationUserLinkTable(
-          tableRelation: relationTable.tableRelation!.lastRelation),
+        tableRelation: relationTable.tableRelation!.lastRelation,
+      ),
     );
     return _organizations!;
   }
 
   @override
   List<_i1.Column> get columns => [
-        id,
-        userInfoId,
-        role,
-        tools,
-      ];
+    id,
+    userInfoId,
+    role,
+    tools,
+  ];
 
   @override
   _i1.Table? getRelationTable(String relationField) {
@@ -303,9 +335,9 @@ class AppUserInclude extends _i1.IncludeObject {
 
   @override
   Map<String, _i1.Include?> get includes => {
-        'userInfo': _userInfo,
-        'organizations': _organizations,
-      };
+    'userInfo': _userInfo,
+    'organizations': _organizations,
+  };
 
   @override
   _i1.Table<int?> get table => AppUser.t;
@@ -365,7 +397,7 @@ class AppUserRepository {
   /// );
   /// ```
   Future<List<AppUser>> find(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<AppUserTable>? where,
     int? limit,
     int? offset,
@@ -374,6 +406,8 @@ class AppUserRepository {
     _i1.OrderByListBuilder<AppUserTable>? orderByList,
     _i1.Transaction? transaction,
     AppUserInclude? include,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<AppUser>(
       where: where?.call(AppUser.t),
@@ -384,6 +418,8 @@ class AppUserRepository {
       offset: offset,
       transaction: transaction,
       include: include,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -405,7 +441,7 @@ class AppUserRepository {
   /// );
   /// ```
   Future<AppUser?> findFirstRow(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<AppUserTable>? where,
     int? offset,
     _i1.OrderByBuilder<AppUserTable>? orderBy,
@@ -413,6 +449,8 @@ class AppUserRepository {
     _i1.OrderByListBuilder<AppUserTable>? orderByList,
     _i1.Transaction? transaction,
     AppUserInclude? include,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<AppUser>(
       where: where?.call(AppUser.t),
@@ -422,20 +460,26 @@ class AppUserRepository {
       offset: offset,
       transaction: transaction,
       include: include,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
   /// Finds a single [AppUser] by its [id] or null if no such row exists.
   Future<AppUser?> findById(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     int id, {
     _i1.Transaction? transaction,
     AppUserInclude? include,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<AppUser>(
       id,
       transaction: transaction,
       include: include,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -445,14 +489,20 @@ class AppUserRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<AppUser>> insert(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<AppUser> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<AppUser>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -460,7 +510,7 @@ class AppUserRepository {
   ///
   /// The returned [AppUser] will have its `id` field set.
   Future<AppUser> insertRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     AppUser row, {
     _i1.Transaction? transaction,
   }) async {
@@ -476,7 +526,7 @@ class AppUserRepository {
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
   Future<List<AppUser>> update(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<AppUser> rows, {
     _i1.ColumnSelections<AppUserTable>? columns,
     _i1.Transaction? transaction,
@@ -492,7 +542,7 @@ class AppUserRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<AppUser> updateRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     AppUser row, {
     _i1.ColumnSelections<AppUserTable>? columns,
     _i1.Transaction? transaction,
@@ -504,11 +554,51 @@ class AppUserRepository {
     );
   }
 
+  /// Updates a single [AppUser] by its [id] with the specified [columnValues].
+  /// Returns the updated row or null if no row with the given id exists.
+  Future<AppUser?> updateById(
+    _i1.DatabaseSession session,
+    int id, {
+    required _i1.ColumnValueListBuilder<AppUserUpdateTable> columnValues,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.updateById<AppUser>(
+      id,
+      columnValues: columnValues(AppUser.t.updateTable),
+      transaction: transaction,
+    );
+  }
+
+  /// Updates all [AppUser]s matching the [where] expression with the specified [columnValues].
+  /// Returns the list of updated rows.
+  Future<List<AppUser>> updateWhere(
+    _i1.DatabaseSession session, {
+    required _i1.ColumnValueListBuilder<AppUserUpdateTable> columnValues,
+    required _i1.WhereExpressionBuilder<AppUserTable> where,
+    int? limit,
+    int? offset,
+    _i1.OrderByBuilder<AppUserTable>? orderBy,
+    _i1.OrderByListBuilder<AppUserTable>? orderByList,
+    bool orderDescending = false,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.updateWhere<AppUser>(
+      columnValues: columnValues(AppUser.t.updateTable),
+      where: where(AppUser.t),
+      limit: limit,
+      offset: offset,
+      orderBy: orderBy?.call(AppUser.t),
+      orderByList: orderByList?.call(AppUser.t),
+      orderDescending: orderDescending,
+      transaction: transaction,
+    );
+  }
+
   /// Deletes all [AppUser]s in the list and returns the deleted rows.
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
   Future<List<AppUser>> delete(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<AppUser> rows, {
     _i1.Transaction? transaction,
   }) async {
@@ -520,7 +610,7 @@ class AppUserRepository {
 
   /// Deletes a single [AppUser].
   Future<AppUser> deleteRow(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     AppUser row, {
     _i1.Transaction? transaction,
   }) async {
@@ -532,7 +622,7 @@ class AppUserRepository {
 
   /// Deletes all rows matching the [where] expression.
   Future<List<AppUser>> deleteWhere(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     required _i1.WhereExpressionBuilder<AppUserTable> where,
     _i1.Transaction? transaction,
   }) async {
@@ -545,7 +635,7 @@ class AppUserRepository {
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
+    _i1.DatabaseSession session, {
     _i1.WhereExpressionBuilder<AppUserTable>? where,
     int? limit,
     _i1.Transaction? transaction,
@@ -553,6 +643,22 @@ class AppUserRepository {
     return session.db.count<AppUser>(
       where: where?.call(AppUser.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [AppUser] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<AppUserTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<AppUser>(
+      where: where(AppUser.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }
@@ -564,7 +670,7 @@ class AppUserAttachRepository {
   /// Creates a relation between this [AppUser] and the given [OrganizationUserLink]s
   /// by setting each [OrganizationUserLink]'s foreign key `appUserId` to refer to this [AppUser].
   Future<void> organizations(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     AppUser appUser,
     List<_i5.OrganizationUserLink> organizationUserLink, {
     _i1.Transaction? transaction,
@@ -593,7 +699,7 @@ class AppUserAttachRowRepository {
   /// Creates a relation between the given [AppUser] and [UserInfo]
   /// by setting the [AppUser]'s foreign key `userInfoId` to refer to the [UserInfo].
   Future<void> userInfo(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     AppUser appUser,
     _i3.UserInfo userInfo, {
     _i1.Transaction? transaction,
@@ -616,7 +722,7 @@ class AppUserAttachRowRepository {
   /// Creates a relation between this [AppUser] and the given [OrganizationUserLink]
   /// by setting the [OrganizationUserLink]'s foreign key `appUserId` to refer to this [AppUser].
   Future<void> organizations(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     AppUser appUser,
     _i5.OrganizationUserLink organizationUserLink, {
     _i1.Transaction? transaction,
@@ -628,8 +734,9 @@ class AppUserAttachRowRepository {
       throw ArgumentError.notNull('appUser.id');
     }
 
-    var $organizationUserLink =
-        organizationUserLink.copyWith(appUserId: appUser.id);
+    var $organizationUserLink = organizationUserLink.copyWith(
+      appUserId: appUser.id,
+    );
     await session.db.updateRow<_i5.OrganizationUserLink>(
       $organizationUserLink,
       columns: [_i5.OrganizationUserLink.t.appUserId],
@@ -647,7 +754,7 @@ class AppUserDetachRepository {
   /// This removes the association between the two models without deleting
   /// the related record.
   Future<void> organizations(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     List<_i5.OrganizationUserLink> organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
@@ -655,8 +762,9 @@ class AppUserDetachRepository {
       throw ArgumentError.notNull('organizationUserLink.id');
     }
 
-    var $organizationUserLink =
-        organizationUserLink.map((e) => e.copyWith(appUserId: null)).toList();
+    var $organizationUserLink = organizationUserLink
+        .map((e) => e.copyWith(appUserId: null))
+        .toList();
     await session.db.update<_i5.OrganizationUserLink>(
       $organizationUserLink,
       columns: [_i5.OrganizationUserLink.t.appUserId],
@@ -674,7 +782,7 @@ class AppUserDetachRowRepository {
   /// This removes the association between the two models without deleting
   /// the related record.
   Future<void> organizations(
-    _i1.Session session,
+    _i1.DatabaseSession session,
     _i5.OrganizationUserLink organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {

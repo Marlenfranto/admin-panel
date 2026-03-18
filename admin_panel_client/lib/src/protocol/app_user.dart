@@ -7,6 +7,7 @@
 // ignore_for_file: public_member_api_docs
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
@@ -14,6 +15,7 @@ import 'role.dart' as _i2;
 import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i3;
 import 'tools.dart' as _i4;
 import 'organization_user_link.dart' as _i5;
+import 'package:admin_panel_client/src/protocol/protocol.dart' as _i6;
 
 abstract class AppUser implements _i1.SerializableModel {
   AppUser._({
@@ -40,15 +42,18 @@ abstract class AppUser implements _i1.SerializableModel {
       userInfoId: jsonSerialization['userInfoId'] as int,
       userInfo: jsonSerialization['userInfo'] == null
           ? null
-          : _i3.UserInfo.fromJson(
-              (jsonSerialization['userInfo'] as Map<String, dynamic>)),
-      role: _i2.Role.fromJson((jsonSerialization['role'] as String)),
-      tools: _i4.Tools.fromJson(
-          (jsonSerialization['tools'] as Map<String, dynamic>)),
-      organizations: (jsonSerialization['organizations'] as List?)
-          ?.map((e) =>
-              _i5.OrganizationUserLink.fromJson((e as Map<String, dynamic>)))
-          .toList(),
+          : _i6.Protocol().deserialize<_i3.UserInfo>(
+              jsonSerialization['userInfo'],
+            ),
+      role: jsonSerialization['role'] == null
+          ? null
+          : _i2.Role.fromJson((jsonSerialization['role'] as String)),
+      tools: _i6.Protocol().deserialize<_i4.Tools>(jsonSerialization['tools']),
+      organizations: jsonSerialization['organizations'] == null
+          ? null
+          : _i6.Protocol().deserialize<List<_i5.OrganizationUserLink>>(
+              jsonSerialization['organizations'],
+            ),
     );
   }
 
@@ -81,6 +86,7 @@ abstract class AppUser implements _i1.SerializableModel {
   @override
   Map<String, dynamic> toJson() {
     return {
+      '__className__': 'AppUser',
       if (id != null) 'id': id,
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
@@ -108,13 +114,13 @@ class _AppUserImpl extends AppUser {
     required _i4.Tools tools,
     List<_i5.OrganizationUserLink>? organizations,
   }) : super._(
-          id: id,
-          userInfoId: userInfoId,
-          userInfo: userInfo,
-          role: role,
-          tools: tools,
-          organizations: organizations,
-        );
+         id: id,
+         userInfoId: userInfoId,
+         userInfo: userInfo,
+         role: role,
+         tools: tools,
+         organizations: organizations,
+       );
 
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
@@ -131,8 +137,9 @@ class _AppUserImpl extends AppUser {
     return AppUser(
       id: id is int? ? id : this.id,
       userInfoId: userInfoId ?? this.userInfoId,
-      userInfo:
-          userInfo is _i3.UserInfo? ? userInfo : this.userInfo?.copyWith(),
+      userInfo: userInfo is _i3.UserInfo?
+          ? userInfo
+          : this.userInfo?.copyWith(),
       role: role ?? this.role,
       tools: tools ?? this.tools.copyWith(),
       organizations: organizations is List<_i5.OrganizationUserLink>?

@@ -4,12 +4,46 @@ admin:
   - assignManagerToOrg:
   - getAllOrganizations:
   - getAllUsers:
+  - setModuleConfig:
+  - getModuleConfig:
+  - getTheoryChapters:
+  - upsertTheoryChapter:
+  - deleteTheoryChapter:
+  - getTrainingParameters:
+  - upsertTrainingParameter:
+  - deleteTrainingParameter:
+  - getAssessmentParameters:
+  - upsertAssessmentParameter:
+  - deleteAssessmentParameter:
+  - getAssets:
+  - upsertAsset:
+  - deleteAsset:
 manager:
   - getManagedOrganization:
+  - getManagedOrganizations:
   - createUserAndAssignToOrg:
   - removeUserFromOrganization:
+  - getMyModuleConfig:
+  - updateMyModuleConfig:
+  - getTheoryChapters:
+  - upsertTheoryChapter:
+  - deleteTheoryChapter:
+  - getTrainingParameters:
+  - upsertTrainingParameter:
+  - deleteTrainingParameter:
+  - getAssessmentParameters:
+  - upsertAssessmentParameter:
+  - deleteAssessmentParameter:
+  - getAssets:
+  - upsertAsset:
+  - deleteAsset:
 publicApi:
   - login:
   - updateTools:
 user:
   - getMyPermissions:
+  - getMyOrgModuleConfig:
+  - getTheoryChapters:
+  - getTrainingParameters:
+  - getAssessmentParameters:
+  - changePassword:

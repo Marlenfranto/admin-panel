@@ -7,11 +7,13 @@
 // ignore_for_file: public_member_api_docs
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'app_user.dart' as _i2;
 import 'organization_user_link.dart' as _i3;
+import 'package:admin_panel_client/src/protocol/protocol.dart' as _i4;
 
 abstract class Organization implements _i1.SerializableModel {
   Organization._({
@@ -37,12 +39,14 @@ abstract class Organization implements _i1.SerializableModel {
       managerId: jsonSerialization['managerId'] as int?,
       manager: jsonSerialization['manager'] == null
           ? null
-          : _i2.AppUser.fromJson(
-              (jsonSerialization['manager'] as Map<String, dynamic>)),
-      users: (jsonSerialization['users'] as List?)
-          ?.map((e) =>
-              _i3.OrganizationUserLink.fromJson((e as Map<String, dynamic>)))
-          .toList(),
+          : _i4.Protocol().deserialize<_i2.AppUser>(
+              jsonSerialization['manager'],
+            ),
+      users: jsonSerialization['users'] == null
+          ? null
+          : _i4.Protocol().deserialize<List<_i3.OrganizationUserLink>>(
+              jsonSerialization['users'],
+            ),
     );
   }
 
@@ -72,6 +76,7 @@ abstract class Organization implements _i1.SerializableModel {
   @override
   Map<String, dynamic> toJson() {
     return {
+      '__className__': 'Organization',
       if (id != null) 'id': id,
       'name': name,
       if (managerId != null) 'managerId': managerId,
@@ -96,12 +101,12 @@ class _OrganizationImpl extends Organization {
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
   }) : super._(
-          id: id,
-          name: name,
-          managerId: managerId,
-          manager: manager,
-          users: users,
-        );
+         id: id,
+         name: name,
+         managerId: managerId,
+         manager: manager,
+         users: users,
+       );
 
   /// Returns a shallow copy of this [Organization]
   /// with some or all fields replaced by the given arguments.

@@ -1,0 +1,5 @@
+class: SupportedLanguage
+fields:
+  code: String
+  name: String
+  contentUrl: String?

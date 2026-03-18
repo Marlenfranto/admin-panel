@@ -1,0 +1,15 @@
+class: ModuleConfig
+table: module_config
+fields:
+  organization: Organization?, relation(optional)
+  theoryModule: bool, default=false
+  aiExpertModule: bool, default=false
+  smartTrainingModule: bool, default=false
+  assessmentModule: bool, default=false
+  defaultLanguage: String, default='en'
+  supportedLanguages: List<SupportedLanguage>?
+  aiChatPrompt: String?
+indexes:
+  module_config_organization_idx:
+    fields: organizationId
+    unique: true

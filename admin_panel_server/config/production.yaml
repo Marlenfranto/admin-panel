@@ -30,10 +30,10 @@ webServer:
 # If you are connecting on a public IP (e.g. on AWS or Google Cloud Run), you
 # connect on the public IP of the database e.g. database.examplepod.com.
 database:
-  host: dpg-d5f5san5r7bs73c85p80-a
+  host: ep-bitter-leaf-am5a7l52-pooler.c-5.us-east-1.aws.neon.tech
   port: 5432
-  name: serverpod_znhj_ic6h
-  user: serverpod_znhj_user
+  name: neondb
+  user: neondb_owner
   requireSsl: true
   #isUnixSocket: true # defaults to false
 

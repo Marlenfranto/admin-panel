@@ -1,0 +1,5 @@
+class: QuizQuestion
+fields:
+  question: String
+  answers: List<String>
+  correctAnswer: int

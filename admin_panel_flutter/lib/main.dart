@@ -1,34 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'src/providers.dart';
-import 'src/screens/login_screen.dart';
-import 'src/screens/main_dashboard.dart';
+
+import 'core/router/router.dart';
+import 'core/theme/theme.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: App()));
 }
 
-class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+class App extends ConsumerWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
+    final router = ref.watch(routerProvider);
 
-    return MaterialApp(
-      title: 'Admin Panel',
+    return MaterialApp.router(
+      title: 'FireSafeX Admin',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-      home: authState.isSignedIn? const MainDashboard() : const LoginScreen(),
+      theme: AppTheme.light,
+      themeMode: ThemeMode.light,
+      routerConfig: router,
     );
   }
 }

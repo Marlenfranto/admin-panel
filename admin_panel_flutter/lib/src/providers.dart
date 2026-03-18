@@ -9,7 +9,8 @@ import 'package:serverpod_flutter/serverpod_flutter.dart';
 // Creates a singleton instance of the client, configured for the local server.
 final clientProvider = Provider<Client>((ref) {
   return Client(
-    'https://admin-panel-zi8p.onrender.com/', // Your server's address
+    // 'https://admin-panel-zi8p.onrender.com/', // Your server's address
+    'http://localhost:8080/', // Your server's address
     authenticationKeyManager: FlutterAuthenticationKeyManager(),
   )..connectivityMonitor = FlutterConnectivityMonitor();
 });
@@ -43,11 +44,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // Initialize the notifier by listening to the session manager.
   void _initialize() async {
     final sessionManager = ref.read(sessionManagerProvider);
-    
+
     // Set initial state
     state = AuthState(
       userInfo: sessionManager.signedInUser,
-      appUser: sessionManager.signedInUser != null ? await _fetchAppUser() : null,
+      appUser:
+          sessionManager.signedInUser != null ? await _fetchAppUser() : null,
     );
 
     // Listen for changes in session state and update accordingly.
@@ -61,7 +63,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final sessionManager = ref.read(sessionManagerProvider);
     state = AuthState(
       userInfo: sessionManager.signedInUser,
-      appUser: sessionManager.signedInUser != null ? await _fetchAppUser() : null,
+      appUser:
+          sessionManager.signedInUser != null ? await _fetchAppUser() : null,
     );
   }
 
@@ -81,8 +84,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<bool> login(String email, String password) async {
     try {
       // This custom public endpoint will return session info and tool status
-      final result = await ref.read(clientProvider).publicApi.login(email, password);
-      
+      final result =
+          await ref.read(clientProvider).publicApi.login(email, password);
+
       if (result.success && result.userInfo != null) {
         // If login is successful, register the user with the session manager.
         await ref.read(sessionManagerProvider).registerSignedInUser(
@@ -101,7 +105,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   // Perform logout.
   Future<void> logout() async {
-    await ref.read(sessionManagerProvider).signOut();
+    await ref.read(sessionManagerProvider).signOutDevice();
   }
 }
 

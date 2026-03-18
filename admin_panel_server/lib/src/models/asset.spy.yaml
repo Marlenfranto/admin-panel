@@ -1,0 +1,9 @@
+class: Asset
+table: asset
+fields:
+  organization: Organization?, relation(optional)
+  name: String
+  version: String
+  url: String
+  description: String?
+  module: String

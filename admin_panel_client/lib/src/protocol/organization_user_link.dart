@@ -7,11 +7,13 @@
 // ignore_for_file: public_member_api_docs
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'organization.dart' as _i2;
 import 'app_user.dart' as _i3;
+import 'package:admin_panel_client/src/protocol/protocol.dart' as _i4;
 
 abstract class OrganizationUserLink implements _i1.SerializableModel {
   OrganizationUserLink._({
@@ -31,19 +33,22 @@ abstract class OrganizationUserLink implements _i1.SerializableModel {
   }) = _OrganizationUserLinkImpl;
 
   factory OrganizationUserLink.fromJson(
-      Map<String, dynamic> jsonSerialization) {
+    Map<String, dynamic> jsonSerialization,
+  ) {
     return OrganizationUserLink(
       id: jsonSerialization['id'] as int?,
       organizationId: jsonSerialization['organizationId'] as int,
       organization: jsonSerialization['organization'] == null
           ? null
-          : _i2.Organization.fromJson(
-              (jsonSerialization['organization'] as Map<String, dynamic>)),
+          : _i4.Protocol().deserialize<_i2.Organization>(
+              jsonSerialization['organization'],
+            ),
       appUserId: jsonSerialization['appUserId'] as int,
       appUser: jsonSerialization['appUser'] == null
           ? null
-          : _i3.AppUser.fromJson(
-              (jsonSerialization['appUser'] as Map<String, dynamic>)),
+          : _i4.Protocol().deserialize<_i3.AppUser>(
+              jsonSerialization['appUser'],
+            ),
     );
   }
 
@@ -73,6 +78,7 @@ abstract class OrganizationUserLink implements _i1.SerializableModel {
   @override
   Map<String, dynamic> toJson() {
     return {
+      '__className__': 'OrganizationUserLink',
       if (id != null) 'id': id,
       'organizationId': organizationId,
       if (organization != null) 'organization': organization?.toJson(),
@@ -97,12 +103,12 @@ class _OrganizationUserLinkImpl extends OrganizationUserLink {
     required int appUserId,
     _i3.AppUser? appUser,
   }) : super._(
-          id: id,
-          organizationId: organizationId,
-          organization: organization,
-          appUserId: appUserId,
-          appUser: appUser,
-        );
+         id: id,
+         organizationId: organizationId,
+         organization: organization,
+         appUserId: appUserId,
+         appUser: appUser,
+       );
 
   /// Returns a shallow copy of this [OrganizationUserLink]
   /// with some or all fields replaced by the given arguments.

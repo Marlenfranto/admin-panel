@@ -10,42 +10,17 @@ class ManagerEndpoint extends Endpoint {
   @override
   Set<Scope> get requiredScopes => {AppScopes.manager};
 
-  // Helper to verify manager's authority over an organization
-  Future<Organization> _getAndVerifyManagedOrganization(Session session, int organizationId) async {
+  Future<AppUser?> _getManagerAppUser(Session session) async {
     final authInfo = await session.authenticated;
-    final managerUserInfoId = authInfo?.userId;
-
-    if (managerUserInfoId == null) {
-      throw Exception('Authentication failed.');
-    }
-
-    // Find the manager's AppUser record
-    final managerAppUser = await AppUser.db.findFirstRow(
+    if (authInfo == null) return null;
+    return await AppUser.db.findFirstRow(
       session,
-      where: (u) => u.userInfoId.equals(managerUserInfoId),
+      where: (u) => u.userInfoId.equals(authInfo.userId),
     );
-    if (managerAppUser == null) {
-      throw Exception('Manager profile not found.');
-    }
-
-    // Find the organization and verify the manager
-    final org = await Organization.db.findById(session, organizationId);
-    if (org == null || org.managerId!= managerAppUser.id) {
-      throw Exception('Access denied. You do not manage this organization.');
-    }
-    return org;
   }
 
   Future<Organization?> getManagedOrganization(Session session) async {
-    // This method finds the organization managed by the currently logged-in user.
-    final authInfo = await session.authenticated;
-    final managerUserInfoId = authInfo?.userId;
-    if (managerUserInfoId == null) return null;
-
-    final managerAppUser = await AppUser.db.findFirstRow(
-      session,
-      where: (u) => u.userInfoId.equals(managerUserInfoId),
-    );
+    final managerAppUser = await _getManagerAppUser(session);
     if (managerAppUser == null) return null;
 
     return await Organization.db.findFirstRow(
@@ -53,10 +28,22 @@ class ManagerEndpoint extends Endpoint {
       where: (o) => o.managerId.equals(managerAppUser.id),
       include: Organization.include(
         users: OrganizationUserLink.includeList(
+          include: OrganizationUserLink.include(appUser: AppUser.include(userInfo: UserInfo.include())),
+        ),
+      ),
+    );
+  }
+
+  Future<List<Organization>> getManagedOrganizations(Session session) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) return [];
+    return await Organization.db.find(
+      session,
+      where: (o) => o.managerId.equals(managerAppUser.id),
+      include: Organization.include(
+        users: OrganizationUserLink.includeList(
           include: OrganizationUserLink.include(
-            appUser: AppUser.include(
-              userInfo: UserInfo.include(),
-            ),
+            appUser: AppUser.include(userInfo: UserInfo.include()),
           ),
         ),
       ),
@@ -71,61 +58,269 @@ class ManagerEndpoint extends Endpoint {
     Role role,
     int organizationId,
   ) async {
-    // 1. Create the core UserInfo using the auth module
-    var userInfo = await Users.findUserByEmail(session, email);
-    if (userInfo != null) {
-      throw Exception('User with this email already exists.');
-    }
+    var existingUser = await Users.findUserByEmail(session, email);
+    if (existingUser != null) throw Exception('User with this email already exists.');
 
-    userInfo = UserInfo(
-      userIdentifier: email,
-      email: email,
-      userName: userName,
-      created: DateTime.now().toUtc(),
-      scopeNames: [],
-      blocked: false,
-    );
-    userInfo = (await Emails.createUser(session, userName, email, password))!;
-
+    var userInfo = (await Emails.createUser(session, userName, email, password))!;
     if (userInfo == null) return null;
 
-    // 2. Assign the correct scope based on the role
-    if (role == Role.Manager) {
-      await Users.updateUserScopes(session, userInfo.id!, {AppScopes.manager});
-    } else {
-      await Users.updateUserScopes(session, userInfo.id!, {AppScopes.user});
-    }
+    await Users.updateUserScopes(session, userInfo.id!, {AppScopes.user});
 
-    // 3. Create our custom AppUser
-    var appUser = AppUser(
-      userInfoId: userInfo.id!,
-      role: role,
-      tools: Tools(), // Default tools
-    );
+    var appUser = AppUser(userInfoId: userInfo.id!, role: Role.User, tools: Tools());
     appUser = await AppUser.db.insertRow(session, appUser);
 
-    // 4. Link the user to the organization
     var organization = await Organization.db.findById(session, organizationId);
-    if (organization == null) {
-      throw Exception('Organization not found.');
-    }
+    if (organization == null) throw Exception('Organization not found.');
 
-    var link = OrganizationUserLink(
-      organizationId: organization.id!,
-      appUserId: appUser.id!,
-    );
+    var link = OrganizationUserLink(organizationId: organization.id!, appUserId: appUser.id!);
     await OrganizationUserLink.db.insertRow(session, link);
 
     return appUser;
   }
 
   Future<bool> removeUserFromOrganization(Session session, int appUserId, int organizationId) async {
-    await _getAndVerifyManagedOrganization(session, organizationId); // Record-level security check
-
     await OrganizationUserLink.db.deleteWhere(
       session,
       where: (link) => link.appUserId.equals(appUserId) & link.organizationId.equals(organizationId),
     );
+    return true;
+  }
+
+  // Module config
+
+  Future<ModuleConfig?> getMyModuleConfig(Session session, int organizationId) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) return null;
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) return null;
+
+    return await ModuleConfig.db.findFirstRow(
+      session,
+      where: (c) => c.organizationId.equals(org.id),
+    );
+  }
+
+  Future<ModuleConfig?> updateMyModuleConfig(
+    Session session,
+    int organizationId,
+    bool theoryModule,
+    bool aiExpertModule,
+    bool smartTrainingModule,
+    bool assessmentModule,
+    String? aiChatPrompt,
+  ) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) return null;
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) return null;
+
+    var existing = await ModuleConfig.db.findFirstRow(
+      session,
+      where: (c) => c.organizationId.equals(org.id),
+    );
+
+    if (existing != null) {
+      existing.theoryModule = theoryModule;
+      existing.aiExpertModule = aiExpertModule;
+      existing.smartTrainingModule = smartTrainingModule;
+      existing.assessmentModule = assessmentModule;
+      existing.aiChatPrompt = aiChatPrompt;
+      return await ModuleConfig.db.updateRow(session, existing);
+    } else {
+      var config = ModuleConfig(
+        organizationId: org.id,
+        theoryModule: theoryModule,
+        aiExpertModule: aiExpertModule,
+        smartTrainingModule: smartTrainingModule,
+        assessmentModule: assessmentModule,
+        aiChatPrompt: aiChatPrompt,
+      );
+      return await ModuleConfig.db.insertRow(session, config);
+    }
+  }
+
+  // Theory chapters
+
+  Future<List<TheoryChapter>> getTheoryChapters(Session session, int organizationId) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) return [];
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) return [];
+
+    return await TheoryChapter.db.find(
+      session,
+      where: (c) => c.organizationId.equals(org.id),
+      orderBy: (c) => c.chapterOrder,
+    );
+  }
+
+  Future<TheoryChapter> upsertTheoryChapter(Session session, int organizationId, TheoryChapter chapter) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) throw Exception('Authentication failed.');
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) throw Exception('No managed organization found.');
+
+    chapter.organizationId = organizationId;
+
+    if (chapter.id != null) {
+      return await TheoryChapter.db.updateRow(session, chapter);
+    } else {
+      return await TheoryChapter.db.insertRow(session, chapter);
+    }
+  }
+
+  Future<bool> deleteTheoryChapter(Session session, int chapterId) async {
+    final chapter = await TheoryChapter.db.findById(session, chapterId);
+    if (chapter == null) return false;
+    await TheoryChapter.db.deleteRow(session, chapter);
+    return true;
+  }
+
+  // Training parameters
+
+  Future<List<TrainingParameter>> getTrainingParameters(Session session, int organizationId) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) return [];
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) return [];
+
+    return await TrainingParameter.db.find(
+      session,
+      where: (p) => p.organizationId.equals(org.id),
+    );
+  }
+
+  Future<TrainingParameter> upsertTrainingParameter(Session session, int organizationId, TrainingParameter param) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) throw Exception('Authentication failed.');
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) throw Exception('No managed organization found.');
+
+    param.organizationId = organizationId;
+
+    if (param.id != null) {
+      return await TrainingParameter.db.updateRow(session, param);
+    } else {
+      return await TrainingParameter.db.insertRow(session, param);
+    }
+  }
+
+  Future<bool> deleteTrainingParameter(Session session, int paramId) async {
+    final param = await TrainingParameter.db.findById(session, paramId);
+    if (param == null) return false;
+    await TrainingParameter.db.deleteRow(session, param);
+    return true;
+  }
+
+  // Assessment parameters
+
+  Future<List<AssessmentParameter>> getAssessmentParameters(Session session, int organizationId) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) return [];
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) return [];
+
+    return await AssessmentParameter.db.find(
+      session,
+      where: (p) => p.organizationId.equals(org.id),
+    );
+  }
+
+  Future<AssessmentParameter> upsertAssessmentParameter(Session session, int organizationId, AssessmentParameter param) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) throw Exception('Authentication failed.');
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) throw Exception('No managed organization found.');
+
+    param.organizationId = organizationId;
+
+    if (param.id != null) {
+      return await AssessmentParameter.db.updateRow(session, param);
+    } else {
+      return await AssessmentParameter.db.insertRow(session, param);
+    }
+  }
+
+  Future<bool> deleteAssessmentParameter(Session session, int paramId) async {
+    final param = await AssessmentParameter.db.findById(session, paramId);
+    if (param == null) return false;
+    await AssessmentParameter.db.deleteRow(session, param);
+    return true;
+  }
+
+  // Assets
+
+  Future<List<Asset>> getAssets(Session session, int organizationId) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) return [];
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) return [];
+
+    return await Asset.db.find(
+      session,
+      where: (a) => a.organizationId.equals(org.id),
+    );
+  }
+
+  Future<Asset> upsertAsset(Session session, int organizationId, Asset asset) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) throw Exception('Authentication failed.');
+
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) => o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) throw Exception('No managed organization found.');
+
+    asset.organizationId = organizationId;
+
+    if (asset.id != null) {
+      return await Asset.db.updateRow(session, asset);
+    } else {
+      return await Asset.db.insertRow(session, asset);
+    }
+  }
+
+  Future<bool> deleteAsset(Session session, int assetId) async {
+    final asset = await Asset.db.findById(session, assetId);
+    if (asset == null) return false;
+    await Asset.db.deleteRow(session, asset);
     return true;
   }
 }

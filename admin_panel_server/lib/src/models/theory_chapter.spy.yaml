@@ -1,0 +1,10 @@
+class: TheoryChapter
+table: theory_chapter
+fields:
+  organization: Organization?, relation(optional)
+  chapterOrder: int
+  title: String
+  thumbnailUrl: String?
+  videoUrl: String?
+  videoMetadata: VideoMetadata?
+  questions: List<QuizQuestion>?

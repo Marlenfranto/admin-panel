@@ -7,11 +7,13 @@
 // ignore_for_file: public_member_api_docs
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i2;
 import 'app_user.dart' as _i3;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i4;
 
 abstract class LoginResponse
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
@@ -33,15 +35,17 @@ abstract class LoginResponse
 
   factory LoginResponse.fromJson(Map<String, dynamic> jsonSerialization) {
     return LoginResponse(
-      success: jsonSerialization['success'] as bool,
+      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
       userInfo: jsonSerialization['userInfo'] == null
           ? null
-          : _i2.UserInfo.fromJson(
-              (jsonSerialization['userInfo'] as Map<String, dynamic>)),
+          : _i4.Protocol().deserialize<_i2.UserInfo>(
+              jsonSerialization['userInfo'],
+            ),
       appUser: jsonSerialization['appUser'] == null
           ? null
-          : _i3.AppUser.fromJson(
-              (jsonSerialization['appUser'] as Map<String, dynamic>)),
+          : _i4.Protocol().deserialize<_i3.AppUser>(
+              jsonSerialization['appUser'],
+            ),
       keyId: jsonSerialization['keyId'] as int?,
       key: jsonSerialization['key'] as String?,
     );
@@ -70,6 +74,7 @@ abstract class LoginResponse
   @override
   Map<String, dynamic> toJson() {
     return {
+      '__className__': 'LoginResponse',
       'success': success,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
       if (appUser != null) 'appUser': appUser?.toJson(),
@@ -81,6 +86,7 @@ abstract class LoginResponse
   @override
   Map<String, dynamic> toJsonForProtocol() {
     return {
+      '__className__': 'LoginResponse',
       'success': success,
       if (userInfo != null) 'userInfo': userInfo?.toJsonForProtocol(),
       if (appUser != null) 'appUser': appUser?.toJsonForProtocol(),
@@ -105,12 +111,12 @@ class _LoginResponseImpl extends LoginResponse {
     int? keyId,
     String? key,
   }) : super._(
-          success: success,
-          userInfo: userInfo,
-          appUser: appUser,
-          keyId: keyId,
-          key: key,
-        );
+         success: success,
+         userInfo: userInfo,
+         appUser: appUser,
+         keyId: keyId,
+         key: key,
+       );
 
   /// Returns a shallow copy of this [LoginResponse]
   /// with some or all fields replaced by the given arguments.
@@ -125,8 +131,9 @@ class _LoginResponseImpl extends LoginResponse {
   }) {
     return LoginResponse(
       success: success ?? this.success,
-      userInfo:
-          userInfo is _i2.UserInfo? ? userInfo : this.userInfo?.copyWith(),
+      userInfo: userInfo is _i2.UserInfo?
+          ? userInfo
+          : this.userInfo?.copyWith(),
       appUser: appUser is _i3.AppUser? ? appUser : this.appUser?.copyWith(),
       keyId: keyId is int? ? keyId : this.keyId,
       key: key is String? ? key : this.key,

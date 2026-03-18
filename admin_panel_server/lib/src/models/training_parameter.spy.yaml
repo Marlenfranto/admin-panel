@@ -1,0 +1,13 @@
+class: TrainingParameter
+table: training_parameter
+fields:
+  organization: Organization?, relation(optional)
+  paramId: String
+  name: String
+  description: String
+  maxScore: int
+  logic: String
+  hint: String?
+  feedbackLow: FeedbackLevel
+  feedbackMedium: FeedbackLevel
+  feedbackHigh: FeedbackLevel

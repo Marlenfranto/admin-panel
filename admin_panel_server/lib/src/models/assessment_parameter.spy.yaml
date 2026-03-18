@@ -1,0 +1,12 @@
+class: AssessmentParameter
+table: assessment_parameter
+fields:
+  organization: Organization?, relation(optional)
+  paramId: String
+  name: String
+  description: String
+  maxScore: int
+  logic: String
+  feedbackLow: FeedbackLevel
+  feedbackMedium: FeedbackLevel
+  feedbackHigh: FeedbackLevel

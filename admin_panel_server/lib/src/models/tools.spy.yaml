@@ -3,3 +3,4 @@ fields:
   theory: bool, default=false
   ai: bool, default=false
   training: bool, default=false
+  assessment: bool, default=false
