@@ -1,0 +1,13 @@
+class: ManagerNotification
+table: manager_notification
+fields:
+  managerId: int
+  overdueUserId: int
+  organizationId: int
+  moduleId: String
+  isRead: bool, default=false
+  createdAt: DateTime
+indexes:
+  manager_notification_unique_idx:
+    fields: managerId, overdueUserId, moduleId
+    unique: true

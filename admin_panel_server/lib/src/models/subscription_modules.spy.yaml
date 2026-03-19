@@ -1,0 +1,6 @@
+class: SubscriptionModules
+fields:
+  theoryModule: bool
+  aiExpertModule: bool
+  smartTrainingModule: bool
+  assessmentModule: bool

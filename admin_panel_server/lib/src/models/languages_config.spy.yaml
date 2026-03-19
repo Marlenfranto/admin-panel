@@ -1,0 +1,4 @@
+class: LanguagesConfig
+fields:
+  defaultLanguage: String
+  supported: List<SupportedLanguage>?

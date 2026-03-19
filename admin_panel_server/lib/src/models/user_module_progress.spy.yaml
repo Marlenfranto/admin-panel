@@ -1,0 +1,15 @@
+class: UserModuleProgress
+table: user_module_progress
+fields:
+  appUser: AppUser?, relation(onDelete=Cascade)
+  organization: Organization?, relation(onDelete=Cascade)
+  moduleId: String
+  isEnabled: bool, default=true
+  deadline: DateTime?
+  status: ModuleProgressStatus, default=notStarted
+  startedAt: DateTime?
+  completedAt: DateTime?
+indexes:
+  user_module_progress_unique_idx:
+    fields: appUserId, moduleId, organizationId
+    unique: true

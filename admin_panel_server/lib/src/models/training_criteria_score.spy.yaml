@@ -1,0 +1,4 @@
+class: TrainingCriteriaScore
+fields:
+  parameter: String
+  score: int

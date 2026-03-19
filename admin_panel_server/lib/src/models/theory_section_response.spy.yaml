@@ -1,0 +1,4 @@
+class: TheorySectionResponse
+fields:
+  moduleTitle: String
+  chapters: List<TheoryChapter>

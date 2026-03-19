@@ -1,0 +1,5 @@
+class: CertificateResponse
+fields:
+  success: bool
+  resultId: int?
+  message: String?

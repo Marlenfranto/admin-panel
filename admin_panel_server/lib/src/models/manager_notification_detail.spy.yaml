@@ -1,0 +1,8 @@
+class: ManagerNotificationDetail
+fields:
+  notification: ManagerNotification
+  overdueUserName: String
+  overdueUserEmail: String
+  organizationName: String
+  deadline: DateTime?
+  progressStatus: ModuleProgressStatus

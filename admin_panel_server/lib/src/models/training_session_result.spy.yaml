@@ -1,0 +1,12 @@
+class: TrainingSessionResult
+table: training_session_result
+fields:
+  appUser: AppUser?, relation(optional)
+  organization: Organization?, relation(onDelete=Cascade)
+  externalUserId: String
+  overallPercentage: int
+  criteriaScores: List<TrainingCriteriaScore>?
+  completedAt: DateTime
+indexes:
+  training_session_result_org_idx:
+    fields: organizationId

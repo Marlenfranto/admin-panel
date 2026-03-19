@@ -1,0 +1,8 @@
+class: ModuleConfigPublic
+fields:
+  configId: String
+  lastUpdated: String
+  subscriptionModules: SubscriptionModules
+  languages: LanguagesConfig
+  passingPercentage: int
+  aiChatPrompt: String?

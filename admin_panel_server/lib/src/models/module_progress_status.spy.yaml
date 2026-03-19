@@ -1,0 +1,6 @@
+enum: ModuleProgressStatus
+serialized: byName
+values:
+  - notStarted
+  - inProgress
+  - completed
