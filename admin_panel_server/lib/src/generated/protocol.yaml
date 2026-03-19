@@ -58,6 +58,7 @@ publicApi:
   - getModuleConfig:
   - getLanguages:
   - getAssets:
+  - updateModuleStatus:
   - submitTrainingCertificate:
 user:
   - getMyPermissions:

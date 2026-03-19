@@ -1466,6 +1466,49 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['apiKey'],
                   ),
         ),
+        'updateModuleStatus': _i1.MethodConnector(
+          name: 'updateModuleStatus',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'apiKey': _i1.ParameterDescription(
+              name: 'apiKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'moduleId': _i1.ParameterDescription(
+              name: 'moduleId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'status': _i1.ParameterDescription(
+              name: 'status',
+              type: _i1.getType<_i12.ModuleProgressStatus>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['publicApi'] as _i4.PublicApiEndpoint)
+                  .updateModuleStatus(
+                    session,
+                    params['organizationId'],
+                    params['apiKey'],
+                    params['userId'],
+                    params['moduleId'],
+                    params['status'],
+                  ),
+        ),
         'submitTrainingCertificate': _i1.MethodConnector(
           name: 'submitTrainingCertificate',
           params: {

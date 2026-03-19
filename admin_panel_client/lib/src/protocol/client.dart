@@ -742,6 +742,45 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
+  /// Updates the module progress status for a user, called by the external
+  /// training application when a user starts or completes a module.
+  ///
+  /// The [userId] is the AppUser.id as a string (same convention as
+  /// [submitTrainingCertificate]). The record is created automatically if it
+  /// does not exist yet, using the org-level default for [isEnabled].
+  ///
+  /// Timestamps are managed automatically:
+  /// - [startedAt] is set on the first `inProgress` transition.
+  /// - [completedAt] is set on the first `completed` transition.
+  ///
+  /// Request body:
+  /// ```json
+  /// {
+  ///   "organizationId": 1,
+  ///   "apiKey": "...",
+  ///   "userId": "3",
+  ///   "moduleId": "smartTraining",
+  ///   "status": "completed"
+  /// }
+  /// ```
+  _i2.Future<bool> updateModuleStatus(
+    int organizationId,
+    String apiKey,
+    String userId,
+    String moduleId,
+    _i14.ModuleProgressStatus status,
+  ) => caller.callServerEndpoint<bool>(
+    'publicApi',
+    'updateModuleStatus',
+    {
+      'organizationId': organizationId,
+      'apiKey': apiKey,
+      'userId': userId,
+      'moduleId': moduleId,
+      'status': status,
+    },
+  );
+
   /// Records a completed Smart Training session submitted by the external
   /// training application. Stores the result and returns a confirmation.
   ///

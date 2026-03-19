@@ -287,6 +287,100 @@ class PublicApiEndpoint extends Endpoint {
     );
   }
 
+  // ── Module Status (POST) ────────────────────────────────────────────────────
+
+  /// Updates the module progress status for a user, called by the external
+  /// training application when a user starts or completes a module.
+  ///
+  /// The [userId] is the AppUser.id as a string (same convention as
+  /// [submitTrainingCertificate]). The record is created automatically if it
+  /// does not exist yet, using the org-level default for [isEnabled].
+  ///
+  /// Timestamps are managed automatically:
+  /// - [startedAt] is set on the first `inProgress` transition.
+  /// - [completedAt] is set on the first `completed` transition.
+  ///
+  /// Request body:
+  /// ```json
+  /// {
+  ///   "organizationId": 1,
+  ///   "apiKey": "...",
+  ///   "userId": "3",
+  ///   "moduleId": "smartTraining",
+  ///   "status": "completed"
+  /// }
+  /// ```
+  Future<bool> updateModuleStatus(
+    Session session,
+    int organizationId,
+    String apiKey,
+    String userId,
+    String moduleId,
+    ModuleProgressStatus status,
+  ) async {
+    _validateApiKey(session, apiKey);
+
+    final org = await Organization.db.findById(session, organizationId);
+    if (org == null) throw Exception('Organization not found.');
+
+    final parsedId = int.tryParse(userId);
+    final appUser =
+        parsedId != null ? await AppUser.db.findById(session, parsedId) : null;
+    if (appUser == null) throw Exception('User not found.');
+
+    final now = DateTime.now().toUtc();
+
+    final existing = await UserModuleProgress.db.findFirstRow(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUser.id) &
+          p.organizationId.equals(organizationId) &
+          p.moduleId.equals(moduleId),
+    );
+
+    if (existing != null) {
+      existing.status = status;
+      if (status == ModuleProgressStatus.inProgress &&
+          existing.startedAt == null) {
+        existing.startedAt = now;
+      } else if (status == ModuleProgressStatus.completed &&
+          existing.completedAt == null) {
+        existing.completedAt = now;
+      }
+      await UserModuleProgress.db.updateRow(session, existing);
+    } else {
+      // Derive the org-level default for isEnabled from ModuleConfig.
+      final config = await ModuleConfig.db.findFirstRow(
+        session,
+        where: (c) => c.organizationId.equals(organizationId),
+      );
+      final isEnabled = switch (moduleId) {
+        'theory'        => config?.theoryModule        ?? true,
+        'aiExpert'      => config?.aiExpertModule      ?? true,
+        'smartTraining' => config?.smartTrainingModule ?? true,
+        'assessment'    => config?.assessmentModule    ?? true,
+        _               => true,
+      };
+
+      await UserModuleProgress.db.insertRow(
+        session,
+        UserModuleProgress(
+          appUserId:      appUser.id!,
+          organizationId: organizationId,
+          moduleId:       moduleId,
+          isEnabled:      isEnabled,
+          status:         status,
+          startedAt:
+              status == ModuleProgressStatus.inProgress ? now : null,
+          completedAt:
+              status == ModuleProgressStatus.completed ? now : null,
+        ),
+      );
+    }
+
+    return true;
+  }
+
   // ── Certificate / Training Result (POST) ────────────────────────────────────
 
   /// Records a completed Smart Training session submitted by the external
