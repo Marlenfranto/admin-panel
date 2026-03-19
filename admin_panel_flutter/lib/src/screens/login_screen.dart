@@ -79,16 +79,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Row(
                             children: [
                               Container(
-                                width: 48, height: 48,
+                                width:  52,
+                                height: 52,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color:        Colors.white,
                                   borderRadius: BorderRadius.circular(
                                       AppSpacing.radiusLg),
                                 ),
-                                child: const Icon(
-                                  Icons.bolt_rounded,
-                                  size:  28,
-                                  color: Colors.white,
+                                padding: const EdgeInsets.all(8),
+                                child: Image.asset(
+                                  'assets/images/logo.png',
+                                  fit: BoxFit.contain,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -174,15 +175,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            ShaderMask(
-                              blendMode:    BlendMode.srcIn,
-                              shaderCallback: (b) =>
-                                  AppColors.brandGradient.createShader(b),
-                              child: const Icon(
-                                Icons.bolt_rounded,
-                                size:  32,
-                                color: Colors.white,
-                              ),
+                            Image.asset(
+                              'assets/images/logo.png',
+                              width:  36,
+                              height: 36,
+                              fit:    BoxFit.contain,
                             ),
                             const SizedBox(width: 8),
                             Text('FireSafeX Admin', style: AppTextStyles.headingMd),

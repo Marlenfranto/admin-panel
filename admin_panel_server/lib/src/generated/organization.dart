@@ -21,6 +21,7 @@ abstract class Organization
   Organization._({
     this.id,
     required this.name,
+    this.imageUrl,
     this.managerId,
     this.manager,
     this.users,
@@ -29,6 +30,7 @@ abstract class Organization
   factory Organization({
     int? id,
     required String name,
+    String? imageUrl,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
@@ -38,6 +40,7 @@ abstract class Organization
     return Organization(
       id: jsonSerialization['id'] as int?,
       name: jsonSerialization['name'] as String,
+      imageUrl: jsonSerialization['imageUrl'] as String?,
       managerId: jsonSerialization['managerId'] as int?,
       manager: jsonSerialization['manager'] == null
           ? null
@@ -61,6 +64,8 @@ abstract class Organization
 
   String name;
 
+  String? imageUrl;
+
   int? managerId;
 
   _i2.AppUser? manager;
@@ -76,6 +81,7 @@ abstract class Organization
   Organization copyWith({
     int? id,
     String? name,
+    String? imageUrl,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
@@ -86,6 +92,7 @@ abstract class Organization
       '__className__': 'Organization',
       if (id != null) 'id': id,
       'name': name,
+      if (imageUrl != null) 'imageUrl': imageUrl,
       if (managerId != null) 'managerId': managerId,
       if (manager != null) 'manager': manager?.toJson(),
       if (users != null) 'users': users?.toJson(valueToJson: (v) => v.toJson()),
@@ -98,6 +105,7 @@ abstract class Organization
       '__className__': 'Organization',
       if (id != null) 'id': id,
       'name': name,
+      if (imageUrl != null) 'imageUrl': imageUrl,
       if (managerId != null) 'managerId': managerId,
       if (manager != null) 'manager': manager?.toJsonForProtocol(),
       if (users != null)
@@ -147,12 +155,14 @@ class _OrganizationImpl extends Organization {
   _OrganizationImpl({
     int? id,
     required String name,
+    String? imageUrl,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
   }) : super._(
          id: id,
          name: name,
+         imageUrl: imageUrl,
          managerId: managerId,
          manager: manager,
          users: users,
@@ -165,6 +175,7 @@ class _OrganizationImpl extends Organization {
   Organization copyWith({
     Object? id = _Undefined,
     String? name,
+    Object? imageUrl = _Undefined,
     Object? managerId = _Undefined,
     Object? manager = _Undefined,
     Object? users = _Undefined,
@@ -172,6 +183,7 @@ class _OrganizationImpl extends Organization {
     return Organization(
       id: id is int? ? id : this.id,
       name: name ?? this.name,
+      imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
       managerId: managerId is int? ? managerId : this.managerId,
       manager: manager is _i2.AppUser? ? manager : this.manager?.copyWith(),
       users: users is List<_i3.OrganizationUserLink>?
@@ -189,6 +201,11 @@ class OrganizationUpdateTable extends _i1.UpdateTable<OrganizationTable> {
     value,
   );
 
+  _i1.ColumnValue<String, String> imageUrl(String? value) => _i1.ColumnValue(
+    table.imageUrl,
+    value,
+  );
+
   _i1.ColumnValue<int, int> managerId(int? value) => _i1.ColumnValue(
     table.managerId,
     value,
@@ -202,6 +219,10 @@ class OrganizationTable extends _i1.Table<int?> {
       'name',
       this,
     );
+    imageUrl = _i1.ColumnString(
+      'imageUrl',
+      this,
+    );
     managerId = _i1.ColumnInt(
       'managerId',
       this,
@@ -211,6 +232,8 @@ class OrganizationTable extends _i1.Table<int?> {
   late final OrganizationUpdateTable updateTable;
 
   late final _i1.ColumnString name;
+
+  late final _i1.ColumnString imageUrl;
 
   late final _i1.ColumnInt managerId;
 
@@ -269,6 +292,7 @@ class OrganizationTable extends _i1.Table<int?> {
   List<_i1.Column> get columns => [
     id,
     name,
+    imageUrl,
     managerId,
   ];
 

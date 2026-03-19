@@ -43,6 +43,7 @@ class DashboardShell extends ConsumerStatefulWidget {
     required this.navItems,
     required this.child,
     required this.portalTitle,
+    this.topBarActions,
   });
 
   final List<NavItem> navItems;
@@ -50,6 +51,10 @@ class DashboardShell extends ConsumerStatefulWidget {
 
   /// The portal name shown in the breadcrumb (e.g. "Admin Portal").
   final String portalTitle;
+
+  /// Optional widgets inserted in the top bar before the user chip
+  /// (e.g. a notification bell).
+  final List<Widget>? topBarActions;
 
   @override
   ConsumerState<DashboardShell> createState() => _DashboardShellState();
@@ -100,6 +105,7 @@ class _DashboardShellState extends ConsumerState<DashboardShell> {
         scaffoldKey: _scaffoldKey,
         breadcrumbs: _breadcrumbs(location),
         showHamburger: !showRail,
+        topBarActions: widget.topBarActions,
       ),
       body: Row(
         children: [
@@ -125,11 +131,13 @@ class _TopBar extends ConsumerWidget implements PreferredSizeWidget {
     required this.scaffoldKey,
     required this.breadcrumbs,
     required this.showHamburger,
+    this.topBarActions,
   });
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final List<BreadcrumbItem> breadcrumbs;
   final bool showHamburger;
+  final List<Widget>? topBarActions;
 
   @override
   Size get preferredSize => const Size.fromHeight(AppSpacing.topBarHeight);
@@ -164,19 +172,13 @@ class _TopBar extends ConsumerWidget implements PreferredSizeWidget {
 
             const Spacer(),
 
-            // Search button ───────────────────────────────────────────────
-            // _TopBarIconButton(
-            //   icon: Icons.search_rounded,
-            //   onTap: () {},
-            // ),
-            // const SizedBox(width: AppSpacing.xs),
-
-            // // Notification bell ───────────────────────────────────────────
-            // AppNotificationBell(unreadCount: 0, onTap: () {}),
-
-            // const SizedBox(width: AppSpacing.sm),
-            // Container(width: 1, height: 20, color: AppColors.divider),
-            // const SizedBox(width: AppSpacing.sm),
+            // Top-bar actions (e.g. notification bell) ───────────────────
+            if (topBarActions != null) ...[
+              ...topBarActions!,
+              const SizedBox(width: AppSpacing.sm),
+              Container(width: 1, height: 20, color: AppColors.divider),
+              const SizedBox(width: AppSpacing.sm),
+            ],
 
             // User chip ───────────────────────────────────────────────────
             _UserChip(
@@ -419,15 +421,11 @@ class _LogoBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Row(
         children: [
-          ShaderMask(
-            blendMode: BlendMode.srcIn,
-            shaderCallback: (bounds) =>
-                AppColors.brandGradient.createShader(bounds),
-            child: const Icon(
-              Icons.bolt_rounded,
-              size: 24,
-              color: Colors.white,
-            ),
+          Image.asset(
+            'assets/images/logo.png',
+            width:  28,
+            height: 28,
+            fit:    BoxFit.contain,
           ),
           const SizedBox(width: 8),
           Text('FireSafeX', style: AppTextStyles.headingSm),
@@ -441,15 +439,11 @@ class _LogoIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: ShaderMask(
-        blendMode: BlendMode.srcIn,
-        shaderCallback: (bounds) =>
-            AppColors.brandGradient.createShader(bounds),
-        child: const Icon(
-          Icons.bolt_rounded,
-          size: 24,
-          color: Colors.white,
-        ),
+      child: Image.asset(
+        'assets/images/logo.png',
+        width:  28,
+        height: 28,
+        fit:    BoxFit.contain,
       ),
     );
   }
@@ -584,15 +578,11 @@ class _NavDrawer extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  ShaderMask(
-                    blendMode: BlendMode.srcIn,
-                    shaderCallback: (bounds) =>
-                        AppColors.brandGradient.createShader(bounds),
-                    child: const Icon(
-                      Icons.bolt_rounded,
-                      size: 24,
-                      color: Colors.white,
-                    ),
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width:  28,
+                    height: 28,
+                    fit:    BoxFit.contain,
                   ),
                   const SizedBox(width: 8),
                   Text(portalTitle, style: AppTextStyles.headingSm),

@@ -89,6 +89,7 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
   bool _ai         = false;
   bool _training   = false;
   bool _assessment = false;
+  int  _passing    = 60;
 
   final _defaultLangCtrl = TextEditingController(text: 'en');
   final _aiPromptCtrl    = TextEditingController();
@@ -115,6 +116,7 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
         _ai         = config.aiExpertModule;
         _training   = config.smartTrainingModule;
         _assessment = config.assessmentModule;
+        _passing    = config.passingPercentage;
         _defaultLangCtrl.text = config.defaultLanguage;
         _aiPromptCtrl.text    = config.aiChatPrompt ?? '';
         _languages = (config.supportedLanguages ?? [])
@@ -126,6 +128,7 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
             .toList();
       } else {
         _theory = _ai = _training = _assessment = false;
+        _passing = 60;
         _defaultLangCtrl.text = 'en';
         _aiPromptCtrl.text    = '';
         _languages = [];
@@ -149,6 +152,7 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                 : _defaultLangCtrl.text.trim(),
             _languages.map((l) => l.toModel()).toList(),
             prompt.isEmpty ? null : prompt,
+            _passing,
           );
       ref.invalidate(moduleConfigProvider(_selectedOrg!.id!));
       if (mounted) {
@@ -278,6 +282,15 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                     onChange: (v) => setState(() => _assessment = v),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // ── Passing score ─────────────────────────────────────────────
+            _SectionCard(
+              child: _PassingScoreRow(
+                value:    _passing,
+                onChanged: (v) => setState(() => _passing = v),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -496,9 +509,152 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                 ),
               ],
             ),
+
+            const SizedBox(height: AppSpacing.xl),
+            const Divider(),
+            const SizedBox(height: AppSpacing.lg),
+
+            // ── Per-user module configuration ─────────────────────────────
+            UserModuleConfigPanel(
+              orgUsers: _selectedOrg!.users
+                      ?.map((l) => l.appUser)
+                      .whereType<AppUser>()
+                      .where((u) => u.role == Role.User)
+                      .toList() ??
+                  [],
+              globalEnabled: {
+                'theory':        _theory,
+                'aiExpert':      _ai,
+                'smartTraining': _training,
+                'assessment':    _assessment,
+              },
+              onLoadProgress: (userId) => ref
+                  .read(clientProvider)
+                  .admin
+                  .getUserModuleProgress(userId, _selectedOrg!.id!),
+              onSaveProgress: (userId, states) async {
+                for (final s in states) {
+                  await ref.read(clientProvider).admin.setUserModuleProgress(
+                        userId,
+                        _selectedOrg!.id!,
+                        s.moduleId,
+                        s.isEnabled,
+                        s.deadline,
+                      );
+                  await ref.read(clientProvider).admin.updateUserModuleStatus(
+                        userId,
+                        _selectedOrg!.id!,
+                        s.moduleId,
+                        s.status,
+                        s.startedAt,
+                        s.completedAt,
+                      );
+                }
+              },
+            ),
           ],
         ],
       ),
+    );
+  }
+}
+
+// ── Passing score row ─────────────────────────────────────────────────────────
+
+class _PassingScoreRow extends StatelessWidget {
+  const _PassingScoreRow({required this.value, required this.onChanged});
+
+  final int                  value;
+  final ValueChanged<int>    onChanged;
+
+  // Colour shifts green → amber → red as the threshold rises.
+  Color get _color {
+    if (value >= 80) return AppColors.success;
+    if (value >= 50) return AppColors.training; // amber
+    return AppColors.error;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _color;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _CardHeader(
+          icon:     Icons.emoji_events_rounded,
+          color:    color,
+          title:    'Passing Score',
+          subtitle: 'Minimum percentage a user must score to pass any module',
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Percentage badge
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width:  76,
+              height: 76,
+              decoration: BoxDecoration(
+                color:        color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                border: Border.all(color: color.withValues(alpha: 0.30)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '$value',
+                    style: AppTextStyles.headingLg.copyWith(color: color),
+                  ),
+                  Text('%', style: AppTextStyles.labelMd.copyWith(color: color)),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+
+            // Slider + tick labels
+            Expanded(
+              child: Column(
+                children: [
+                  SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight:          4,
+                      activeTrackColor:     color,
+                      inactiveTrackColor:   color.withValues(alpha: 0.15),
+                      thumbColor:           color,
+                      overlayColor:         color.withValues(alpha: 0.12),
+                      thumbShape:           const RoundSliderThumbShape(
+                                              enabledThumbRadius: 8),
+                      overlayShape:         const RoundSliderOverlayShape(
+                                              overlayRadius: 18),
+                    ),
+                    child: Slider(
+                      value:      value.toDouble(),
+                      min:        0,
+                      max:        100,
+                      divisions:  100,
+                      onChanged:  (v) => onChanged(v.round()),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('0%',   style: AppTextStyles.bodyXs),
+                        Text('50%',  style: AppTextStyles.bodyXs),
+                        Text('100%', style: AppTextStyles.bodyXs),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -722,3 +878,4 @@ class _RemoveButtonState extends State<_RemoveButton> {
     );
   }
 }
+

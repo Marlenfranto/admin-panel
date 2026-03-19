@@ -76,3 +76,37 @@ final managerAssetsProvider = FutureProvider<List<Asset>>((ref) async {
   if (orgId == null) return [];
   return ref.watch(clientProvider).manager.getAssets(orgId);
 });
+
+// ── User module progress (per org + user) ────────────────────────────────────
+final managerUserModuleProgressProvider =
+    FutureProvider.family<List<UserModuleProgress>, (int orgId, int userId)>(
+        (ref, args) async {
+  final (orgId, userId) = args;
+  return ref
+      .watch(clientProvider)
+      .manager
+      .getUserModuleProgress(userId, orgId);
+});
+
+// ── Training history (per org + user) ────────────────────────────────────────
+final managerTrainingHistoryProvider = FutureProvider.family<
+    List<TrainingSessionResult>, (int orgId, int userId)>((ref, args) async {
+  final (orgId, userId) = args;
+  return ref
+      .watch(clientProvider)
+      .manager
+      .getUserTrainingHistory(userId, orgId);
+});
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+/// Notification details for a specific org; auto-syncs overdue records.
+final managerNotificationsProvider = FutureProvider.family<
+    List<ManagerNotificationDetail>, int>((ref, orgId) async {
+  return ref.watch(clientProvider).manager.getNotifications(orgId);
+});
+
+/// Total unread notification count across all managed orgs.
+final managerUnreadCountProvider = FutureProvider<int>((ref) async {
+  return ref.watch(clientProvider).manager.getUnreadNotificationCount();
+});

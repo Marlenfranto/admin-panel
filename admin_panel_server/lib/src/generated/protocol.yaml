@@ -18,6 +18,10 @@ admin:
   - getAssets:
   - upsertAsset:
   - deleteAsset:
+  - getUserModuleProgress:
+  - setUserModuleProgress:
+  - getUserTrainingHistory:
+  - updateUserModuleStatus:
 manager:
   - getManagedOrganization:
   - getManagedOrganizations:
@@ -37,9 +41,24 @@ manager:
   - getAssets:
   - upsertAsset:
   - deleteAsset:
+  - getUserModuleProgress:
+  - setUserModuleProgress:
+  - updateUserModuleStatus:
+  - getUserTrainingHistory:
+  - getNotifications:
+  - getUnreadNotificationCount:
+  - markNotificationRead:
+  - markAllNotificationsRead:
+  - deleteNotification:
 publicApi:
   - login:
-  - updateTools:
+  - getTheorySection:
+  - getTrainingParameters:
+  - getAssessmentParameters:
+  - getModuleConfig:
+  - getLanguages:
+  - getAssets:
+  - submitTrainingCertificate:
 user:
   - getMyPermissions:
   - getMyOrgModuleConfig:
@@ -47,3 +66,7 @@ user:
   - getTrainingParameters:
   - getAssessmentParameters:
   - changePassword:
+  - getMyModuleProgress:
+  - submitTrainingResult:
+  - getMyTrainingHistory:
+  - updateMyModuleStatus:

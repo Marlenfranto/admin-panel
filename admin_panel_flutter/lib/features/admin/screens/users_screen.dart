@@ -90,6 +90,14 @@ class UsersScreen extends ConsumerWidget {
 
           // ── Users table ───────────────────────────────────────────────────
           _UsersTable(usersAsync: usersAsync),
+          const SizedBox(height: AppSpacing.lg),
+
+          // ── All users training history ─────────────────────────────────────
+          AllUsersTrainingHistoryPanel(
+            users: users.where((u) => u.role == Role.User).toList(),
+            historyLoader: (userId) =>
+                ref.read(clientProvider).admin.getUserTrainingHistory(userId),
+          ),
         ],
       ),
     );

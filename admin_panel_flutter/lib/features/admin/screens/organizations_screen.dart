@@ -1,6 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:admin_panel_client/admin_panel_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../../core/services/cloudinary_uploader.dart';
 
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/widgets.dart';
@@ -74,19 +79,41 @@ class OrganizationsScreen extends ConsumerWidget {
 
   void _showAddSheet(BuildContext context, WidgetRef ref) {
     final nameCtrl = TextEditingController();
+    // Shared state captured by both the form body and the onSave closure.
+    Uint8List? pickedBytes;
+    String?    pickedName;
+
     AppSideSheet.show(
       context:   context,
       title:     'Add Organization',
       saveLabel: 'Create',
-      body:      _OrgFormBody(nameCtrl: nameCtrl),
+      body: _OrgFormBody(
+        nameCtrl: nameCtrl,
+        onImageChanged: (bytes, name) {
+          pickedBytes = bytes;
+          pickedName  = name;
+        },
+      ),
       onSave: () async {
         if (nameCtrl.text.trim().isEmpty) {
           throw Exception('Organization name is required.');
         }
+
+        String? imageUrl;
+        if (pickedBytes != null) {
+          final ext  = (pickedName?.split('.').last ?? 'jpg').toLowerCase();
+          final name = '${DateTime.now().millisecondsSinceEpoch}.$ext';
+          imageUrl = await CloudinaryUploader.uploadImage(
+            pickedBytes!,
+            fileName: name,
+            folder:   'organizations',
+          );
+        }
+
         await ref
             .read(clientProvider)
             .admin
-            .createOrganization(nameCtrl.text.trim());
+            .createOrganization(nameCtrl.text.trim(), imageUrl);
         ref.invalidate(allOrganizationsProvider);
       },
     );
@@ -197,7 +224,7 @@ class _OrgsTable extends StatelessWidget {
                     '${o.name} ${o.manager?.userInfo?.userName ?? ''}',
                 cellBuilder: (o) => Row(
                   children: [
-                    _OrgAvatar(name: o.name),
+                    _OrgAvatar(name: o.name, imageUrl: o.imageUrl),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -277,12 +304,36 @@ class _OrgsTable extends StatelessWidget {
 // ── Row sub-widgets ───────────────────────────────────────────────────────────
 
 class _OrgAvatar extends StatelessWidget {
-  const _OrgAvatar({required this.name});
-  final String name;
+  const _OrgAvatar({required this.name, this.imageUrl});
+  final String  name;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        child: Image.network(
+          imageUrl!,
+          width:        34,
+          height:       34,
+          fit:          BoxFit.cover,
+          errorBuilder: (_, __, ___) => _Initials(initial: initial),
+        ),
+      );
+    }
+    return _Initials(initial: initial);
+  }
+}
+
+class _Initials extends StatelessWidget {
+  const _Initials({required this.initial});
+  final String initial;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width:  34,
       height: 34,
@@ -375,11 +426,49 @@ class _MembersBadge extends StatelessWidget {
   }
 }
 
-// ── Add Org form body (side sheet) ───────────────────────────────────────────
+// ── Add Org form body (side sheet) ────────────────────────────────────────────
 
-class _OrgFormBody extends StatelessWidget {
-  const _OrgFormBody({required this.nameCtrl});
-  final TextEditingController nameCtrl;
+class _OrgFormBody extends StatefulWidget {
+  const _OrgFormBody({
+    required this.nameCtrl,
+    required this.onImageChanged,
+  });
+
+  final TextEditingController                          nameCtrl;
+  final void Function(Uint8List? bytes, String? name) onImageChanged;
+
+  @override
+  State<_OrgFormBody> createState() => _OrgFormBodyState();
+}
+
+class _OrgFormBodyState extends State<_OrgFormBody> {
+  Uint8List? _imageBytes;
+  bool       _picking = false;
+
+  Future<void> _pickImage() async {
+    if (_picking) return;
+    setState(() => _picking = true);
+    try {
+      final file = await ImagePicker().pickImage(
+        source:       ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth:     512,
+        maxHeight:    512,
+      );
+      if (file != null) {
+        final bytes = await file.readAsBytes();
+        setState(() => _imageBytes = bytes);
+        widget.onImageChanged(bytes, file.name);
+      }
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
+  void _clearImage() {
+    setState(() => _imageBytes = null);
+    widget.onImageChanged(null, null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -390,10 +479,184 @@ class _OrgFormBody extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         SheetField(
           label:      'Name',
-          controller: nameCtrl,
+          controller: widget.nameCtrl,
           hint:       'e.g. Acme Corp',
         ),
+        const SizedBox(height: AppSpacing.lg),
+
+        const SheetSection(title: 'Organization Image'),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ImagePickerBox(
+              bytes:   _imageBytes,
+              picking: _picking,
+              onPick:  _pickImage,
+              onClear: _clearImage,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 6),
+                  Text(
+                    'Optional',
+                    style: AppTextStyles.labelMd,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'PNG, JPG or WebP.\nMax 5 MB. Will be shown in the organizations table.',
+                    style: AppTextStyles.bodyXs,
+                  ),
+                  if (_imageBytes != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    GestureDetector(
+                      onTap: _clearImage,
+                      child: Text(
+                        'Remove image',
+                        style: AppTextStyles.bodyXs.copyWith(
+                          color: AppColors.error,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+}
+
+// ── Image picker box ──────────────────────────────────────────────────────────
+
+class _ImagePickerBox extends StatefulWidget {
+  const _ImagePickerBox({
+    required this.bytes,
+    required this.picking,
+    required this.onPick,
+    required this.onClear,
+  });
+
+  final Uint8List?   bytes;
+  final bool         picking;
+  final VoidCallback onPick;
+  final VoidCallback onClear;
+
+  @override
+  State<_ImagePickerBox> createState() => _ImagePickerBoxState();
+}
+
+class _ImagePickerBoxState extends State<_ImagePickerBox> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 88.0;
+    final hasImage = widget.bytes != null;
+
+    return MouseRegion(
+      cursor:  SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit:  (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: hasImage ? null : widget.onPick,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Main box
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width:  size,
+              height: size,
+              decoration: BoxDecoration(
+                color: hasImage
+                    ? Colors.transparent
+                    : _hovered
+                        ? AppColors.primary.withValues(alpha: 0.06)
+                        : AppColors.surface,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                border: Border.all(
+                  color: hasImage
+                      ? AppColors.primary.withValues(alpha: 0.35)
+                      : _hovered
+                          ? AppColors.primary.withValues(alpha: 0.5)
+                          : AppColors.divider,
+                ),
+              ),
+              child: hasImage
+                  ? ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusLg - 1),
+                      child: Image.memory(
+                        widget.bytes!,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : widget.picking
+                      ? const Center(
+                          child: SizedBox(
+                            width:  22,
+                            height: 22,
+                            child:  CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate_rounded,
+                              size:  26,
+                              color: _hovered
+                                  ? AppColors.primary
+                                  : AppColors.onSurfaceSubtle,
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              'Upload',
+                              style: AppTextStyles.bodyXs.copyWith(
+                                color: _hovered
+                                    ? AppColors.primary
+                                    : AppColors.onSurfaceSubtle,
+                              ),
+                            ),
+                          ],
+                        ),
+            ),
+
+            // ✕ remove button (top-right corner when image is picked)
+            if (hasImage)
+              Positioned(
+                top:   -7,
+                right: -7,
+                child: GestureDetector(
+                  onTap: widget.onClear,
+                  child: Container(
+                    width:  20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color:  AppColors.error,
+                      shape:  BoxShape.circle,
+                      border: Border.all(
+                          color: AppColors.surfaceVariant, width: 1.5),
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size:  11,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

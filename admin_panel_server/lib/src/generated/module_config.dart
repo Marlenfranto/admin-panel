@@ -29,11 +29,13 @@ abstract class ModuleConfig
     String? defaultLanguage,
     this.supportedLanguages,
     this.aiChatPrompt,
+    int? passingPercentage,
   }) : theoryModule = theoryModule ?? false,
        aiExpertModule = aiExpertModule ?? false,
        smartTrainingModule = smartTrainingModule ?? false,
        assessmentModule = assessmentModule ?? false,
-       defaultLanguage = defaultLanguage ?? 'en';
+       defaultLanguage = defaultLanguage ?? 'en',
+       passingPercentage = passingPercentage ?? 60;
 
   factory ModuleConfig({
     int? id,
@@ -46,6 +48,7 @@ abstract class ModuleConfig
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    int? passingPercentage,
   }) = _ModuleConfigImpl;
 
   factory ModuleConfig.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -80,6 +83,7 @@ abstract class ModuleConfig
               jsonSerialization['supportedLanguages'],
             ),
       aiChatPrompt: jsonSerialization['aiChatPrompt'] as String?,
+      passingPercentage: jsonSerialization['passingPercentage'] as int?,
     );
   }
 
@@ -108,6 +112,8 @@ abstract class ModuleConfig
 
   String? aiChatPrompt;
 
+  int passingPercentage;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -125,6 +131,7 @@ abstract class ModuleConfig
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    int? passingPercentage,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -143,6 +150,7 @@ abstract class ModuleConfig
           valueToJson: (v) => v.toJson(),
         ),
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
+      'passingPercentage': passingPercentage,
     };
   }
 
@@ -164,6 +172,7 @@ abstract class ModuleConfig
           valueToJson: (v) => v.toJsonForProtocol(),
         ),
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
+      'passingPercentage': passingPercentage,
     };
   }
 
@@ -211,6 +220,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    int? passingPercentage,
   }) : super._(
          id: id,
          organizationId: organizationId,
@@ -222,6 +232,7 @@ class _ModuleConfigImpl extends ModuleConfig {
          defaultLanguage: defaultLanguage,
          supportedLanguages: supportedLanguages,
          aiChatPrompt: aiChatPrompt,
+         passingPercentage: passingPercentage,
        );
 
   /// Returns a shallow copy of this [ModuleConfig]
@@ -239,6 +250,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     String? defaultLanguage,
     Object? supportedLanguages = _Undefined,
     Object? aiChatPrompt = _Undefined,
+    int? passingPercentage,
   }) {
     return ModuleConfig(
       id: id is int? ? id : this.id,
@@ -257,6 +269,7 @@ class _ModuleConfigImpl extends ModuleConfig {
           ? supportedLanguages
           : this.supportedLanguages?.map((e0) => e0.copyWith()).toList(),
       aiChatPrompt: aiChatPrompt is String? ? aiChatPrompt : this.aiChatPrompt,
+      passingPercentage: passingPercentage ?? this.passingPercentage,
     );
   }
 }
@@ -307,6 +320,11 @@ class ModuleConfigUpdateTable extends _i1.UpdateTable<ModuleConfigTable> {
         table.aiChatPrompt,
         value,
       );
+
+  _i1.ColumnValue<int, int> passingPercentage(int value) => _i1.ColumnValue(
+    table.passingPercentage,
+    value,
+  );
 }
 
 class ModuleConfigTable extends _i1.Table<int?> {
@@ -349,6 +367,11 @@ class ModuleConfigTable extends _i1.Table<int?> {
       'aiChatPrompt',
       this,
     );
+    passingPercentage = _i1.ColumnInt(
+      'passingPercentage',
+      this,
+      hasDefault: true,
+    );
   }
 
   late final ModuleConfigUpdateTable updateTable;
@@ -371,6 +394,8 @@ class ModuleConfigTable extends _i1.Table<int?> {
   supportedLanguages;
 
   late final _i1.ColumnString aiChatPrompt;
+
+  late final _i1.ColumnInt passingPercentage;
 
   _i2.OrganizationTable get organization {
     if (_organization != null) return _organization!;
@@ -396,6 +421,7 @@ class ModuleConfigTable extends _i1.Table<int?> {
     defaultLanguage,
     supportedLanguages,
     aiChatPrompt,
+    passingPercentage,
   ];
 
   @override

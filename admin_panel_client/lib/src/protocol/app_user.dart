@@ -13,9 +13,8 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'role.dart' as _i2;
 import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i3;
-import 'tools.dart' as _i4;
-import 'organization_user_link.dart' as _i5;
-import 'package:admin_panel_client/src/protocol/protocol.dart' as _i6;
+import 'organization_user_link.dart' as _i4;
+import 'package:admin_panel_client/src/protocol/protocol.dart' as _i5;
 
 abstract class AppUser implements _i1.SerializableModel {
   AppUser._({
@@ -23,7 +22,6 @@ abstract class AppUser implements _i1.SerializableModel {
     required this.userInfoId,
     this.userInfo,
     _i2.Role? role,
-    required this.tools,
     this.organizations,
   }) : role = role ?? _i2.Role.User;
 
@@ -32,8 +30,7 @@ abstract class AppUser implements _i1.SerializableModel {
     required int userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
-    required _i4.Tools tools,
-    List<_i5.OrganizationUserLink>? organizations,
+    List<_i4.OrganizationUserLink>? organizations,
   }) = _AppUserImpl;
 
   factory AppUser.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -42,16 +39,15 @@ abstract class AppUser implements _i1.SerializableModel {
       userInfoId: jsonSerialization['userInfoId'] as int,
       userInfo: jsonSerialization['userInfo'] == null
           ? null
-          : _i6.Protocol().deserialize<_i3.UserInfo>(
+          : _i5.Protocol().deserialize<_i3.UserInfo>(
               jsonSerialization['userInfo'],
             ),
       role: jsonSerialization['role'] == null
           ? null
           : _i2.Role.fromJson((jsonSerialization['role'] as String)),
-      tools: _i6.Protocol().deserialize<_i4.Tools>(jsonSerialization['tools']),
       organizations: jsonSerialization['organizations'] == null
           ? null
-          : _i6.Protocol().deserialize<List<_i5.OrganizationUserLink>>(
+          : _i5.Protocol().deserialize<List<_i4.OrganizationUserLink>>(
               jsonSerialization['organizations'],
             ),
     );
@@ -68,9 +64,7 @@ abstract class AppUser implements _i1.SerializableModel {
 
   _i2.Role role;
 
-  _i4.Tools tools;
-
-  List<_i5.OrganizationUserLink>? organizations;
+  List<_i4.OrganizationUserLink>? organizations;
 
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
@@ -80,8 +74,7 @@ abstract class AppUser implements _i1.SerializableModel {
     int? userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
-    _i4.Tools? tools,
-    List<_i5.OrganizationUserLink>? organizations,
+    List<_i4.OrganizationUserLink>? organizations,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -91,7 +84,6 @@ abstract class AppUser implements _i1.SerializableModel {
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
       'role': role.toJson(),
-      'tools': tools.toJson(),
       if (organizations != null)
         'organizations': organizations?.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -111,14 +103,12 @@ class _AppUserImpl extends AppUser {
     required int userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
-    required _i4.Tools tools,
-    List<_i5.OrganizationUserLink>? organizations,
+    List<_i4.OrganizationUserLink>? organizations,
   }) : super._(
          id: id,
          userInfoId: userInfoId,
          userInfo: userInfo,
          role: role,
-         tools: tools,
          organizations: organizations,
        );
 
@@ -131,7 +121,6 @@ class _AppUserImpl extends AppUser {
     int? userInfoId,
     Object? userInfo = _Undefined,
     _i2.Role? role,
-    _i4.Tools? tools,
     Object? organizations = _Undefined,
   }) {
     return AppUser(
@@ -141,8 +130,7 @@ class _AppUserImpl extends AppUser {
           ? userInfo
           : this.userInfo?.copyWith(),
       role: role ?? this.role,
-      tools: tools ?? this.tools.copyWith(),
-      organizations: organizations is List<_i5.OrganizationUserLink>?
+      organizations: organizations is List<_i4.OrganizationUserLink>?
           ? organizations
           : this.organizations?.map((e0) => e0.copyWith()).toList(),
     );

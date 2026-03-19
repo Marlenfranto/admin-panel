@@ -107,8 +107,21 @@ class ManagerTeamScreen extends ConsumerWidget {
             users:      users,
             isLoading:  orgsAsync.isLoading,
             org:        activeOrg,
+            orgId:      activeOrgId,
             onRemove:   (u) => _removeUser(context, ref, u, activeOrg!),
           ),
+          if (activeOrgId != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+
+            // ── All users training history ────────────────────────────────
+            AllUsersTrainingHistoryPanel(
+              users: users,
+              historyLoader: (userId) => ref
+                  .read(clientProvider)
+                  .manager
+                  .getUserTrainingHistory(userId, activeOrgId),
+            ),
+          ],
         ],
       ),
     );
@@ -222,12 +235,14 @@ class _MembersTable extends StatelessWidget {
     required this.users,
     required this.isLoading,
     required this.org,
+    required this.orgId,
     required this.onRemove,
   });
 
   final List<AppUser>   users;
   final bool            isLoading;
   final Organization?   org;
+  final int?            orgId;
   final void Function(AppUser) onRemove;
 
   @override
@@ -308,11 +323,9 @@ class _MembersTable extends StatelessWidget {
               ),
               AppTableColumn(
                 label:     'Actions',
-                flex:      1,
+                flex:      2,
                 alignment: Alignment.center,
-                cellBuilder: (u) => _RemoveButton(
-                  onTap: () => onRemove(u),
-                ),
+                cellBuilder: (u) => _RemoveButton(onTap: () => onRemove(u)),
               ),
             ],
           ),

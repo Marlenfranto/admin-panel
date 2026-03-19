@@ -91,4 +91,126 @@ class UserEndpoint extends Endpoint {
       newPassword,
     );
   }
+
+  // ── Module progress ───────────────────────────────────────────────────────
+
+  Future<List<UserModuleProgress>> getMyModuleProgress(Session session) async {
+    final authInfo = await session.authenticated;
+    if (authInfo == null) return [];
+
+    final appUser = await AppUser.db.findFirstRow(
+      session,
+      where: (u) => u.userInfoId.equals(authInfo.userId),
+    );
+    if (appUser == null) return [];
+
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return [];
+
+    return await UserModuleProgress.db.find(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUser.id) & p.organizationId.equals(orgId),
+    );
+  }
+
+  // ── Training session results ───────────────────────────────────────────────
+
+  /// Records a completed Smart Training attempt for the authenticated user.
+  Future<TrainingSessionResult?> submitTrainingResult(
+    Session session,
+    String externalUserId,
+    int overallPercentage,
+    List<TrainingCriteriaScore> criteriaScores,
+  ) async {
+    final authInfo = await session.authenticated;
+    if (authInfo == null) return null;
+
+    final appUser = await AppUser.db.findFirstRow(
+      session,
+      where: (u) => u.userInfoId.equals(authInfo.userId),
+    );
+    if (appUser == null) return null;
+
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return null;
+
+    final result = TrainingSessionResult(
+      appUserId: appUser.id!,
+      organizationId: orgId,
+      externalUserId: externalUserId,
+      overallPercentage: overallPercentage,
+      criteriaScores: criteriaScores,
+      completedAt: DateTime.now().toUtc(),
+    );
+    return await TrainingSessionResult.db.insertRow(session, result);
+  }
+
+  /// Returns all Smart Training attempts for the authenticated user, newest first.
+  Future<List<TrainingSessionResult>> getMyTrainingHistory(
+      Session session) async {
+    final authInfo = await session.authenticated;
+    if (authInfo == null) return [];
+
+    final appUser = await AppUser.db.findFirstRow(
+      session,
+      where: (u) => u.userInfoId.equals(authInfo.userId),
+    );
+    if (appUser == null) return [];
+
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return [];
+
+    // Match by appUserId (authenticated submissions) OR by externalUserId
+    // (submissions from the external training app via the public API, which
+    // store appUserId as null but send the AppUser.id as a string userId).
+    final results = await TrainingSessionResult.db.find(
+      session,
+      where: (r) =>
+          r.organizationId.equals(orgId) &
+          (r.appUserId.equals(appUser.id) |
+              r.externalUserId.equals(appUser.id.toString())),
+    );
+    results.sort((a, b) => b.completedAt.compareTo(a.completedAt));
+    return results;
+  }
+
+  /// Allows a user to update their own module status. Automatically sets
+  /// [startedAt] on first inProgress transition, [completedAt] on completion.
+  Future<UserModuleProgress?> updateMyModuleStatus(
+    Session session,
+    String moduleId,
+    ModuleProgressStatus status,
+  ) async {
+    final authInfo = await session.authenticated;
+    if (authInfo == null) return null;
+
+    final appUser = await AppUser.db.findFirstRow(
+      session,
+      where: (u) => u.userInfoId.equals(authInfo.userId),
+    );
+    if (appUser == null) return null;
+
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return null;
+
+    var existing = await UserModuleProgress.db.findFirstRow(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUser.id) &
+          p.organizationId.equals(orgId) &
+          p.moduleId.equals(moduleId),
+    );
+    if (existing == null) return null;
+
+    existing.status = status;
+    if (status == ModuleProgressStatus.inProgress &&
+        existing.startedAt == null) {
+      existing.startedAt = DateTime.now().toUtc();
+    } else if (status == ModuleProgressStatus.completed &&
+        existing.completedAt == null) {
+      existing.completedAt = DateTime.now().toUtc();
+    }
+    return await UserModuleProgress.db.updateRow(session, existing);
+  }
 }

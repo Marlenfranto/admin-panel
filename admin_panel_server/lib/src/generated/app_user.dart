@@ -14,9 +14,8 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'role.dart' as _i2;
 import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i3;
-import 'tools.dart' as _i4;
-import 'organization_user_link.dart' as _i5;
-import 'package:admin_panel_server/src/generated/protocol.dart' as _i6;
+import 'organization_user_link.dart' as _i4;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i5;
 
 abstract class AppUser
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -25,7 +24,6 @@ abstract class AppUser
     required this.userInfoId,
     this.userInfo,
     _i2.Role? role,
-    required this.tools,
     this.organizations,
   }) : role = role ?? _i2.Role.User;
 
@@ -34,8 +32,7 @@ abstract class AppUser
     required int userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
-    required _i4.Tools tools,
-    List<_i5.OrganizationUserLink>? organizations,
+    List<_i4.OrganizationUserLink>? organizations,
   }) = _AppUserImpl;
 
   factory AppUser.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -44,16 +41,15 @@ abstract class AppUser
       userInfoId: jsonSerialization['userInfoId'] as int,
       userInfo: jsonSerialization['userInfo'] == null
           ? null
-          : _i6.Protocol().deserialize<_i3.UserInfo>(
+          : _i5.Protocol().deserialize<_i3.UserInfo>(
               jsonSerialization['userInfo'],
             ),
       role: jsonSerialization['role'] == null
           ? null
           : _i2.Role.fromJson((jsonSerialization['role'] as String)),
-      tools: _i6.Protocol().deserialize<_i4.Tools>(jsonSerialization['tools']),
       organizations: jsonSerialization['organizations'] == null
           ? null
-          : _i6.Protocol().deserialize<List<_i5.OrganizationUserLink>>(
+          : _i5.Protocol().deserialize<List<_i4.OrganizationUserLink>>(
               jsonSerialization['organizations'],
             ),
     );
@@ -72,9 +68,7 @@ abstract class AppUser
 
   _i2.Role role;
 
-  _i4.Tools tools;
-
-  List<_i5.OrganizationUserLink>? organizations;
+  List<_i4.OrganizationUserLink>? organizations;
 
   @override
   _i1.Table<int?> get table => t;
@@ -87,8 +81,7 @@ abstract class AppUser
     int? userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
-    _i4.Tools? tools,
-    List<_i5.OrganizationUserLink>? organizations,
+    List<_i4.OrganizationUserLink>? organizations,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -98,7 +91,6 @@ abstract class AppUser
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
       'role': role.toJson(),
-      'tools': tools.toJson(),
       if (organizations != null)
         'organizations': organizations?.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -112,7 +104,6 @@ abstract class AppUser
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJsonForProtocol(),
       'role': role.toJson(),
-      'tools': tools.toJsonForProtocol(),
       if (organizations != null)
         'organizations': organizations?.toJson(
           valueToJson: (v) => v.toJsonForProtocol(),
@@ -122,7 +113,7 @@ abstract class AppUser
 
   static AppUserInclude include({
     _i3.UserInfoInclude? userInfo,
-    _i5.OrganizationUserLinkIncludeList? organizations,
+    _i4.OrganizationUserLinkIncludeList? organizations,
   }) {
     return AppUserInclude._(
       userInfo: userInfo,
@@ -164,14 +155,12 @@ class _AppUserImpl extends AppUser {
     required int userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
-    required _i4.Tools tools,
-    List<_i5.OrganizationUserLink>? organizations,
+    List<_i4.OrganizationUserLink>? organizations,
   }) : super._(
          id: id,
          userInfoId: userInfoId,
          userInfo: userInfo,
          role: role,
-         tools: tools,
          organizations: organizations,
        );
 
@@ -184,7 +173,6 @@ class _AppUserImpl extends AppUser {
     int? userInfoId,
     Object? userInfo = _Undefined,
     _i2.Role? role,
-    _i4.Tools? tools,
     Object? organizations = _Undefined,
   }) {
     return AppUser(
@@ -194,8 +182,7 @@ class _AppUserImpl extends AppUser {
           ? userInfo
           : this.userInfo?.copyWith(),
       role: role ?? this.role,
-      tools: tools ?? this.tools.copyWith(),
-      organizations: organizations is List<_i5.OrganizationUserLink>?
+      organizations: organizations is List<_i4.OrganizationUserLink>?
           ? organizations
           : this.organizations?.map((e0) => e0.copyWith()).toList(),
     );
@@ -214,12 +201,6 @@ class AppUserUpdateTable extends _i1.UpdateTable<AppUserTable> {
     table.role,
     value,
   );
-
-  _i1.ColumnValue<_i4.Tools, _i4.Tools> tools(_i4.Tools value) =>
-      _i1.ColumnValue(
-        table.tools,
-        value,
-      );
 }
 
 class AppUserTable extends _i1.Table<int?> {
@@ -235,10 +216,6 @@ class AppUserTable extends _i1.Table<int?> {
       _i1.EnumSerialization.byName,
       hasDefault: true,
     );
-    tools = _i1.ColumnSerializable<_i4.Tools>(
-      'tools',
-      this,
-    );
   }
 
   late final AppUserUpdateTable updateTable;
@@ -249,11 +226,9 @@ class AppUserTable extends _i1.Table<int?> {
 
   late final _i1.ColumnEnum<_i2.Role> role;
 
-  late final _i1.ColumnSerializable<_i4.Tools> tools;
+  _i4.OrganizationUserLinkTable? ___organizations;
 
-  _i5.OrganizationUserLinkTable? ___organizations;
-
-  _i1.ManyRelation<_i5.OrganizationUserLinkTable>? _organizations;
+  _i1.ManyRelation<_i4.OrganizationUserLinkTable>? _organizations;
 
   _i3.UserInfoTable get userInfo {
     if (_userInfo != null) return _userInfo!;
@@ -268,32 +243,32 @@ class AppUserTable extends _i1.Table<int?> {
     return _userInfo!;
   }
 
-  _i5.OrganizationUserLinkTable get __organizations {
+  _i4.OrganizationUserLinkTable get __organizations {
     if (___organizations != null) return ___organizations!;
     ___organizations = _i1.createRelationTable(
       relationFieldName: '__organizations',
       field: AppUser.t.id,
-      foreignField: _i5.OrganizationUserLink.t.appUserId,
+      foreignField: _i4.OrganizationUserLink.t.appUserId,
       tableRelation: tableRelation,
       createTable: (foreignTableRelation) =>
-          _i5.OrganizationUserLinkTable(tableRelation: foreignTableRelation),
+          _i4.OrganizationUserLinkTable(tableRelation: foreignTableRelation),
     );
     return ___organizations!;
   }
 
-  _i1.ManyRelation<_i5.OrganizationUserLinkTable> get organizations {
+  _i1.ManyRelation<_i4.OrganizationUserLinkTable> get organizations {
     if (_organizations != null) return _organizations!;
     var relationTable = _i1.createRelationTable(
       relationFieldName: 'organizations',
       field: AppUser.t.id,
-      foreignField: _i5.OrganizationUserLink.t.appUserId,
+      foreignField: _i4.OrganizationUserLink.t.appUserId,
       tableRelation: tableRelation,
       createTable: (foreignTableRelation) =>
-          _i5.OrganizationUserLinkTable(tableRelation: foreignTableRelation),
+          _i4.OrganizationUserLinkTable(tableRelation: foreignTableRelation),
     );
-    _organizations = _i1.ManyRelation<_i5.OrganizationUserLinkTable>(
+    _organizations = _i1.ManyRelation<_i4.OrganizationUserLinkTable>(
       tableWithRelations: relationTable,
-      table: _i5.OrganizationUserLinkTable(
+      table: _i4.OrganizationUserLinkTable(
         tableRelation: relationTable.tableRelation!.lastRelation,
       ),
     );
@@ -305,7 +280,6 @@ class AppUserTable extends _i1.Table<int?> {
     id,
     userInfoId,
     role,
-    tools,
   ];
 
   @override
@@ -323,7 +297,7 @@ class AppUserTable extends _i1.Table<int?> {
 class AppUserInclude extends _i1.IncludeObject {
   AppUserInclude._({
     _i3.UserInfoInclude? userInfo,
-    _i5.OrganizationUserLinkIncludeList? organizations,
+    _i4.OrganizationUserLinkIncludeList? organizations,
   }) {
     _userInfo = userInfo;
     _organizations = organizations;
@@ -331,7 +305,7 @@ class AppUserInclude extends _i1.IncludeObject {
 
   _i3.UserInfoInclude? _userInfo;
 
-  _i5.OrganizationUserLinkIncludeList? _organizations;
+  _i4.OrganizationUserLinkIncludeList? _organizations;
 
   @override
   Map<String, _i1.Include?> get includes => {
@@ -672,7 +646,7 @@ class AppUserAttachRepository {
   Future<void> organizations(
     _i1.DatabaseSession session,
     AppUser appUser,
-    List<_i5.OrganizationUserLink> organizationUserLink, {
+    List<_i4.OrganizationUserLink> organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
     if (organizationUserLink.any((e) => e.id == null)) {
@@ -685,9 +659,9 @@ class AppUserAttachRepository {
     var $organizationUserLink = organizationUserLink
         .map((e) => e.copyWith(appUserId: appUser.id))
         .toList();
-    await session.db.update<_i5.OrganizationUserLink>(
+    await session.db.update<_i4.OrganizationUserLink>(
       $organizationUserLink,
-      columns: [_i5.OrganizationUserLink.t.appUserId],
+      columns: [_i4.OrganizationUserLink.t.appUserId],
       transaction: transaction,
     );
   }
@@ -724,7 +698,7 @@ class AppUserAttachRowRepository {
   Future<void> organizations(
     _i1.DatabaseSession session,
     AppUser appUser,
-    _i5.OrganizationUserLink organizationUserLink, {
+    _i4.OrganizationUserLink organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
     if (organizationUserLink.id == null) {
@@ -737,9 +711,9 @@ class AppUserAttachRowRepository {
     var $organizationUserLink = organizationUserLink.copyWith(
       appUserId: appUser.id,
     );
-    await session.db.updateRow<_i5.OrganizationUserLink>(
+    await session.db.updateRow<_i4.OrganizationUserLink>(
       $organizationUserLink,
-      columns: [_i5.OrganizationUserLink.t.appUserId],
+      columns: [_i4.OrganizationUserLink.t.appUserId],
       transaction: transaction,
     );
   }
@@ -755,7 +729,7 @@ class AppUserDetachRepository {
   /// the related record.
   Future<void> organizations(
     _i1.DatabaseSession session,
-    List<_i5.OrganizationUserLink> organizationUserLink, {
+    List<_i4.OrganizationUserLink> organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
     if (organizationUserLink.any((e) => e.id == null)) {
@@ -765,9 +739,9 @@ class AppUserDetachRepository {
     var $organizationUserLink = organizationUserLink
         .map((e) => e.copyWith(appUserId: null))
         .toList();
-    await session.db.update<_i5.OrganizationUserLink>(
+    await session.db.update<_i4.OrganizationUserLink>(
       $organizationUserLink,
-      columns: [_i5.OrganizationUserLink.t.appUserId],
+      columns: [_i4.OrganizationUserLink.t.appUserId],
       transaction: transaction,
     );
   }
@@ -783,7 +757,7 @@ class AppUserDetachRowRepository {
   /// the related record.
   Future<void> organizations(
     _i1.DatabaseSession session,
-    _i5.OrganizationUserLink organizationUserLink, {
+    _i4.OrganizationUserLink organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
     if (organizationUserLink.id == null) {
@@ -791,9 +765,9 @@ class AppUserDetachRowRepository {
     }
 
     var $organizationUserLink = organizationUserLink.copyWith(appUserId: null);
-    await session.db.updateRow<_i5.OrganizationUserLink>(
+    await session.db.updateRow<_i4.OrganizationUserLink>(
       $organizationUserLink,
-      columns: [_i5.OrganizationUserLink.t.appUserId],
+      columns: [_i4.OrganizationUserLink.t.appUserId],
       transaction: transaction,
     );
   }

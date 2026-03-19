@@ -28,17 +28,18 @@ Future<void> _createDefaultAdminIfNeeded(Session session) async {
   if (adminUser == null) {
     print('Admin user not found. Creating default admin...');
 
-    var userInfo = await auth.Emails.createUser(session, 'Default Admin', 'admin@mako.com', 'Mako@123');
+    var userInfo = await auth.Emails.createUser(
+        session, 'Default Admin', 'admin@mako.com', 'Mako@123');
 
     if (userInfo != null) {
       var appUser = AppUser(
         userInfoId: userInfo.id!,
         role: Role.SuperAdmin,
-        tools: Tools(theory: true, ai: true, training: true, assessment: true),
       );
       await AppUser.db.insertRow(session, appUser);
 
-      await auth.Users.updateUserScopes(session, userInfo.id!, {AppScopes.admin});
+      await auth.Users.updateUserScopes(
+          session, userInfo.id!, {AppScopes.admin});
       print('Default SuperAdmin user created successfully.');
     } else {
       print('Failed to create default admin user.');

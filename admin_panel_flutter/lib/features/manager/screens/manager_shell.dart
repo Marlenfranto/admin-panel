@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/router/app_routes.dart';
 import '../../../shared/widgets/dashboard_shell.dart';
+import '../widgets/manager_notification_bell.dart';
 
 /// Shell for the Manager portal. Wraps [DashboardShell] with manager nav items.
 class ManagerShell extends StatelessWidget {
@@ -51,9 +52,10 @@ class ManagerShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DashboardShell(
-      navItems:    _navItems,
-      child:       child,
-      portalTitle: 'Manager Portal',
+      navItems:       _navItems,
+      child:          child,
+      portalTitle:    'Manager Portal',
+      topBarActions:  const [ManagerNotificationBell()],
     );
   }
 }

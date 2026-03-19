@@ -64,6 +64,7 @@ class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
   bool? _ai;
   bool? _training;
   bool? _assessment;
+  int   _passing      = 60;
   final _aiPromptCtrl = TextEditingController();
   bool  _loaded       = false;
   bool  _saving       = false;
@@ -81,6 +82,7 @@ class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
       _ai         = config?.aiExpertModule ?? false;
       _training   = config?.smartTrainingModule ?? false;
       _assessment = config?.assessmentModule ?? false;
+      _passing    = config?.passingPercentage ?? 60;
       _aiPromptCtrl.text = config?.aiChatPrompt ?? '';
       _loaded = true;
     });
@@ -105,6 +107,7 @@ class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
       await ref.read(clientProvider).manager.updateMyModuleConfig(
             orgId, _theory!, _ai!, _training!, _assessment!,
             prompt.isEmpty ? null : prompt,
+            _passing,
           );
       ref.invalidate(managerModuleConfigProvider);
       if (mounted) {
@@ -246,6 +249,15 @@ class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
             ),
           ),
 
+          // ── Passing score ────────────────────────────────────────────────
+          const SizedBox(height: AppSpacing.lg),
+          _SectionCard(
+            child: _PassingScoreRow(
+              value:     _passing,
+              onChanged: (v) => setState(() => _passing = v),
+            ),
+          ),
+
           // ── AR Expert AI prompt ──────────────────────────────────────────
           if (_ai == true) ...[
             const SizedBox(height: AppSpacing.lg),
@@ -287,8 +299,158 @@ class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
               ),
             ],
           ),
+
+          const SizedBox(height: AppSpacing.xl),
+          const Divider(),
+          const SizedBox(height: AppSpacing.lg),
+
+          // ── Per-user module configuration ──────────────────────────────
+          if (activeOrgId != null)
+            UserModuleConfigPanel(
+              orgUsers: ref.watch(activeOrgProvider)
+                          ?.users
+                          ?.map((l) => l.appUser)
+                          .whereType<AppUser>()
+                          .where((u) => u.role == Role.User)
+                          .toList() ??
+                      [],
+              globalEnabled: {
+                'theory':        _theory ?? false,
+                'aiExpert':      _ai ?? false,
+                'smartTraining': _training ?? false,
+                'assessment':    _assessment ?? false,
+              },
+              onLoadProgress: (userId) => ref
+                  .read(clientProvider)
+                  .manager
+                  .getUserModuleProgress(userId, activeOrgId),
+              onSaveProgress: (userId, states) async {
+                for (final s in states) {
+                  await ref
+                      .read(clientProvider)
+                      .manager
+                      .setUserModuleProgress(
+                        userId,
+                        activeOrgId,
+                        s.moduleId,
+                        s.isEnabled,
+                        s.deadline,
+                      );
+                  await ref
+                      .read(clientProvider)
+                      .manager
+                      .updateUserModuleStatus(
+                        userId,
+                        activeOrgId,
+                        s.moduleId,
+                        s.status,
+                        s.startedAt,
+                        s.completedAt,
+                      );
+                }
+              },
+            ),
         ],
       ),
+    );
+  }
+}
+
+// ── Passing score row ─────────────────────────────────────────────────────────
+
+class _PassingScoreRow extends StatelessWidget {
+  const _PassingScoreRow({required this.value, required this.onChanged});
+
+  final int               value;
+  final ValueChanged<int> onChanged;
+
+  Color get _color {
+    if (value >= 80) return AppColors.success;
+    if (value >= 50) return AppColors.training;
+    return AppColors.error;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _color;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _CardHeader(
+          icon:     Icons.emoji_events_rounded,
+          color:    color,
+          title:    'Passing Score',
+          subtitle: 'Minimum percentage a user must score to pass any module',
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Percentage badge
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width:  76,
+              height: 76,
+              decoration: BoxDecoration(
+                color:        color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                border:       Border.all(color: color.withValues(alpha: 0.30)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '$value',
+                    style: AppTextStyles.headingLg.copyWith(color: color),
+                  ),
+                  Text('%', style: AppTextStyles.labelMd.copyWith(color: color)),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+
+            // Slider + tick labels
+            Expanded(
+              child: Column(
+                children: [
+                  SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight:        4,
+                      activeTrackColor:   color,
+                      inactiveTrackColor: color.withValues(alpha: 0.15),
+                      thumbColor:         color,
+                      overlayColor:       color.withValues(alpha: 0.12),
+                      thumbShape:  const RoundSliderThumbShape(
+                                       enabledThumbRadius: 8),
+                      overlayShape: const RoundSliderOverlayShape(
+                                       overlayRadius: 18),
+                    ),
+                    child: Slider(
+                      value:     value.toDouble(),
+                      min:       0,
+                      max:       100,
+                      divisions: 100,
+                      onChanged: (v) => onChanged(v.round()),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('0%',   style: AppTextStyles.bodyXs),
+                        Text('50%',  style: AppTextStyles.bodyXs),
+                        Text('100%', style: AppTextStyles.bodyXs),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -527,3 +689,4 @@ class _OrgChip extends StatelessWidget {
     );
   }
 }
+

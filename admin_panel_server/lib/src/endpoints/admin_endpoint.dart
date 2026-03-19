@@ -10,8 +10,12 @@ class AdminEndpoint extends Endpoint {
   @override
   Set<Scope> get requiredScopes => {AppScopes.admin};
 
-  Future<Organization?> createOrganization(Session session, String name) async {
-    var org = Organization(name: name);
+  Future<Organization?> createOrganization(
+    Session session,
+    String  name,
+    String? imageUrl,
+  ) async {
+    var org = Organization(name: name, imageUrl: imageUrl);
     await Organization.db.insertRow(session, org);
     return org;
   }
@@ -36,7 +40,7 @@ class AdminEndpoint extends Endpoint {
       await Users.updateUserScopes(session, userInfo.id!, {AppScopes.user});
     }
 
-    var appUser = AppUser(userInfoId: userInfo.id!, role: role, tools: Tools());
+    var appUser = AppUser(userInfoId: userInfo.id!, role: role);
     appUser = await AppUser.db.insertRow(session, appUser);
 
     var organization = await Organization.db.findById(session, organizationId);
@@ -89,6 +93,7 @@ class AdminEndpoint extends Endpoint {
     String defaultLanguage,
     List<SupportedLanguage> supportedLanguages,
     String? aiChatPrompt,
+    int passingPercentage,
   ) async {
     var existing = await ModuleConfig.db.findFirstRow(
       session,
@@ -103,6 +108,7 @@ class AdminEndpoint extends Endpoint {
       existing.defaultLanguage = defaultLanguage;
       existing.supportedLanguages = supportedLanguages;
       existing.aiChatPrompt = aiChatPrompt;
+      existing.passingPercentage = passingPercentage;
       return await ModuleConfig.db.updateRow(session, existing);
     } else {
       var config = ModuleConfig(
@@ -114,6 +120,7 @@ class AdminEndpoint extends Endpoint {
         defaultLanguage: defaultLanguage,
         supportedLanguages: supportedLanguages,
         aiChatPrompt: aiChatPrompt,
+        passingPercentage: passingPercentage,
       );
       return await ModuleConfig.db.insertRow(session, config);
     }
@@ -218,5 +225,103 @@ class AdminEndpoint extends Endpoint {
     if (asset == null) return false;
     await Asset.db.deleteRow(session, asset);
     return true;
+  }
+
+  // ── User module progress ──────────────────────────────────────────────────
+
+  Future<List<UserModuleProgress>> getUserModuleProgress(
+    Session session,
+    int appUserId,
+    int organizationId,
+  ) async {
+    return await UserModuleProgress.db.find(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUserId) &
+          p.organizationId.equals(organizationId),
+    );
+  }
+
+  Future<UserModuleProgress> setUserModuleProgress(
+    Session session,
+    int appUserId,
+    int organizationId,
+    String moduleId,
+    bool isEnabled,
+    DateTime? deadline,
+  ) async {
+    var existing = await UserModuleProgress.db.findFirstRow(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUserId) &
+          p.organizationId.equals(organizationId) &
+          p.moduleId.equals(moduleId),
+    );
+
+    if (existing != null) {
+      existing.isEnabled = isEnabled;
+      existing.deadline = deadline;
+      return await UserModuleProgress.db.updateRow(session, existing);
+    }
+
+    final progress = UserModuleProgress(
+      appUserId: appUserId,
+      organizationId: organizationId,
+      moduleId: moduleId,
+      isEnabled: isEnabled,
+      deadline: deadline,
+      status: ModuleProgressStatus.notStarted,
+    );
+    return await UserModuleProgress.db.insertRow(session, progress);
+  }
+
+  // ── Training session results ───────────────────────────────────────────────
+
+  /// Returns all Smart Training results for [appUserId] across all orgs.
+  Future<List<TrainingSessionResult>> getUserTrainingHistory(
+    Session session,
+    int appUserId,
+  ) async {
+    // Two separate queries to avoid any Serverpod OR behavior issues on
+    // nullable columns. Records submitted before appUserId was resolved will
+    // only match on externalUserId; newer records match on appUserId.
+    final byAppUser = await TrainingSessionResult.db.find(
+      session,
+      where: (r) => r.appUserId.equals(appUserId),
+    );
+    final byExternal = await TrainingSessionResult.db.find(
+      session,
+      where: (r) => r.externalUserId.equals(appUserId.toString()),
+    );
+    final seen = <int>{};
+    final results = [...byAppUser, ...byExternal]
+        .where((r) => r.id != null && seen.add(r.id!))
+        .toList();
+    results.sort((a, b) => b.completedAt.compareTo(a.completedAt));
+    return results;
+  }
+
+  Future<UserModuleProgress?> updateUserModuleStatus(
+    Session session,
+    int appUserId,
+    int organizationId,
+    String moduleId,
+    ModuleProgressStatus status,
+    DateTime? startedAt,
+    DateTime? completedAt,
+  ) async {
+    var existing = await UserModuleProgress.db.findFirstRow(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUserId) &
+          p.organizationId.equals(organizationId) &
+          p.moduleId.equals(moduleId),
+    );
+    if (existing == null) return null;
+
+    existing.status = status;
+    existing.startedAt = startedAt;
+    existing.completedAt = completedAt;
+    return await UserModuleProgress.db.updateRow(session, existing);
   }
 }

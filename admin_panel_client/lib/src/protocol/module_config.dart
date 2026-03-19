@@ -27,11 +27,13 @@ abstract class ModuleConfig implements _i1.SerializableModel {
     String? defaultLanguage,
     this.supportedLanguages,
     this.aiChatPrompt,
+    int? passingPercentage,
   }) : theoryModule = theoryModule ?? false,
        aiExpertModule = aiExpertModule ?? false,
        smartTrainingModule = smartTrainingModule ?? false,
        assessmentModule = assessmentModule ?? false,
-       defaultLanguage = defaultLanguage ?? 'en';
+       defaultLanguage = defaultLanguage ?? 'en',
+       passingPercentage = passingPercentage ?? 60;
 
   factory ModuleConfig({
     int? id,
@@ -44,6 +46,7 @@ abstract class ModuleConfig implements _i1.SerializableModel {
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    int? passingPercentage,
   }) = _ModuleConfigImpl;
 
   factory ModuleConfig.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -78,6 +81,7 @@ abstract class ModuleConfig implements _i1.SerializableModel {
               jsonSerialization['supportedLanguages'],
             ),
       aiChatPrompt: jsonSerialization['aiChatPrompt'] as String?,
+      passingPercentage: jsonSerialization['passingPercentage'] as int?,
     );
   }
 
@@ -104,6 +108,8 @@ abstract class ModuleConfig implements _i1.SerializableModel {
 
   String? aiChatPrompt;
 
+  int passingPercentage;
+
   /// Returns a shallow copy of this [ModuleConfig]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -118,6 +124,7 @@ abstract class ModuleConfig implements _i1.SerializableModel {
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    int? passingPercentage,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -136,6 +143,7 @@ abstract class ModuleConfig implements _i1.SerializableModel {
           valueToJson: (v) => v.toJson(),
         ),
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
+      'passingPercentage': passingPercentage,
     };
   }
 
@@ -159,6 +167,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    int? passingPercentage,
   }) : super._(
          id: id,
          organizationId: organizationId,
@@ -170,6 +179,7 @@ class _ModuleConfigImpl extends ModuleConfig {
          defaultLanguage: defaultLanguage,
          supportedLanguages: supportedLanguages,
          aiChatPrompt: aiChatPrompt,
+         passingPercentage: passingPercentage,
        );
 
   /// Returns a shallow copy of this [ModuleConfig]
@@ -187,6 +197,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     String? defaultLanguage,
     Object? supportedLanguages = _Undefined,
     Object? aiChatPrompt = _Undefined,
+    int? passingPercentage,
   }) {
     return ModuleConfig(
       id: id is int? ? id : this.id,
@@ -205,6 +216,7 @@ class _ModuleConfigImpl extends ModuleConfig {
           ? supportedLanguages
           : this.supportedLanguages?.map((e0) => e0.copyWith()).toList(),
       aiChatPrompt: aiChatPrompt is String? ? aiChatPrompt : this.aiChatPrompt,
+      passingPercentage: passingPercentage ?? this.passingPercentage,
     );
   }
 }

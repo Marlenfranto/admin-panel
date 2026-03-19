@@ -3,5 +3,4 @@ table: app_user
 fields:
   userInfo: module:auth:UserInfo?, relation
   role: Role, default=User
-  tools: Tools
   organizations: List<OrganizationUserLink>?, relation(name=user_organization_links)

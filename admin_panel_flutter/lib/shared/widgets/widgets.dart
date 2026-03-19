@@ -9,3 +9,6 @@ export 'app_skeleton_loader.dart';
 export 'app_status_chip.dart';
 export 'account_settings_page.dart';
 export 'dashboard_shell.dart';
+export 'user_module_config_panel.dart';
+export 'training_history_panel.dart';
+export 'all_users_training_history_panel.dart';

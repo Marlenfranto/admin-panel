@@ -6,3 +6,13 @@ import '../../../src/providers.dart';
 final userModuleConfigProvider = FutureProvider<ModuleConfig?>((ref) async {
   return ref.watch(clientProvider).user.getMyOrgModuleConfig();
 });
+
+final userModuleProgressProvider =
+    FutureProvider<List<UserModuleProgress>>((ref) async {
+  return ref.watch(clientProvider).user.getMyModuleProgress();
+});
+
+final userTrainingHistoryProvider =
+    FutureProvider<List<TrainingSessionResult>>((ref) async {
+  return ref.watch(clientProvider).user.getMyTrainingHistory();
+});

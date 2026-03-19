@@ -12,14 +12,14 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i2;
-import 'app_user.dart' as _i3;
+import 'organization.dart' as _i3;
 import 'package:admin_panel_client/src/protocol/protocol.dart' as _i4;
 
 abstract class LoginResponse implements _i1.SerializableModel {
   LoginResponse._({
     required this.success,
     this.userInfo,
-    this.appUser,
+    this.organization,
     this.keyId,
     this.key,
   });
@@ -27,7 +27,7 @@ abstract class LoginResponse implements _i1.SerializableModel {
   factory LoginResponse({
     required bool success,
     _i2.UserInfo? userInfo,
-    _i3.AppUser? appUser,
+    _i3.Organization? organization,
     int? keyId,
     String? key,
   }) = _LoginResponseImpl;
@@ -40,10 +40,10 @@ abstract class LoginResponse implements _i1.SerializableModel {
           : _i4.Protocol().deserialize<_i2.UserInfo>(
               jsonSerialization['userInfo'],
             ),
-      appUser: jsonSerialization['appUser'] == null
+      organization: jsonSerialization['organization'] == null
           ? null
-          : _i4.Protocol().deserialize<_i3.AppUser>(
-              jsonSerialization['appUser'],
+          : _i4.Protocol().deserialize<_i3.Organization>(
+              jsonSerialization['organization'],
             ),
       keyId: jsonSerialization['keyId'] as int?,
       key: jsonSerialization['key'] as String?,
@@ -54,7 +54,7 @@ abstract class LoginResponse implements _i1.SerializableModel {
 
   _i2.UserInfo? userInfo;
 
-  _i3.AppUser? appUser;
+  _i3.Organization? organization;
 
   int? keyId;
 
@@ -66,7 +66,7 @@ abstract class LoginResponse implements _i1.SerializableModel {
   LoginResponse copyWith({
     bool? success,
     _i2.UserInfo? userInfo,
-    _i3.AppUser? appUser,
+    _i3.Organization? organization,
     int? keyId,
     String? key,
   });
@@ -76,7 +76,7 @@ abstract class LoginResponse implements _i1.SerializableModel {
       '__className__': 'LoginResponse',
       'success': success,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
-      if (appUser != null) 'appUser': appUser?.toJson(),
+      if (organization != null) 'organization': organization?.toJson(),
       if (keyId != null) 'keyId': keyId,
       if (key != null) 'key': key,
     };
@@ -94,13 +94,13 @@ class _LoginResponseImpl extends LoginResponse {
   _LoginResponseImpl({
     required bool success,
     _i2.UserInfo? userInfo,
-    _i3.AppUser? appUser,
+    _i3.Organization? organization,
     int? keyId,
     String? key,
   }) : super._(
          success: success,
          userInfo: userInfo,
-         appUser: appUser,
+         organization: organization,
          keyId: keyId,
          key: key,
        );
@@ -112,7 +112,7 @@ class _LoginResponseImpl extends LoginResponse {
   LoginResponse copyWith({
     bool? success,
     Object? userInfo = _Undefined,
-    Object? appUser = _Undefined,
+    Object? organization = _Undefined,
     Object? keyId = _Undefined,
     Object? key = _Undefined,
   }) {
@@ -121,7 +121,9 @@ class _LoginResponseImpl extends LoginResponse {
       userInfo: userInfo is _i2.UserInfo?
           ? userInfo
           : this.userInfo?.copyWith(),
-      appUser: appUser is _i3.AppUser? ? appUser : this.appUser?.copyWith(),
+      organization: organization is _i3.Organization?
+          ? organization
+          : this.organization?.copyWith(),
       keyId: keyId is int? ? keyId : this.keyId,
       key: key is String? ? key : this.key,
     );

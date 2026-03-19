@@ -19,6 +19,20 @@ final moduleConfigProvider =
   return ref.watch(clientProvider).admin.getModuleConfig(orgId);
 });
 
+// ── User module progress (per org + user) ────────────────────────────────────
+final adminUserModuleProgressProvider =
+    FutureProvider.family<List<UserModuleProgress>, (int orgId, int userId)>(
+        (ref, args) async {
+  final (orgId, userId) = args;
+  return ref.watch(clientProvider).admin.getUserModuleProgress(userId, orgId);
+});
+
+// ── Training history (per user) ───────────────────────────────────────────────
+final adminTrainingHistoryProvider =
+    FutureProvider.family<List<TrainingSessionResult>, int>((ref, appUserId) async {
+  return ref.watch(clientProvider).admin.getUserTrainingHistory(appUserId);
+});
+
 // ── Content providers (per org) ───────────────────────────────────────────────
 final adminTheoryProvider =
     FutureProvider.family<List<TheoryChapter>, int>((ref, orgId) =>

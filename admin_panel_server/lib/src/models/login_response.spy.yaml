@@ -2,6 +2,6 @@ class: LoginResponse
 fields:
   success: bool
   userInfo: module:auth:UserInfo?
-  appUser: AppUser?
+  organization: Organization?
   keyId: int?
   key: String?
