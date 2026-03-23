@@ -22,15 +22,17 @@ abstract class Organization
     this.id,
     required this.name,
     this.imageUrl,
+    int? contentVersion,
     this.managerId,
     this.manager,
     this.users,
-  });
+  }) : contentVersion = contentVersion ?? 1;
 
   factory Organization({
     int? id,
     required String name,
     String? imageUrl,
+    int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
@@ -41,6 +43,7 @@ abstract class Organization
       id: jsonSerialization['id'] as int?,
       name: jsonSerialization['name'] as String,
       imageUrl: jsonSerialization['imageUrl'] as String?,
+      contentVersion: jsonSerialization['contentVersion'] as int?,
       managerId: jsonSerialization['managerId'] as int?,
       manager: jsonSerialization['manager'] == null
           ? null
@@ -66,6 +69,8 @@ abstract class Organization
 
   String? imageUrl;
 
+  int contentVersion;
+
   int? managerId;
 
   _i2.AppUser? manager;
@@ -82,6 +87,7 @@ abstract class Organization
     int? id,
     String? name,
     String? imageUrl,
+    int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
@@ -93,6 +99,7 @@ abstract class Organization
       if (id != null) 'id': id,
       'name': name,
       if (imageUrl != null) 'imageUrl': imageUrl,
+      'contentVersion': contentVersion,
       if (managerId != null) 'managerId': managerId,
       if (manager != null) 'manager': manager?.toJson(),
       if (users != null) 'users': users?.toJson(valueToJson: (v) => v.toJson()),
@@ -106,6 +113,7 @@ abstract class Organization
       if (id != null) 'id': id,
       'name': name,
       if (imageUrl != null) 'imageUrl': imageUrl,
+      'contentVersion': contentVersion,
       if (managerId != null) 'managerId': managerId,
       if (manager != null) 'manager': manager?.toJsonForProtocol(),
       if (users != null)
@@ -156,6 +164,7 @@ class _OrganizationImpl extends Organization {
     int? id,
     required String name,
     String? imageUrl,
+    int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
@@ -163,6 +172,7 @@ class _OrganizationImpl extends Organization {
          id: id,
          name: name,
          imageUrl: imageUrl,
+         contentVersion: contentVersion,
          managerId: managerId,
          manager: manager,
          users: users,
@@ -176,6 +186,7 @@ class _OrganizationImpl extends Organization {
     Object? id = _Undefined,
     String? name,
     Object? imageUrl = _Undefined,
+    int? contentVersion,
     Object? managerId = _Undefined,
     Object? manager = _Undefined,
     Object? users = _Undefined,
@@ -184,6 +195,7 @@ class _OrganizationImpl extends Organization {
       id: id is int? ? id : this.id,
       name: name ?? this.name,
       imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
+      contentVersion: contentVersion ?? this.contentVersion,
       managerId: managerId is int? ? managerId : this.managerId,
       manager: manager is _i2.AppUser? ? manager : this.manager?.copyWith(),
       users: users is List<_i3.OrganizationUserLink>?
@@ -206,6 +218,11 @@ class OrganizationUpdateTable extends _i1.UpdateTable<OrganizationTable> {
     value,
   );
 
+  _i1.ColumnValue<int, int> contentVersion(int value) => _i1.ColumnValue(
+    table.contentVersion,
+    value,
+  );
+
   _i1.ColumnValue<int, int> managerId(int? value) => _i1.ColumnValue(
     table.managerId,
     value,
@@ -223,6 +240,11 @@ class OrganizationTable extends _i1.Table<int?> {
       'imageUrl',
       this,
     );
+    contentVersion = _i1.ColumnInt(
+      'contentVersion',
+      this,
+      hasDefault: true,
+    );
     managerId = _i1.ColumnInt(
       'managerId',
       this,
@@ -234,6 +256,8 @@ class OrganizationTable extends _i1.Table<int?> {
   late final _i1.ColumnString name;
 
   late final _i1.ColumnString imageUrl;
+
+  late final _i1.ColumnInt contentVersion;
 
   late final _i1.ColumnInt managerId;
 
@@ -293,6 +317,7 @@ class OrganizationTable extends _i1.Table<int?> {
     id,
     name,
     imageUrl,
+    contentVersion,
     managerId,
   ];
 

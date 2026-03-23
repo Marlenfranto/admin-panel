@@ -2,7 +2,11 @@ admin:
   - createOrganization:
   - createUserAndAssignToOrg:
   - assignManagerToOrg:
+  - updateOrganization:
+  - deleteOrganization:
   - getAllOrganizations:
+  - updateUser:
+  - deleteUser:
   - getAllUsers:
   - setModuleConfig:
   - getModuleConfig:
@@ -52,6 +56,7 @@ manager:
   - deleteNotification:
 publicApi:
   - login:
+  - getContentBundle:
   - getTheorySection:
   - getTrainingParameters:
   - getAssessmentParameters:

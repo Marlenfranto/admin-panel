@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/cloudinary_uploader.dart';
-
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../providers/admin_providers.dart';
@@ -35,7 +34,7 @@ class OrganizationsScreen extends ConsumerWidget {
             action: AppGradientButton(
               label:     'Add Organization',
               icon:      Icons.add_rounded,
-              onPressed: () => _showAddSheet(context, ref),
+              onPressed: () => _showSheet(context, ref, null),
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -71,27 +70,36 @@ class OrganizationsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
 
           // ── Table ─────────────────────────────────────────────────────────
-          _OrgsTable(orgsAsync: orgsAsync),
+          _OrgsTable(
+            orgsAsync: orgsAsync,
+            onEdit:   (o) => _showSheet(context, ref, o),
+            onDelete: (o) => _confirmDelete(context, ref, o),
+          ),
         ],
       ),
     );
   }
 
-  void _showAddSheet(BuildContext context, WidgetRef ref) {
-    final nameCtrl = TextEditingController();
-    // Shared state captured by both the form body and the onSave closure.
+  // ── Create / Edit sheet ──────────────────────────────────────────────────
+
+  void _showSheet(BuildContext context, WidgetRef ref, Organization? existing) {
+    final nameCtrl = TextEditingController(text: existing?.name ?? '');
+
     Uint8List? pickedBytes;
     String?    pickedName;
+    bool       imageChanged = false;
 
     AppSideSheet.show(
       context:   context,
-      title:     'Add Organization',
-      saveLabel: 'Create',
+      title:     existing == null ? 'Add Organization' : 'Edit Organization',
+      saveLabel: existing == null ? 'Create' : 'Save',
       body: _OrgFormBody(
-        nameCtrl: nameCtrl,
-        onImageChanged: (bytes, name) {
-          pickedBytes = bytes;
-          pickedName  = name;
+        nameCtrl:        nameCtrl,
+        existingImageUrl: existing?.imageUrl,
+        onImageChanged:  (bytes, name) {
+          pickedBytes  = bytes;
+          pickedName   = name;
+          imageChanged = true;
         },
       ),
       onSave: () async {
@@ -108,15 +116,72 @@ class OrganizationsScreen extends ConsumerWidget {
             fileName: name,
             folder:   'organizations',
           );
+        } else if (!imageChanged) {
+          imageUrl = existing?.imageUrl;
         }
+        // imageChanged && pickedBytes == null → user cleared the image → null
 
-        await ref
-            .read(clientProvider)
-            .admin
-            .createOrganization(nameCtrl.text.trim(), imageUrl);
+        if (existing == null) {
+          await ref.read(clientProvider).admin
+              .createOrganization(nameCtrl.text.trim(), imageUrl);
+        } else {
+          await ref.read(clientProvider).admin
+              .updateOrganization(existing.id!, nameCtrl.text.trim(), imageUrl);
+        }
         ref.invalidate(allOrganizationsProvider);
       },
     );
+  }
+
+  // ── Delete confirmation ──────────────────────────────────────────────────
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    Organization org,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Organization'),
+        content: Text(
+          'Delete "${org.name}"?\n\nThis will permanently remove the organization '
+          'and all associated modules, content, and user links.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(clientProvider).admin.deleteOrganization(org.id!);
+      ref.invalidate(allOrganizationsProvider);
+      ref.invalidate(allUsersProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('"${org.name}" deleted.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:         Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -169,7 +234,7 @@ class _StatCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(value, style: AppTextStyles.headingMd),
-              Text(label, style: AppTextStyles.bodyXs),
+              Text(label,  style: AppTextStyles.bodyXs),
             ],
           ),
         ],
@@ -181,8 +246,15 @@ class _StatCard extends StatelessWidget {
 // ── Organizations table ────────────────────────────────────────────────────────
 
 class _OrgsTable extends StatelessWidget {
-  const _OrgsTable({required this.orgsAsync});
+  const _OrgsTable({
+    required this.orgsAsync,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
   final AsyncValue<List<Organization>> orgsAsync;
+  final void Function(Organization)   onEdit;
+  final void Function(Organization)   onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -236,10 +308,7 @@ class _OrgsTable extends StatelessWidget {
                             style:    AppTextStyles.labelLg,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text(
-                            'ID #${o.id}',
-                            style: AppTextStyles.bodyXs,
-                          ),
+                          Text('ID #${o.id}', style: AppTextStyles.bodyXs),
                         ],
                       ),
                     ),
@@ -258,8 +327,7 @@ class _OrgsTable extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _MiniAvatar(
-                            name: o.manager!.userInfo?.userName ?? '?',
-                          ),
+                              name: o.manager!.userInfo?.userName ?? '?'),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
@@ -277,13 +345,36 @@ class _OrgsTable extends StatelessWidget {
                       ),
               ),
               AppTableColumn(
-                label:       'Members',
-                flex:        1,
-                alignment:   Alignment.center,
-                sortKey:     'members',
-                comparator:  (a, b) =>
+                label:      'Members',
+                flex:       1,
+                alignment:  Alignment.center,
+                sortKey:    'members',
+                comparator: (a, b) =>
                     (a.users?.length ?? 0).compareTo(b.users?.length ?? 0),
-                cellBuilder: (o) => _MembersBadge(count: o.users?.length ?? 0),
+                cellBuilder: (o) =>
+                    _MembersBadge(count: o.users?.length ?? 0),
+              ),
+              AppTableColumn(
+                label:      'Actions',
+                flex:       1,
+                alignment:  Alignment.center,
+                cellBuilder: (o) => Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon:    const Icon(Icons.edit_outlined, size: 16),
+                      tooltip: 'Edit',
+                      color:   AppColors.onSurfaceMuted,
+                      onPressed: () => onEdit(o),
+                    ),
+                    IconButton(
+                      icon:    const Icon(Icons.delete_outline_rounded, size: 16),
+                      tooltip: 'Delete',
+                      color:   AppColors.error,
+                      onPressed: () => onDelete(o),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -311,7 +402,6 @@ class _OrgAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
-
     if (imageUrl != null && imageUrl!.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -426,16 +516,18 @@ class _MembersBadge extends StatelessWidget {
   }
 }
 
-// ── Add Org form body (side sheet) ────────────────────────────────────────────
+// ── Org form body (create & edit) ─────────────────────────────────────────────
 
 class _OrgFormBody extends StatefulWidget {
   const _OrgFormBody({
     required this.nameCtrl,
     required this.onImageChanged,
+    this.existingImageUrl,
   });
 
   final TextEditingController                          nameCtrl;
   final void Function(Uint8List? bytes, String? name) onImageChanged;
+  final String?                                        existingImageUrl;
 
   @override
   State<_OrgFormBody> createState() => _OrgFormBodyState();
@@ -490,10 +582,11 @@ class _OrgFormBodyState extends State<_OrgFormBody> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _ImagePickerBox(
-              bytes:   _imageBytes,
-              picking: _picking,
-              onPick:  _pickImage,
-              onClear: _clearImage,
+              bytes:      _imageBytes,
+              networkUrl: _imageBytes == null ? widget.existingImageUrl : null,
+              picking:    _picking,
+              onPick:     _pickImage,
+              onClear:    _clearImage,
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -501,24 +594,22 @@ class _OrgFormBodyState extends State<_OrgFormBody> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 6),
-                  Text(
-                    'Optional',
-                    style: AppTextStyles.labelMd,
-                  ),
+                  Text('Optional', style: AppTextStyles.labelMd),
                   const SizedBox(height: 4),
                   Text(
-                    'PNG, JPG or WebP.\nMax 5 MB. Will be shown in the organizations table.',
+                    'PNG, JPG or WebP.\nMax 5 MB.',
                     style: AppTextStyles.bodyXs,
                   ),
-                  if (_imageBytes != null) ...[
+                  if (_imageBytes != null ||
+                      widget.existingImageUrl != null) ...[
                     const SizedBox(height: AppSpacing.sm),
                     GestureDetector(
                       onTap: _clearImage,
                       child: Text(
                         'Remove image',
                         style: AppTextStyles.bodyXs.copyWith(
-                          color: AppColors.error,
-                          decoration: TextDecoration.underline,
+                          color:           AppColors.error,
+                          decoration:      TextDecoration.underline,
                           decorationColor: AppColors.error,
                         ),
                       ),
@@ -542,9 +633,11 @@ class _ImagePickerBox extends StatefulWidget {
     required this.picking,
     required this.onPick,
     required this.onClear,
+    this.networkUrl,
   });
 
   final Uint8List?   bytes;
+  final String?      networkUrl;
   final bool         picking;
   final VoidCallback onPick;
   final VoidCallback onClear;
@@ -558,8 +651,10 @@ class _ImagePickerBoxState extends State<_ImagePickerBox> {
 
   @override
   Widget build(BuildContext context) {
-    const size = 88.0;
-    final hasImage = widget.bytes != null;
+    const size     = 88.0;
+    final hasLocal = widget.bytes != null;
+    final hasNet   = widget.networkUrl != null && widget.networkUrl!.isNotEmpty;
+    final hasImage = hasLocal || hasNet;
 
     return MouseRegion(
       cursor:  SystemMouseCursors.click,
@@ -570,7 +665,6 @@ class _ImagePickerBoxState extends State<_ImagePickerBox> {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // Main box
             AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               width:  size,
@@ -590,47 +684,55 @@ class _ImagePickerBoxState extends State<_ImagePickerBox> {
                           : AppColors.divider,
                 ),
               ),
-              child: hasImage
+              child: hasLocal
                   ? ClipRRect(
                       borderRadius:
                           BorderRadius.circular(AppSpacing.radiusLg - 1),
-                      child: Image.memory(
-                        widget.bytes!,
-                        fit: BoxFit.cover,
-                      ),
+                      child: Image.memory(widget.bytes!, fit: BoxFit.cover),
                     )
-                  : widget.picking
-                      ? const Center(
-                          child: SizedBox(
-                            width:  22,
-                            height: 22,
-                            child:  CircularProgressIndicator(strokeWidth: 2),
+                  : hasNet
+                      ? ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusLg - 1),
+                          child: Image.network(
+                            widget.networkUrl!,
+                            fit:          BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.broken_image_outlined,
+                                    color: AppColors.onSurfaceSubtle),
                           ),
                         )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_photo_alternate_rounded,
-                              size:  26,
-                              color: _hovered
-                                  ? AppColors.primary
-                                  : AppColors.onSurfaceSubtle,
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              'Upload',
-                              style: AppTextStyles.bodyXs.copyWith(
-                                color: _hovered
-                                    ? AppColors.primary
-                                    : AppColors.onSurfaceSubtle,
+                      : widget.picking
+                          ? const Center(
+                              child: SizedBox(
+                                width:  22,
+                                height: 22,
+                                child:  CircularProgressIndicator(
+                                    strokeWidth: 2),
                               ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_photo_alternate_rounded,
+                                  size:  26,
+                                  color: _hovered
+                                      ? AppColors.primary
+                                      : AppColors.onSurfaceSubtle,
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Upload',
+                                  style: AppTextStyles.bodyXs.copyWith(
+                                    color: _hovered
+                                        ? AppColors.primary
+                                        : AppColors.onSurfaceSubtle,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
             ),
-
-            // ✕ remove button (top-right corner when image is picked)
             if (hasImage)
               Positioned(
                 top:   -7,
@@ -661,7 +763,7 @@ class _ImagePickerBoxState extends State<_ImagePickerBox> {
   }
 }
 
-// ── Page header ────────────────────────────────────────────────────────────────
+// ── Page header ───────────────────────────────────────────────────────────────
 
 class _PageHeader extends StatelessWidget {
   const _PageHeader({

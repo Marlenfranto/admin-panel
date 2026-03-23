@@ -21,6 +21,74 @@ class PublicApiEndpoint extends Endpoint {
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
+  /// Recursively removes [__className__] keys from a serialized JSON map.
+  Map<String, dynamic> _clean(Map<String, dynamic> json) {
+    final result = <String, dynamic>{};
+    for (final entry in json.entries) {
+      if (entry.key == '__className__') continue;
+      result[entry.key] = _cleanValue(entry.value);
+    }
+    return result;
+  }
+
+  dynamic _cleanValue(dynamic value) {
+    if (value is Map<String, dynamic>) return _clean(value);
+    if (value is List) return value.map(_cleanValue).toList();
+    return value;
+  }
+
+  /// Builds the public module config for [organizationId], resolving per-user
+  /// module overrides from [appUser]'s progress records when provided.
+  /// Returns null if no [ModuleConfig] row exists for the organization.
+  Future<ModuleConfigPublic?> _buildModuleConfigPublic(
+    Session session,
+    int organizationId,
+    AppUser? appUser,
+  ) async {
+    final config = await ModuleConfig.db.findFirstRow(
+      session,
+      where: (c) => c.organizationId.equals(organizationId),
+    );
+    if (config == null) return null;
+
+    final org = await Organization.db.findById(session, organizationId);
+
+    final userProgress = appUser != null
+        ? await UserModuleProgress.db.find(
+            session,
+            where: (p) =>
+                p.appUserId.equals(appUser.id) &
+                p.organizationId.equals(organizationId),
+          )
+        : <UserModuleProgress>[];
+
+    bool effective(String moduleId, bool orgDefault) {
+      try {
+        return userProgress.firstWhere((p) => p.moduleId == moduleId).isEnabled;
+      } catch (_) {
+        return orgDefault;
+      }
+    }
+
+    return ModuleConfigPublic(
+      configId:       'ORG${organizationId}_v1.0.0',
+      lastUpdated:    _dateString(DateTime.now()),
+      contentVersion: org?.contentVersion ?? 1,
+      subscriptionModules: SubscriptionModules(
+        theoryModule:        effective('theory',        config.theoryModule),
+        aiExpertModule:      effective('aiExpert',      config.aiExpertModule),
+        smartTrainingModule: effective('smartTraining', config.smartTrainingModule),
+        assessmentModule:    effective('assessment',    config.assessmentModule),
+      ),
+      languages: LanguagesConfig(
+        defaultLanguage: config.defaultLanguage,
+        supported:       config.supportedLanguages ?? [],
+      ),
+      passingPercentage: config.passingPercentage,
+      aiChatPrompt:      config.aiChatPrompt,
+    );
+  }
+
   // ── Auth ────────────────────────────────────────────────────────────────────
 
   Future<LoginResponse> login(
@@ -51,28 +119,71 @@ class PublicApiEndpoint extends Endpoint {
       }
     }
 
+    ModuleConfigPublic? moduleConfig;
+    if (organization?.id != null && appUser != null) {
+      moduleConfig = await _buildModuleConfigPublic(
+          session, organization!.id!, appUser);
+    }
+
     return LoginResponse(
       success:      true,
       userInfo:     authResult.userInfo,
       organization: organization,
+      moduleConfig: moduleConfig,
       keyId:        authResult.keyId,
       key:          authResult.key,
     );
   }
 
+  // ── Content Bundle (GET) ────────────────────────────────────────────────────
+
+  /// Returns theory, training parameters, and assessment parameters for
+  /// [organizationId] in a single call.
+  Future<Map<String, dynamic>> getContentBundle(
+    Session session,
+    int organizationId,
+    String apiKey,
+  ) async {
+    _validateApiKey(session, apiKey);
+
+    final org = await Organization.db.findById(session, organizationId);
+    if (org == null) throw Exception('Organization not found.');
+
+    final results = await Future.wait([
+      TheoryChapter.db.find(
+        session,
+        where:   (c) => c.organizationId.equals(organizationId),
+        orderBy: (c) => c.chapterOrder,
+      ),
+      TrainingParameter.db.find(
+        session,
+        where: (p) => p.organizationId.equals(organizationId),
+      ),
+      AssessmentParameter.db.find(
+        session,
+        where: (p) => p.organizationId.equals(organizationId),
+      ),
+    ]);
+
+    return {
+      'theorySection': {
+        'moduleTitle': org.name,
+        'chapters': (results[0] as List<TheoryChapter>)
+            .map((c) => _clean(c.toJson()))
+            .toList(),
+      },
+      'trainingParameters': (results[1] as List<TrainingParameter>)
+          .map((p) => _clean(p.toJson()))
+          .toList(),
+      'assessmentParameters': (results[2] as List<AssessmentParameter>)
+          .map((p) => _clean(p.toJson()))
+          .toList(),
+    };
+  }
+
   // ── Theory Section (GET) ────────────────────────────────────────────────────
 
-  /// Returns the full theory section for [organizationId]: module title + all
-  /// chapters with their video metadata and quiz questions, ordered by chapter.
-  ///
-  /// JSON shape:
-  /// ```json
-  /// {
-  ///   "moduleTitle": "Fire Safety Training",
-  ///   "chapters": [ { "chapterId": 1, "title": "Fire", ... } ]
-  /// }
-  /// ```
-  Future<TheorySectionResponse> getTheorySection(
+  Future<Map<String, dynamic>> getTheorySection(
     Session session,
     int organizationId,
     String apiKey,
@@ -88,82 +199,47 @@ class PublicApiEndpoint extends Endpoint {
       orderBy: (c) => c.chapterOrder,
     );
 
-    return TheorySectionResponse(
-      moduleTitle: org.name,
-      chapters:    chapters,
-    );
+    return {
+      'moduleTitle': org.name,
+      'chapters':    chapters.map((c) => _clean(c.toJson())).toList(),
+    };
   }
 
   // ── Smart Training (GET) ────────────────────────────────────────────────────
 
-  /// Returns all training parameters for [organizationId], including per-level
-  /// feedback and scoring logic.
-  ///
-  /// JSON shape:
-  /// ```json
-  /// [
-  ///   {
-  ///     "paramId": "duration",
-  ///     "name": "Duration",
-  ///     "maxScore": 5,
-  ///     "feedbackLow": { "scoreRange": "0/5", ... },
-  ///     ...
-  ///   }
-  /// ]
-  /// ```
-  Future<List<TrainingParameter>> getTrainingParameters(
+  Future<List<Map<String, dynamic>>> getTrainingParameters(
     Session session,
     int organizationId,
     String apiKey,
   ) async {
     _validateApiKey(session, apiKey);
 
-    return await TrainingParameter.db.find(
+    final params = await TrainingParameter.db.find(
       session,
       where: (p) => p.organizationId.equals(organizationId),
     );
+    return params.map((p) => _clean(p.toJson())).toList();
   }
 
   // ── Assessment (GET) ────────────────────────────────────────────────────────
 
-  /// Returns all assessment parameters for [organizationId].
-  ///
-  /// JSON shape mirrors training parameters but without the hint field.
-  Future<List<AssessmentParameter>> getAssessmentParameters(
+  Future<List<Map<String, dynamic>>> getAssessmentParameters(
     Session session,
     int organizationId,
     String apiKey,
   ) async {
     _validateApiKey(session, apiKey);
 
-    return await AssessmentParameter.db.find(
+    final params = await AssessmentParameter.db.find(
       session,
       where: (p) => p.organizationId.equals(organizationId),
     );
+    return params.map((p) => _clean(p.toJson())).toList();
   }
 
   // ── Module Configuration (GET) ──────────────────────────────────────────────
 
-  /// Returns the public module configuration for [organizationId], with
-  /// subscription modules resolved to the effective per-user state.
-  ///
-  /// [userId] is the AppUser.id as a string (same convention as
-  /// [submitTrainingCertificate]). When provided and matched, each module's
-  /// enabled flag reflects the user's individual override from
-  /// [UserModuleProgress]; otherwise the org-level default is used.
-  ///
-  /// JSON shape:
-  /// ```json
-  /// {
-  ///   "configId": "ORG1_v1.0.0",
-  ///   "lastUpdated": "2026-03-19",
-  ///   "subscriptionModules": { "theoryModule": true, ... },
-  ///   "languages": { "defaultLanguage": "en", "supported": [...] },
-  ///   "passingPercentage": 60,
-  ///   "aiChatPrompt": "You are a fire safety expert..."
-  /// }
-  /// ```
-  Future<ModuleConfigPublic> getModuleConfig(
+  Future<Map<String, dynamic>> getModuleConfig(
     Session session,
     int organizationId,
     String apiKey,
@@ -171,73 +247,21 @@ class PublicApiEndpoint extends Endpoint {
   ) async {
     _validateApiKey(session, apiKey);
 
-    final config = await ModuleConfig.db.findFirstRow(
-      session,
-      where: (c) => c.organizationId.equals(organizationId),
-    );
-    if (config == null) {
-      throw Exception('Module configuration not found for this organization.');
-    }
-
-    // Resolve the AppUser from the string userId (AppUser.id convention).
     final parsedId = int.tryParse(userId);
     final appUser =
         parsedId != null ? await AppUser.db.findById(session, parsedId) : null;
 
-    // Load all per-user module overrides for this org in one query.
-    final userProgress = appUser != null
-        ? await UserModuleProgress.db.find(
-            session,
-            where: (p) =>
-                p.appUserId.equals(appUser.id) &
-                p.organizationId.equals(organizationId),
-          )
-        : <UserModuleProgress>[];
-
-    // Returns the user-specific isEnabled value if a progress record exists,
-    // otherwise falls back to the org-level default.
-    bool effective(String moduleId, bool orgDefault) {
-      try {
-        return userProgress.firstWhere((p) => p.moduleId == moduleId).isEnabled;
-      } catch (_) {
-        return orgDefault;
-      }
+    final config =
+        await _buildModuleConfigPublic(session, organizationId, appUser);
+    if (config == null) {
+      throw Exception('Module configuration not found for this organization.');
     }
-
-    return ModuleConfigPublic(
-      configId:     'ORG${organizationId}_v1.0.0',
-      lastUpdated:  _dateString(DateTime.now()),
-      subscriptionModules: SubscriptionModules(
-        theoryModule:        effective('theory',        config.theoryModule),
-        aiExpertModule:      effective('aiExpert',      config.aiExpertModule),
-        smartTrainingModule: effective('smartTraining', config.smartTrainingModule),
-        assessmentModule:    effective('assessment',    config.assessmentModule),
-      ),
-      languages: LanguagesConfig(
-        defaultLanguage: config.defaultLanguage,
-        supported:       config.supportedLanguages,
-      ),
-      passingPercentage: config.passingPercentage,
-      aiChatPrompt:      config.aiChatPrompt,
-    );
+    return _clean(config.toJson());
   }
 
   // ── Language (GET) ──────────────────────────────────────────────────────────
 
-  /// Returns the language configuration for [organizationId]: default language
-  /// code and the list of supported languages with optional content URLs.
-  ///
-  /// JSON shape:
-  /// ```json
-  /// {
-  ///   "defaultLanguage": "en",
-  ///   "supported": [
-  ///     { "code": "en", "name": "English", "contentUrl": "..." },
-  ///     ...
-  ///   ]
-  /// }
-  /// ```
-  Future<LanguagesConfig> getLanguages(
+  Future<Map<String, dynamic>> getLanguages(
     Session session,
     int organizationId,
     String apiKey,
@@ -252,64 +276,32 @@ class PublicApiEndpoint extends Endpoint {
       throw Exception('Module configuration not found for this organization.');
     }
 
-    return LanguagesConfig(
-      defaultLanguage: config.defaultLanguage,
-      supported:       config.supportedLanguages,
-    );
+    return {
+      'defaultLanguage': config.defaultLanguage,
+      'supported': (config.supportedLanguages ?? [])
+          .map((l) => _clean(l.toJson()))
+          .toList(),
+    };
   }
 
   // ── Assets (GET) ────────────────────────────────────────────────────────────
 
-  /// Returns all assets for [organizationId]. Assets can be filtered on the
-  /// client side by the [Asset.module] field (e.g. "theory", "smartTraining").
-  ///
-  /// JSON shape:
-  /// ```json
-  /// [
-  ///   {
-  ///     "name": "Fire Extinguisher Model",
-  ///     "version": "1.0",
-  ///     "url": "https://...",
-  ///     "module": "smartTraining"
-  ///   }
-  /// ]
-  /// ```
-  Future<List<Asset>> getAssets(
+  Future<List<Map<String, dynamic>>> getAssets(
     Session session,
     int organizationId,
     String apiKey,
   ) async {
     _validateApiKey(session, apiKey);
 
-    return await Asset.db.find(
+    final assets = await Asset.db.find(
       session,
       where: (a) => a.organizationId.equals(organizationId),
     );
+    return assets.map((a) => _clean(a.toJson())).toList();
   }
 
   // ── Module Status (POST) ────────────────────────────────────────────────────
 
-  /// Updates the module progress status for a user, called by the external
-  /// training application when a user starts or completes a module.
-  ///
-  /// The [userId] is the AppUser.id as a string (same convention as
-  /// [submitTrainingCertificate]). The record is created automatically if it
-  /// does not exist yet, using the org-level default for [isEnabled].
-  ///
-  /// Timestamps are managed automatically:
-  /// - [startedAt] is set on the first `inProgress` transition.
-  /// - [completedAt] is set on the first `completed` transition.
-  ///
-  /// Request body:
-  /// ```json
-  /// {
-  ///   "organizationId": 1,
-  ///   "apiKey": "...",
-  ///   "userId": "3",
-  ///   "moduleId": "smartTraining",
-  ///   "status": "completed"
-  /// }
-  /// ```
   Future<bool> updateModuleStatus(
     Session session,
     int organizationId,
@@ -383,28 +375,7 @@ class PublicApiEndpoint extends Endpoint {
 
   // ── Certificate / Training Result (POST) ────────────────────────────────────
 
-  /// Records a completed Smart Training session submitted by the external
-  /// training application. Stores the result and returns a confirmation.
-  ///
-  /// Request body:
-  /// ```json
-  /// {
-  ///   "organizationId": 1,
-  ///   "apiKey": "...",
-  ///   "userId": "S1244",
-  ///   "overallPercentage": 85,
-  ///   "criteriaValidation": [
-  ///     { "parameter": "Duration", "score": 4 },
-  ///     ...
-  ///   ]
-  /// }
-  /// ```
-  ///
-  /// Response:
-  /// ```json
-  /// { "success": true, "resultId": 42, "message": "Training result recorded." }
-  /// ```
-  Future<CertificateResponse> submitTrainingCertificate(
+  Future<Map<String, dynamic>> submitTrainingCertificate(
     Session session,
     int organizationId,
     String apiKey,
@@ -417,8 +388,6 @@ class PublicApiEndpoint extends Endpoint {
     final org = await Organization.db.findById(session, organizationId);
     if (org == null) throw Exception('Organization not found.');
 
-    // The external training app sends the AppUser.id as a string userId.
-    // Resolve it to set appUserId so history queries can find these records.
     final parsedId = int.tryParse(userId);
     final matchedUser =
         parsedId != null ? await AppUser.db.findById(session, parsedId) : null;
@@ -434,10 +403,10 @@ class PublicApiEndpoint extends Endpoint {
 
     final stored = await TrainingSessionResult.db.insertRow(session, result);
 
-    return CertificateResponse(
-      success:  true,
-      resultId: stored.id,
-      message:  'Training result recorded successfully.',
-    );
+    return {
+      'success':  true,
+      'resultId': stored.id,
+      'message':  'Training result recorded successfully.',
+    };
   }
 }

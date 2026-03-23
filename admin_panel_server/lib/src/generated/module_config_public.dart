@@ -20,6 +20,7 @@ abstract class ModuleConfigPublic
   ModuleConfigPublic._({
     required this.configId,
     required this.lastUpdated,
+    required this.contentVersion,
     required this.subscriptionModules,
     required this.languages,
     required this.passingPercentage,
@@ -29,6 +30,7 @@ abstract class ModuleConfigPublic
   factory ModuleConfigPublic({
     required String configId,
     required String lastUpdated,
+    required int contentVersion,
     required _i2.SubscriptionModules subscriptionModules,
     required _i3.LanguagesConfig languages,
     required int passingPercentage,
@@ -39,6 +41,7 @@ abstract class ModuleConfigPublic
     return ModuleConfigPublic(
       configId: jsonSerialization['configId'] as String,
       lastUpdated: jsonSerialization['lastUpdated'] as String,
+      contentVersion: jsonSerialization['contentVersion'] as int,
       subscriptionModules: _i4.Protocol().deserialize<_i2.SubscriptionModules>(
         jsonSerialization['subscriptionModules'],
       ),
@@ -54,6 +57,8 @@ abstract class ModuleConfigPublic
 
   String lastUpdated;
 
+  int contentVersion;
+
   _i2.SubscriptionModules subscriptionModules;
 
   _i3.LanguagesConfig languages;
@@ -68,6 +73,7 @@ abstract class ModuleConfigPublic
   ModuleConfigPublic copyWith({
     String? configId,
     String? lastUpdated,
+    int? contentVersion,
     _i2.SubscriptionModules? subscriptionModules,
     _i3.LanguagesConfig? languages,
     int? passingPercentage,
@@ -79,6 +85,7 @@ abstract class ModuleConfigPublic
       '__className__': 'ModuleConfigPublic',
       'configId': configId,
       'lastUpdated': lastUpdated,
+      'contentVersion': contentVersion,
       'subscriptionModules': subscriptionModules.toJson(),
       'languages': languages.toJson(),
       'passingPercentage': passingPercentage,
@@ -92,6 +99,7 @@ abstract class ModuleConfigPublic
       '__className__': 'ModuleConfigPublic',
       'configId': configId,
       'lastUpdated': lastUpdated,
+      'contentVersion': contentVersion,
       'subscriptionModules': subscriptionModules.toJsonForProtocol(),
       'languages': languages.toJsonForProtocol(),
       'passingPercentage': passingPercentage,
@@ -111,6 +119,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
   _ModuleConfigPublicImpl({
     required String configId,
     required String lastUpdated,
+    required int contentVersion,
     required _i2.SubscriptionModules subscriptionModules,
     required _i3.LanguagesConfig languages,
     required int passingPercentage,
@@ -118,6 +127,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
   }) : super._(
          configId: configId,
          lastUpdated: lastUpdated,
+         contentVersion: contentVersion,
          subscriptionModules: subscriptionModules,
          languages: languages,
          passingPercentage: passingPercentage,
@@ -131,6 +141,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
   ModuleConfigPublic copyWith({
     String? configId,
     String? lastUpdated,
+    int? contentVersion,
     _i2.SubscriptionModules? subscriptionModules,
     _i3.LanguagesConfig? languages,
     int? passingPercentage,
@@ -139,6 +150,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
     return ModuleConfigPublic(
       configId: configId ?? this.configId,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+      contentVersion: contentVersion ?? this.contentVersion,
       subscriptionModules:
           subscriptionModules ?? this.subscriptionModules.copyWith(),
       languages: languages ?? this.languages.copyWith(),

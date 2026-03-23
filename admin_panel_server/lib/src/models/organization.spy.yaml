@@ -3,5 +3,6 @@ table: organization
 fields:
   name: String
   imageUrl: String?
+  contentVersion: int, default=1, defaultPersist=1
   manager: AppUser?, relation(optional)
   users: List<OrganizationUserLink>?, relation(name=organization_user_links)

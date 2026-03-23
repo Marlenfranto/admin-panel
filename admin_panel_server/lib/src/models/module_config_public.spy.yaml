@@ -2,6 +2,7 @@ class: ModuleConfigPublic
 fields:
   configId: String
   lastUpdated: String
+  contentVersion: int
   subscriptionModules: SubscriptionModules
   languages: LanguagesConfig
   passingPercentage: int

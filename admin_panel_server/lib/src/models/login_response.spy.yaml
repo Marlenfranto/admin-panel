@@ -3,5 +3,6 @@ fields:
   success: bool
   userInfo: module:auth:UserInfo?
   organization: Organization?
+  moduleConfig: ModuleConfigPublic?
   keyId: int?
   key: String?

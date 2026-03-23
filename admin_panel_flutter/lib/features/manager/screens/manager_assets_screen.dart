@@ -10,7 +10,7 @@ import '../../../src/providers.dart';
 class ManagerAssetsScreen extends ConsumerWidget {
   const ManagerAssetsScreen({super.key});
 
-  static const _modules = ['theory', 'ai', 'training', 'assessment'];
+  static const _modules = ['theory', 'arExpert', 'training', 'assessment'];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,7 +102,7 @@ class ManagerAssetsScreen extends ConsumerWidget {
               _StatCard(
                 icon:        Icons.smart_toy_rounded,
                 accentColor: AppColors.aiExpert,
-                value:       '${assets.where((a) => a.module == 'ai').length}',
+                value:       '${assets.where((a) => a.module == 'arExpert').length}',
                 label:       'AR Expert',
                 isLoading:   assetsAsync.isLoading,
               ),
@@ -243,7 +243,7 @@ class ManagerAssetsScreen extends ConsumerWidget {
   static String _moduleLabel(String module) {
     switch (module) {
       case 'theory':     return 'Theory';
-      case 'ai':         return 'AR Expert';
+      case 'arExpert':   return 'AR Expert';
       case 'training':   return 'Training';
       case 'assessment': return 'Assessment';
       default:           return module;
@@ -253,7 +253,7 @@ class ManagerAssetsScreen extends ConsumerWidget {
   static AppChipVariant _moduleVariant(String module) {
     switch (module) {
       case 'theory':     return AppChipVariant.primary;
-      case 'ai':         return AppChipVariant.info;
+      case 'arExpert':   return AppChipVariant.info;
       case 'training':   return AppChipVariant.success;
       case 'assessment': return AppChipVariant.warning;
       default:           return AppChipVariant.neutral;
@@ -366,7 +366,7 @@ class _AssetIcon extends StatelessWidget {
   static IconData _icon(String m) {
     switch (m) {
       case 'theory':     return Icons.menu_book_rounded;
-      case 'ai':         return Icons.smart_toy_rounded;
+      case 'arExpert':   return Icons.smart_toy_rounded;
       case 'training':   return Icons.fitness_center_rounded;
       case 'assessment': return Icons.quiz_rounded;
       default:           return Icons.perm_media_rounded;
@@ -376,7 +376,7 @@ class _AssetIcon extends StatelessWidget {
   static Color _color(String m) {
     switch (m) {
       case 'theory':     return AppColors.theory;
-      case 'ai':         return AppColors.aiExpert;
+      case 'arExpert':   return AppColors.aiExpert;
       case 'training':   return AppColors.training;
       case 'assessment': return AppColors.assess;
       default:           return AppColors.training;

@@ -156,6 +156,56 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['organizationId'],
                   ),
         ),
+        'updateOrganization': _i1.MethodConnector(
+          name: 'updateOrganization',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'name': _i1.ParameterDescription(
+              name: 'name',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'imageUrl': _i1.ParameterDescription(
+              name: 'imageUrl',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i2.AdminEndpoint).updateOrganization(
+                    session,
+                    params['id'],
+                    params['name'],
+                    params['imageUrl'],
+                  ),
+        ),
+        'deleteOrganization': _i1.MethodConnector(
+          name: 'deleteOrganization',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i2.AdminEndpoint).deleteOrganization(
+                    session,
+                    params['id'],
+                  ),
+        ),
         'getAllOrganizations': _i1.MethodConnector(
           name: 'getAllOrganizations',
           params: {},
@@ -165,6 +215,54 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['admin'] as _i2.AdminEndpoint)
                   .getAllOrganizations(session),
+        ),
+        'updateUser': _i1.MethodConnector(
+          name: 'updateUser',
+          params: {
+            'appUserId': _i1.ParameterDescription(
+              name: 'appUserId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'userName': _i1.ParameterDescription(
+              name: 'userName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'role': _i1.ParameterDescription(
+              name: 'role',
+              type: _i1.getType<_i6.Role>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint).updateUser(
+                session,
+                params['appUserId'],
+                params['userName'],
+                params['role'],
+              ),
+        ),
+        'deleteUser': _i1.MethodConnector(
+          name: 'deleteUser',
+          params: {
+            'appUserId': _i1.ParameterDescription(
+              name: 'appUserId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint).deleteUser(
+                session,
+                params['appUserId'],
+              ),
         ),
         'getAllUsers': _i1.MethodConnector(
           name: 'getAllUsers',
@@ -1308,6 +1406,31 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['email'],
                     params['password'],
+                  ),
+        ),
+        'getContentBundle': _i1.MethodConnector(
+          name: 'getContentBundle',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'apiKey': _i1.ParameterDescription(
+              name: 'apiKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['publicApi'] as _i4.PublicApiEndpoint)
+                  .getContentBundle(
+                    session,
+                    params['organizationId'],
+                    params['apiKey'],
                   ),
         ),
         'getTheorySection': _i1.MethodConnector(

@@ -20,15 +20,17 @@ abstract class Organization implements _i1.SerializableModel {
     this.id,
     required this.name,
     this.imageUrl,
+    int? contentVersion,
     this.managerId,
     this.manager,
     this.users,
-  });
+  }) : contentVersion = contentVersion ?? 1;
 
   factory Organization({
     int? id,
     required String name,
     String? imageUrl,
+    int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
@@ -39,6 +41,7 @@ abstract class Organization implements _i1.SerializableModel {
       id: jsonSerialization['id'] as int?,
       name: jsonSerialization['name'] as String,
       imageUrl: jsonSerialization['imageUrl'] as String?,
+      contentVersion: jsonSerialization['contentVersion'] as int?,
       managerId: jsonSerialization['managerId'] as int?,
       manager: jsonSerialization['manager'] == null
           ? null
@@ -62,6 +65,8 @@ abstract class Organization implements _i1.SerializableModel {
 
   String? imageUrl;
 
+  int contentVersion;
+
   int? managerId;
 
   _i2.AppUser? manager;
@@ -75,6 +80,7 @@ abstract class Organization implements _i1.SerializableModel {
     int? id,
     String? name,
     String? imageUrl,
+    int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
@@ -86,6 +92,7 @@ abstract class Organization implements _i1.SerializableModel {
       if (id != null) 'id': id,
       'name': name,
       if (imageUrl != null) 'imageUrl': imageUrl,
+      'contentVersion': contentVersion,
       if (managerId != null) 'managerId': managerId,
       if (manager != null) 'manager': manager?.toJson(),
       if (users != null) 'users': users?.toJson(valueToJson: (v) => v.toJson()),
@@ -105,6 +112,7 @@ class _OrganizationImpl extends Organization {
     int? id,
     required String name,
     String? imageUrl,
+    int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
     List<_i3.OrganizationUserLink>? users,
@@ -112,6 +120,7 @@ class _OrganizationImpl extends Organization {
          id: id,
          name: name,
          imageUrl: imageUrl,
+         contentVersion: contentVersion,
          managerId: managerId,
          manager: manager,
          users: users,
@@ -125,6 +134,7 @@ class _OrganizationImpl extends Organization {
     Object? id = _Undefined,
     String? name,
     Object? imageUrl = _Undefined,
+    int? contentVersion,
     Object? managerId = _Undefined,
     Object? manager = _Undefined,
     Object? users = _Undefined,
@@ -133,6 +143,7 @@ class _OrganizationImpl extends Organization {
       id: id is int? ? id : this.id,
       name: name ?? this.name,
       imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
+      contentVersion: contentVersion ?? this.contentVersion,
       managerId: managerId is int? ? managerId : this.managerId,
       manager: manager is _i2.AppUser? ? manager : this.manager?.copyWith(),
       users: users is List<_i3.OrganizationUserLink>?

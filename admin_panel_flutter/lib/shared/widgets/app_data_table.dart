@@ -269,7 +269,11 @@ class _HeaderRow<T> extends StatelessWidget {
                     ? SystemMouseCursors.click
                     : MouseCursor.defer,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: col.alignment.x > 0
+                      ? MainAxisAlignment.end
+                      : col.alignment.x < 0
+                          ? MainAxisAlignment.start
+                          : MainAxisAlignment.center,
                   children: [
                     Text(
                       col.label.toUpperCase(),

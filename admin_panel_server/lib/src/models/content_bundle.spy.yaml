@@ -1,0 +1,5 @@
+class: ContentBundle
+fields:
+  theorySection: TheorySectionResponse
+  trainingParameters: List<TrainingParameter>
+  assessmentParameters: List<AssessmentParameter>

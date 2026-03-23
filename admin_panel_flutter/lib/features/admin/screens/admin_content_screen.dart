@@ -1163,7 +1163,7 @@ class _AssetsTab extends ConsumerWidget {
     final versionCtrl    = TextEditingController(text: existing?.version ?? '');
     final urlCtrl        = TextEditingController(text: existing?.url ?? '');
     final descCtrl       = TextEditingController(text: existing?.description ?? '');
-    final moduleNotifier = ValueNotifier<String>(existing?.module ?? 'arExpert');
+    final moduleNotifier = ValueNotifier<String>(existing?.module ?? 'theory');
 
     AppSideSheet.show(
       context:   context,
@@ -1247,9 +1247,10 @@ class _AssetBodyState extends State<_AssetBody> {
             value: module,
             decoration: const InputDecoration(labelText: 'Available in'),
             items: const [
-              DropdownMenuItem(value: 'arExpert', child: Text('AR Expert')),
-              DropdownMenuItem(value: 'training', child: Text('Training')),
-              DropdownMenuItem(value: 'both',     child: Text('Both')),
+              DropdownMenuItem(value: 'theory',     child: Text('Theory')),
+              DropdownMenuItem(value: 'arExpert',   child: Text('AR Expert')),
+              DropdownMenuItem(value: 'training',   child: Text('Training')),
+              DropdownMenuItem(value: 'assessment', child: Text('Assessment')),
             ],
             onChanged: (v) => widget.moduleNotifier.value = v!,
           ),
@@ -1360,14 +1361,18 @@ class _ModuleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppStatusChip(
       label: switch (module) {
-        'arExpert' => 'AR Expert',
-        'training' => 'Training',
-        _          => 'Both',
+        'theory'     => 'Theory',
+        'arExpert'   => 'AR Expert',
+        'training'   => 'Training',
+        'assessment' => 'Assessment',
+        _            => module,
       },
       variant: switch (module) {
-        'arExpert' => AppChipVariant.info,
-        'training' => AppChipVariant.warning,
-        _          => AppChipVariant.success,
+        'theory'     => AppChipVariant.primary,
+        'arExpert'   => AppChipVariant.info,
+        'training'   => AppChipVariant.success,
+        'assessment' => AppChipVariant.warning,
+        _            => AppChipVariant.neutral,
       },
     );
   }

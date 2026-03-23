@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_server/serverpod_auth_server.dart';
 import '../generated/protocol.dart';
 import '../scopes.dart';
+import '../util/version_util.dart';
 
 class ManagerEndpoint extends Endpoint {
   @override
@@ -128,6 +129,7 @@ class ManagerEndpoint extends Endpoint {
       where: (c) => c.organizationId.equals(org.id),
     );
 
+    ModuleConfig? result;
     if (existing != null) {
       existing.theoryModule = theoryModule;
       existing.aiExpertModule = aiExpertModule;
@@ -135,7 +137,7 @@ class ManagerEndpoint extends Endpoint {
       existing.assessmentModule = assessmentModule;
       existing.aiChatPrompt = aiChatPrompt;
       existing.passingPercentage = passingPercentage;
-      return await ModuleConfig.db.updateRow(session, existing);
+      result = await ModuleConfig.db.updateRow(session, existing);
     } else {
       var config = ModuleConfig(
         organizationId: org.id,
@@ -146,8 +148,10 @@ class ManagerEndpoint extends Endpoint {
         aiChatPrompt: aiChatPrompt,
         passingPercentage: passingPercentage,
       );
-      return await ModuleConfig.db.insertRow(session, config);
+      result = await ModuleConfig.db.insertRow(session, config);
     }
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
   }
 
   // Theory chapters
@@ -181,17 +185,23 @@ class ManagerEndpoint extends Endpoint {
 
     chapter.organizationId = organizationId;
 
+    final TheoryChapter result;
     if (chapter.id != null) {
-      return await TheoryChapter.db.updateRow(session, chapter);
+      result = await TheoryChapter.db.updateRow(session, chapter);
     } else {
-      return await TheoryChapter.db.insertRow(session, chapter);
+      result = await TheoryChapter.db.insertRow(session, chapter);
     }
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
   }
 
   Future<bool> deleteTheoryChapter(Session session, int chapterId) async {
     final chapter = await TheoryChapter.db.findById(session, chapterId);
     if (chapter == null) return false;
     await TheoryChapter.db.deleteRow(session, chapter);
+    if (chapter.organizationId != null) {
+      await bumpOrgContentVersion(session, chapter.organizationId!);
+    }
     return true;
   }
 
@@ -225,17 +235,23 @@ class ManagerEndpoint extends Endpoint {
 
     param.organizationId = organizationId;
 
+    final TrainingParameter result;
     if (param.id != null) {
-      return await TrainingParameter.db.updateRow(session, param);
+      result = await TrainingParameter.db.updateRow(session, param);
     } else {
-      return await TrainingParameter.db.insertRow(session, param);
+      result = await TrainingParameter.db.insertRow(session, param);
     }
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
   }
 
   Future<bool> deleteTrainingParameter(Session session, int paramId) async {
     final param = await TrainingParameter.db.findById(session, paramId);
     if (param == null) return false;
     await TrainingParameter.db.deleteRow(session, param);
+    if (param.organizationId != null) {
+      await bumpOrgContentVersion(session, param.organizationId!);
+    }
     return true;
   }
 
@@ -269,17 +285,23 @@ class ManagerEndpoint extends Endpoint {
 
     param.organizationId = organizationId;
 
+    final AssessmentParameter result;
     if (param.id != null) {
-      return await AssessmentParameter.db.updateRow(session, param);
+      result = await AssessmentParameter.db.updateRow(session, param);
     } else {
-      return await AssessmentParameter.db.insertRow(session, param);
+      result = await AssessmentParameter.db.insertRow(session, param);
     }
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
   }
 
   Future<bool> deleteAssessmentParameter(Session session, int paramId) async {
     final param = await AssessmentParameter.db.findById(session, paramId);
     if (param == null) return false;
     await AssessmentParameter.db.deleteRow(session, param);
+    if (param.organizationId != null) {
+      await bumpOrgContentVersion(session, param.organizationId!);
+    }
     return true;
   }
 
@@ -313,17 +335,23 @@ class ManagerEndpoint extends Endpoint {
 
     asset.organizationId = organizationId;
 
+    final Asset result;
     if (asset.id != null) {
-      return await Asset.db.updateRow(session, asset);
+      result = await Asset.db.updateRow(session, asset);
     } else {
-      return await Asset.db.insertRow(session, asset);
+      result = await Asset.db.insertRow(session, asset);
     }
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
   }
 
   Future<bool> deleteAsset(Session session, int assetId) async {
     final asset = await Asset.db.findById(session, assetId);
     if (asset == null) return false;
     await Asset.db.deleteRow(session, asset);
+    if (asset.organizationId != null) {
+      await bumpOrgContentVersion(session, asset.organizationId!);
+    }
     return true;
   }
 

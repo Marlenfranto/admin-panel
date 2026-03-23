@@ -13,13 +13,15 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i2;
 import 'organization.dart' as _i3;
-import 'package:admin_panel_client/src/protocol/protocol.dart' as _i4;
+import 'module_config_public.dart' as _i4;
+import 'package:admin_panel_client/src/protocol/protocol.dart' as _i5;
 
 abstract class LoginResponse implements _i1.SerializableModel {
   LoginResponse._({
     required this.success,
     this.userInfo,
     this.organization,
+    this.moduleConfig,
     this.keyId,
     this.key,
   });
@@ -28,6 +30,7 @@ abstract class LoginResponse implements _i1.SerializableModel {
     required bool success,
     _i2.UserInfo? userInfo,
     _i3.Organization? organization,
+    _i4.ModuleConfigPublic? moduleConfig,
     int? keyId,
     String? key,
   }) = _LoginResponseImpl;
@@ -37,13 +40,18 @@ abstract class LoginResponse implements _i1.SerializableModel {
       success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
       userInfo: jsonSerialization['userInfo'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.UserInfo>(
+          : _i5.Protocol().deserialize<_i2.UserInfo>(
               jsonSerialization['userInfo'],
             ),
       organization: jsonSerialization['organization'] == null
           ? null
-          : _i4.Protocol().deserialize<_i3.Organization>(
+          : _i5.Protocol().deserialize<_i3.Organization>(
               jsonSerialization['organization'],
+            ),
+      moduleConfig: jsonSerialization['moduleConfig'] == null
+          ? null
+          : _i5.Protocol().deserialize<_i4.ModuleConfigPublic>(
+              jsonSerialization['moduleConfig'],
             ),
       keyId: jsonSerialization['keyId'] as int?,
       key: jsonSerialization['key'] as String?,
@@ -56,6 +64,8 @@ abstract class LoginResponse implements _i1.SerializableModel {
 
   _i3.Organization? organization;
 
+  _i4.ModuleConfigPublic? moduleConfig;
+
   int? keyId;
 
   String? key;
@@ -67,6 +77,7 @@ abstract class LoginResponse implements _i1.SerializableModel {
     bool? success,
     _i2.UserInfo? userInfo,
     _i3.Organization? organization,
+    _i4.ModuleConfigPublic? moduleConfig,
     int? keyId,
     String? key,
   });
@@ -77,6 +88,7 @@ abstract class LoginResponse implements _i1.SerializableModel {
       'success': success,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
       if (organization != null) 'organization': organization?.toJson(),
+      if (moduleConfig != null) 'moduleConfig': moduleConfig?.toJson(),
       if (keyId != null) 'keyId': keyId,
       if (key != null) 'key': key,
     };
@@ -95,12 +107,14 @@ class _LoginResponseImpl extends LoginResponse {
     required bool success,
     _i2.UserInfo? userInfo,
     _i3.Organization? organization,
+    _i4.ModuleConfigPublic? moduleConfig,
     int? keyId,
     String? key,
   }) : super._(
          success: success,
          userInfo: userInfo,
          organization: organization,
+         moduleConfig: moduleConfig,
          keyId: keyId,
          key: key,
        );
@@ -113,6 +127,7 @@ class _LoginResponseImpl extends LoginResponse {
     bool? success,
     Object? userInfo = _Undefined,
     Object? organization = _Undefined,
+    Object? moduleConfig = _Undefined,
     Object? keyId = _Undefined,
     Object? key = _Undefined,
   }) {
@@ -124,6 +139,9 @@ class _LoginResponseImpl extends LoginResponse {
       organization: organization is _i3.Organization?
           ? organization
           : this.organization?.copyWith(),
+      moduleConfig: moduleConfig is _i4.ModuleConfigPublic?
+          ? moduleConfig
+          : this.moduleConfig?.copyWith(),
       keyId: keyId is int? ? keyId : this.keyId,
       key: key is String? ? key : this.key,
     );

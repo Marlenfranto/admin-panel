@@ -22,8 +22,11 @@ cd admin_panel_server && dart bin/main.dart
 # Stop Docker services
 cd admin_panel_server && docker compose stop
 
-# Run integration tests
+# Run all integration tests
 cd admin_panel_server && dart test
+
+# Run a single test file
+cd admin_panel_server && dart test test/integration/test_tools/my_test.dart
 
 # Regenerate client/server code after schema changes
 serverpod generate
@@ -56,16 +59,16 @@ dart pub get
 
 ### Authentication & Authorization
 - Auth is handled by Serverpod's built-in auth module
-- Three roles: `Admin`, `Manager`, `User` (defined in `role.dart`)
+- Four roles (hierarchy: SuperAdmin > Admin > Manager > User), defined in `role.spy.yaml`
 - Three scopes: `AppScopes.admin`, `AppScopes.manager`, `AppScopes.user` (defined in `admin_panel_server/lib/src/scopes.dart`)
 - On server startup (`lib/server.dart`), a default admin is created: `admin@mako.com` / `Mako@123`
 
 ### API Endpoints
-Endpoints are grouped by required access level:
-- `PublicApiEndpoint` — unauthenticated (login, tools update via API key)
-- `AdminEndpoint` — requires `AppScopes.admin`
-- `ManagerEndpoint` — requires `AppScopes.manager`
-- `UserEndpoint` — requires login
+Endpoints are in `admin_panel_server/lib/src/endpoints/` and grouped by access level:
+- `PublicApiEndpoint` — unauthenticated: login, theory retrieval, training/assessment params, module status & certificate submission from external training app (validated by API key), asset/language management
+- `AdminEndpoint` — requires `AppScopes.admin`: org CRUD, user creation, module config, theory/training/assessment content, all-user progress & training history
+- `ManagerEndpoint` — requires `AppScopes.manager`: scoped to managed org(s), user creation, content/module config, notifications, training history
+- `UserEndpoint` — requires login: own permissions, module config, progress updates, training history, password change
 
 ### Data Model Relationships
 ```
@@ -76,32 +79,64 @@ UserInfo (Serverpod Auth) ──→ AppUser (custom)
 
 Organization ──→ managerId (AppUser)
              └─→ users: List<OrganizationUserLink> (junction table)
+
+ModuleConfig ──→ organizationId
+UserModuleProgress ──→ userId, organizationId (status, deadline, startedAt, completedAt)
+TrainingSessionResult ──→ userId, organizationId (criteria scores, timestamp)
+ManagerNotification ──→ managerId (auto-created for overdue users)
+```
+
+### Frontend Structure (Flutter)
+```
+lib/
+├── main.dart                    # ProviderScope + MaterialApp.router entry
+├── src/providers.dart           # Core auth providers (client, sessionManager, auth)
+├── core/
+│   ├── router/app_router.dart   # GoRouter with role-based redirect & _AuthRefreshNotifier
+│   ├── theme/                   # AppColors, AppTextStyles, AppSpacing, AppTheme (Material 3)
+│   ├── config/                  # Cloudinary config
+│   └── services/                # Cloudinary uploader (image uploads via HTTP)
+├── features/
+│   ├── admin/                   # AdminShell + 5 screens (orgs, users, modules, content, settings)
+│   ├── manager/                 # ManagerShell + 6 screens + notification bell widget
+│   └── user/                    # UserShell + 2 screens (modules, settings)
+└── shared/widgets/              # AppDataTable, AppKpiCard, DashboardShell, TrainingHistoryPanel,
+                                 # UserModuleConfigPanel, AppSkeletonLoader, AppBreadcrumb, etc.
 ```
 
 ### Frontend State Management (Flutter Riverpod)
-All providers are in `admin_panel_flutter/lib/src/providers.dart`:
-- `clientProvider` — singleton Serverpod `Client` instance
-- `sessionManagerProvider` — Serverpod `SessionManager` for auth tokens
-- `authProvider` — `StateNotifierProvider<AuthNotifier, AuthState>` holding `UserInfo` + `AppUser`
+- `src/providers.dart` — core: `clientProvider`, `sessionManagerProvider`, `authProvider`
+- `features/admin/providers/admin_providers.dart` — organizations, all users, module configs, content
+- `features/manager/providers/manager_providers.dart` — managed orgs, `selectedOrgIdProvider`, `activeOrgIdProvider`
+- `features/user/providers/user_providers.dart` — own progress, training history, module config
 
-The `AuthNotifier` listens to `SessionManager` and syncs auth state app-wide. UI components watch `authProvider` to decide which screen to show.
+`AuthNotifier` listens to `SessionManager`, auto-fetches `AppUser` via `user.getMyPermissions()`, and syncs state app-wide. GoRouter observes `authProvider` via `_AuthRefreshNotifier` and redirects based on role.
 
-### Screen Routing
-`main_dashboard.dart` routes based on role:
-- `Admin` → `admin_dashboard.dart`
-- `Manager` → `manager_dashboard.dart`
-- `User` → `user_dashboard.dart`
+### Screen Routing (GoRouter)
+Role-based redirect in `core/router/app_router.dart`:
+- Unauthenticated → `LoginScreen`
+- `SuperAdmin`/`Admin` → `AdminShell` (organizations, users, modules, content, settings)
+- `Manager` → `ManagerShell` (overview, team, modules, content, assets, settings)
+- `User` → `UserShell` (modules, settings)
+
+### Key Behavioral Patterns
+- **Managers can manage multiple orgs**: `getManagedOrganizations()` returns a list; UI uses `activeOrgIdProvider` derived from `selectedOrgIdProvider`
+- **Notification auto-creation**: `ManagerEndpoint.getNotifications()` scans progress records and auto-creates `ManagerNotification` rows for overdue users (deadline passed, not completed)
+- **Timestamp idempotency**: `startedAt` / `completedAt` are only set once (won't overwrite if already present)
+- **External training integration**: `PublicApiEndpoint` accepts training results and certificate submissions from an external training app authenticated via API key (not user session)
+- **Authorization by query filtering**: Managers can only access their managed org's data — enforced server-side via `managerId.equals()` and `organizationId.equals()` filters, not just by scope
 
 ### Configuration
 - Server config: `admin_panel_server/config/{development,production,staging,test}.yaml`
 - Secrets: `admin_panel_server/config/passwords.yaml` (not committed)
-- Dev server runs on port `8080`, Postgres on `8090`, test Postgres on `9090`
+- Dev server runs on port `8080`, Postgres on `8090`, test Postgres on `9090`; Redis on `8091` dev / `9091` test
 - Flutter connects to `http://localhost:8080/` in development
+- Integration tests use `integration` tag (configured in `dart_test.yaml`)
 
 ### Deployment
-- GCP (Cloud Run) and AWS (Lambda) terraform configs in `deploy/` directory
+- GCP (Cloud Run) and AWS terraform configs in `deploy/` directory
 - Firebase hosting config in `admin_panel_flutter/firebase.json`
-- Server Docker image defined in `admin_panel_server/Dockerfile`
+- Server Docker image: multi-stage build (dart:3.8.0 → Alpine), exposes ports 8080/8081/8082
 
 ### Database Migrations
 Migrations are in `admin_panel_server/migrations/` and tracked in `migration_registry.txt`. Run `serverpod generate` to create new migrations after model changes.

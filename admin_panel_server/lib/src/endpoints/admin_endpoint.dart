@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_server/serverpod_auth_server.dart';
 import '../generated/protocol.dart';
 import '../scopes.dart';
+import '../util/version_util.dart';
 
 class AdminEndpoint extends Endpoint {
   @override
@@ -63,6 +64,42 @@ class AdminEndpoint extends Endpoint {
     return true;
   }
 
+  Future<Organization?> updateOrganization(
+    Session session,
+    int    id,
+    String name,
+    String? imageUrl,
+  ) async {
+    final org = await Organization.db.findById(session, id);
+    if (org == null) return null;
+    org.name     = name;
+    org.imageUrl = imageUrl;
+    return await Organization.db.updateRow(session, org);
+  }
+
+  Future<bool> deleteOrganization(Session session, int id) async {
+    await OrganizationUserLink.db.deleteWhere(
+        session, where: (l) => l.organizationId.equals(id));
+    await ModuleConfig.db.deleteWhere(
+        session, where: (c) => c.organizationId.equals(id));
+    await TheoryChapter.db.deleteWhere(
+        session, where: (c) => c.organizationId.equals(id));
+    await TrainingParameter.db.deleteWhere(
+        session, where: (p) => p.organizationId.equals(id));
+    await AssessmentParameter.db.deleteWhere(
+        session, where: (p) => p.organizationId.equals(id));
+    await Asset.db.deleteWhere(
+        session, where: (a) => a.organizationId.equals(id));
+    await UserModuleProgress.db.deleteWhere(
+        session, where: (p) => p.organizationId.equals(id));
+    await ManagerNotification.db.deleteWhere(
+        session, where: (n) => n.organizationId.equals(id));
+    final org = await Organization.db.findById(session, id);
+    if (org == null) return false;
+    await Organization.db.deleteRow(session, org);
+    return true;
+  }
+
   Future<List<Organization>> getAllOrganizations(Session session) async {
     return await Organization.db.find(
       session,
@@ -73,6 +110,59 @@ class AdminEndpoint extends Endpoint {
         ),
       ),
     );
+  }
+
+  Future<bool> updateUser(
+    Session session,
+    int    appUserId,
+    String userName,
+    Role   role,
+  ) async {
+    if (role == Role.SuperAdmin || role == Role.Admin) {
+      throw Exception('Cannot assign SuperAdmin or Admin role via this endpoint.');
+    }
+    final appUser = await AppUser.db.findById(session, appUserId);
+    if (appUser == null) return false;
+    if (appUser.role == Role.SuperAdmin || appUser.role == Role.Admin) {
+      throw Exception('Cannot modify SuperAdmin or Admin users.');
+    }
+
+    if (appUser.role != role) {
+      appUser.role = role;
+      await AppUser.db.updateRow(session, appUser);
+      final scope = role == Role.Manager ? AppScopes.manager : AppScopes.user;
+      await Users.updateUserScopes(session, appUser.userInfoId, {scope});
+    }
+
+    final userInfo = await UserInfo.db.findById(session, appUser.userInfoId);
+    if (userInfo != null && userInfo.userName != userName) {
+      userInfo.userName = userName;
+      await UserInfo.db.updateRow(session, userInfo);
+    }
+
+    return true;
+  }
+
+  Future<bool> deleteUser(Session session, int appUserId) async {
+    final appUser = await AppUser.db.findById(session, appUserId);
+    if (appUser == null) return false;
+    final userInfoId = appUser.userInfoId;
+
+    await UserModuleProgress.db.deleteWhere(
+        session, where: (p) => p.appUserId.equals(appUserId));
+    await OrganizationUserLink.db.deleteWhere(
+        session, where: (l) => l.appUserId.equals(appUserId));
+    await ManagerNotification.db.deleteWhere(
+        session, where: (n) => n.overdueUserId.equals(appUserId));
+    await ManagerNotification.db.deleteWhere(
+        session, where: (n) => n.managerId.equals(appUserId));
+    await AppUser.db.deleteRow(session, appUser);
+
+    final userInfo = await UserInfo.db.findById(session, userInfoId);
+    if (userInfo != null) {
+      await UserInfo.db.deleteRow(session, userInfo);
+    }
+    return true;
   }
 
   Future<List<AppUser>> getAllUsers(Session session, {Role? role}) async {
@@ -100,6 +190,7 @@ class AdminEndpoint extends Endpoint {
       where: (c) => c.organizationId.equals(organizationId),
     );
 
+    ModuleConfig result;
     if (existing != null) {
       existing.theoryModule = theoryModule;
       existing.aiExpertModule = aiExpertModule;
@@ -109,7 +200,7 @@ class AdminEndpoint extends Endpoint {
       existing.supportedLanguages = supportedLanguages;
       existing.aiChatPrompt = aiChatPrompt;
       existing.passingPercentage = passingPercentage;
-      return await ModuleConfig.db.updateRow(session, existing);
+      result = await ModuleConfig.db.updateRow(session, existing);
     } else {
       var config = ModuleConfig(
         organizationId: organizationId,
@@ -122,8 +213,10 @@ class AdminEndpoint extends Endpoint {
         aiChatPrompt: aiChatPrompt,
         passingPercentage: passingPercentage,
       );
-      return await ModuleConfig.db.insertRow(session, config);
+      result = await ModuleConfig.db.insertRow(session, config);
     }
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
   }
 
   Future<ModuleConfig?> getModuleConfig(Session session, int organizationId) async {
@@ -144,17 +237,25 @@ class AdminEndpoint extends Endpoint {
   }
 
   Future<TheoryChapter> upsertTheoryChapter(Session session, TheoryChapter chapter) async {
+    final TheoryChapter result;
     if (chapter.id != null) {
-      return await TheoryChapter.db.updateRow(session, chapter);
+      result = await TheoryChapter.db.updateRow(session, chapter);
     } else {
-      return await TheoryChapter.db.insertRow(session, chapter);
+      result = await TheoryChapter.db.insertRow(session, chapter);
     }
+    if (chapter.organizationId != null) {
+      await bumpOrgContentVersion(session, chapter.organizationId!);
+    }
+    return result;
   }
 
   Future<bool> deleteTheoryChapter(Session session, int chapterId) async {
     final chapter = await TheoryChapter.db.findById(session, chapterId);
     if (chapter == null) return false;
     await TheoryChapter.db.deleteRow(session, chapter);
+    if (chapter.organizationId != null) {
+      await bumpOrgContentVersion(session, chapter.organizationId!);
+    }
     return true;
   }
 
@@ -168,17 +269,25 @@ class AdminEndpoint extends Endpoint {
   }
 
   Future<TrainingParameter> upsertTrainingParameter(Session session, TrainingParameter param) async {
+    final TrainingParameter result;
     if (param.id != null) {
-      return await TrainingParameter.db.updateRow(session, param);
+      result = await TrainingParameter.db.updateRow(session, param);
     } else {
-      return await TrainingParameter.db.insertRow(session, param);
+      result = await TrainingParameter.db.insertRow(session, param);
     }
+    if (param.organizationId != null) {
+      await bumpOrgContentVersion(session, param.organizationId!);
+    }
+    return result;
   }
 
   Future<bool> deleteTrainingParameter(Session session, int paramId) async {
     final param = await TrainingParameter.db.findById(session, paramId);
     if (param == null) return false;
     await TrainingParameter.db.deleteRow(session, param);
+    if (param.organizationId != null) {
+      await bumpOrgContentVersion(session, param.organizationId!);
+    }
     return true;
   }
 
@@ -192,17 +301,25 @@ class AdminEndpoint extends Endpoint {
   }
 
   Future<AssessmentParameter> upsertAssessmentParameter(Session session, AssessmentParameter param) async {
+    final AssessmentParameter result;
     if (param.id != null) {
-      return await AssessmentParameter.db.updateRow(session, param);
+      result = await AssessmentParameter.db.updateRow(session, param);
     } else {
-      return await AssessmentParameter.db.insertRow(session, param);
+      result = await AssessmentParameter.db.insertRow(session, param);
     }
+    if (param.organizationId != null) {
+      await bumpOrgContentVersion(session, param.organizationId!);
+    }
+    return result;
   }
 
   Future<bool> deleteAssessmentParameter(Session session, int paramId) async {
     final param = await AssessmentParameter.db.findById(session, paramId);
     if (param == null) return false;
     await AssessmentParameter.db.deleteRow(session, param);
+    if (param.organizationId != null) {
+      await bumpOrgContentVersion(session, param.organizationId!);
+    }
     return true;
   }
 
@@ -213,17 +330,25 @@ class AdminEndpoint extends Endpoint {
   }
 
   Future<Asset> upsertAsset(Session session, Asset asset) async {
+    final Asset result;
     if (asset.id != null) {
-      return await Asset.db.updateRow(session, asset);
+      result = await Asset.db.updateRow(session, asset);
     } else {
-      return await Asset.db.insertRow(session, asset);
+      result = await Asset.db.insertRow(session, asset);
     }
+    if (asset.organizationId != null) {
+      await bumpOrgContentVersion(session, asset.organizationId!);
+    }
+    return result;
   }
 
   Future<bool> deleteAsset(Session session, int assetId) async {
     final asset = await Asset.db.findById(session, assetId);
     if (asset == null) return false;
     await Asset.db.deleteRow(session, asset);
+    if (asset.organizationId != null) {
+      await bumpOrgContentVersion(session, asset.organizationId!);
+    }
     return true;
   }
 

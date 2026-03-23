@@ -89,7 +89,12 @@ class UsersScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
 
           // ── Users table ───────────────────────────────────────────────────
-          _UsersTable(usersAsync: usersAsync),
+          _UsersTable(
+            usersAsync: usersAsync,
+            orgs:       orgsAsync.value ?? [],
+            onEdit:     (u) => _showEditUserSheet(context, ref, u),
+            onDelete:   (u) => _confirmDeleteUser(context, ref, u),
+          ),
           const SizedBox(height: AppSpacing.lg),
 
           // ── All users training history ─────────────────────────────────────
@@ -101,6 +106,87 @@ class UsersScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _showEditUserSheet(
+    BuildContext context,
+    WidgetRef ref,
+    AppUser user,
+  ) {
+    final nameCtrl = TextEditingController(
+        text: user.userInfo?.userName ?? '');
+    final roleNotifier = ValueNotifier<Role>(user.role);
+
+    AppSideSheet.show(
+      context:   context,
+      title:     'Edit User',
+      saveLabel: 'Save Changes',
+      body: _EditUserBody(
+        nameCtrl:     nameCtrl,
+        roleNotifier: roleNotifier,
+        currentRole:  user.role,
+      ),
+      onSave: () async {
+        if (nameCtrl.text.trim().isEmpty) {
+          throw Exception('Name is required.');
+        }
+        await ref.read(clientProvider).admin.updateUser(
+              user.id!,
+              nameCtrl.text.trim(),
+              roleNotifier.value,
+            );
+        ref.invalidate(allUsersProvider);
+      },
+    );
+  }
+
+  Future<void> _confirmDeleteUser(
+    BuildContext context,
+    WidgetRef ref,
+    AppUser user,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title:   const Text('Delete User'),
+        content: Text(
+          'Are you sure you want to delete '
+          '"${user.userInfo?.userName ?? 'this user'}"? '
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child:     const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(context, true),
+            child:     const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(clientProvider).admin.deleteUser(user.id!);
+      ref.invalidate(allUsersProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User deleted.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:         Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   void _showAddUserSheet(
@@ -208,11 +294,32 @@ class _StatCard extends StatelessWidget {
 // ── Users table ───────────────────────────────────────────────────────────────
 
 class _UsersTable extends StatelessWidget {
-  const _UsersTable({required this.usersAsync});
+  const _UsersTable({
+    required this.usersAsync,
+    required this.orgs,
+    required this.onEdit,
+    required this.onDelete,
+  });
   final AsyncValue<List<AppUser>> usersAsync;
+  final List<Organization>        orgs;
+  final void Function(AppUser)    onEdit;
+  final void Function(AppUser)    onDelete;
+
+  /// Builds a map of appUserId → organization name from the already-loaded orgs.
+  Map<int, String> _buildOrgMap() {
+    final map = <int, String>{};
+    for (final org in orgs) {
+      for (final link in org.users ?? []) {
+        final userId = link.appUserId;
+        map[userId] = org.name;
+      }
+    }
+    return map;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final orgMap = _buildOrgMap();
     return Container(
       decoration: BoxDecoration(
         color:        AppColors.surface,
@@ -242,9 +349,10 @@ class _UsersTable extends StatelessWidget {
             rows:       usersAsync.value ?? [],
             searchable: true,
             columns: [
+              // ── User (name + email) ────────────────────────────────────────
               AppTableColumn(
                 label:       'User',
-                flex:        3,
+                flex:        4,
                 sortKey:     'name',
                 comparator:  (a, b) =>
                     (a.userInfo?.userName ?? '')
@@ -277,19 +385,86 @@ class _UsersTable extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // ── Organization ───────────────────────────────────────────────
+              AppTableColumn(
+                label:       'Organization',
+                flex:        3,
+                searchValue: (u) => u.id != null ? (orgMap[u.id!] ?? '') : '',
+                cellBuilder: (u) {
+                  final showOrg = u.role == Role.Manager ||
+                      u.role == Role.User;
+                  final orgName = showOrg && u.id != null
+                      ? orgMap[u.id!]
+                      : null;
+                  if (orgName == null) {
+                    return Text('—',
+                        style: AppTextStyles.bodyXs.copyWith(
+                            color: AppColors.onSurfaceSubtle));
+                  }
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width:  22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusSm),
+                        ),
+                        child: const Icon(
+                          Icons.corporate_fare_rounded,
+                          size:  12,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 7),
+                      Flexible(
+                        child: Text(
+                          orgName,
+                          style:    AppTextStyles.labelMd,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+
+              // ── Role ───────────────────────────────────────────────────────
               AppTableColumn(
                 label:       'Role',
-                flex:        1,
+                flex:        2,
                 cellBuilder: (u) => _RoleChip(role: u.role),
               ),
+
+              // ── Actions ────────────────────────────────────────────────────
               AppTableColumn(
-                label:       'ID',
-                flex:        1,
-                alignment:   Alignment.center,
-                cellBuilder: (u) => Text(
-                  '#${u.id}',
-                  style: AppTextStyles.labelMd,
-                ),
+                label:     'Actions',
+                flex:       2,
+                alignment: Alignment.center,
+                cellBuilder: (u) {
+                  final isProtected = u.role == Role.SuperAdmin ||
+                      u.role == Role.Admin;
+                  if (isProtected) return const SizedBox.shrink();
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon:      const Icon(Icons.edit_rounded, size: 17),
+                        tooltip:   'Edit',
+                        onPressed: () => onEdit(u),
+                      ),
+                      IconButton(
+                        icon:  Icon(Icons.delete_rounded,
+                            size: 17, color: AppColors.error),
+                        tooltip:   'Delete',
+                        onPressed: () => onDelete(u),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -578,6 +753,62 @@ class _StyledDropdown<T> extends StatelessWidget {
           decoration:  const InputDecoration(),
           items:       items,
           onChanged:   onChanged,
+        ),
+      ],
+    );
+  }
+}
+
+// ── Edit User form body ───────────────────────────────────────────────────────
+
+class _EditUserBody extends StatefulWidget {
+  const _EditUserBody({
+    required this.nameCtrl,
+    required this.roleNotifier,
+    required this.currentRole,
+  });
+
+  final TextEditingController nameCtrl;
+  final ValueNotifier<Role>   roleNotifier;
+  final Role                  currentRole;
+
+  @override
+  State<_EditUserBody> createState() => _EditUserBodyState();
+}
+
+class _EditUserBodyState extends State<_EditUserBody> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SheetSection(title: 'Account Details'),
+        const SizedBox(height: AppSpacing.sm),
+        SheetField(
+          label:      'Full Name',
+          controller: widget.nameCtrl,
+          hint:       'John Smith',
+        ),
+        const SizedBox(height: AppSpacing.lg),
+
+        const SheetSection(title: 'Role'),
+        const SizedBox(height: AppSpacing.sm),
+
+        Text('Role', style: AppTextStyles.labelMd),
+        const SizedBox(height: 6),
+        ValueListenableBuilder<Role>(
+          valueListenable: widget.roleNotifier,
+          builder: (_, role, __) => DropdownButtonFormField<Role>(
+            value:      role,
+            decoration: const InputDecoration(hintText: 'Select role'),
+            items: [Role.Manager, Role.User]
+                .map((r) => DropdownMenuItem(
+                      value: r,
+                      child: Text(r.name),
+                    ))
+                .toList(),
+            onChanged: (v) => widget.roleNotifier.value = v!,
+          ),
         ),
       ],
     );

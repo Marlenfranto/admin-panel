@@ -31,17 +31,10 @@ import 'package:admin_panel_client/src/protocol/module_progress_status.dart'
 import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
     as _i15;
 import 'package:admin_panel_client/src/protocol/login_response.dart' as _i16;
-import 'package:admin_panel_client/src/protocol/theory_section_response.dart'
-    as _i17;
-import 'package:admin_panel_client/src/protocol/module_config_public.dart'
-    as _i18;
-import 'package:admin_panel_client/src/protocol/languages_config.dart' as _i19;
-import 'package:admin_panel_client/src/protocol/certificate_response.dart'
-    as _i20;
 import 'package:admin_panel_client/src/protocol/training_criteria_score.dart'
-    as _i21;
-import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i22;
-import 'protocol.dart' as _i23;
+    as _i17;
+import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i18;
+import 'protocol.dart' as _i19;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -92,12 +85,53 @@ class EndpointAdmin extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<_i3.Organization?> updateOrganization(
+    int id,
+    String name,
+    String? imageUrl,
+  ) => caller.callServerEndpoint<_i3.Organization?>(
+    'admin',
+    'updateOrganization',
+    {
+      'id': id,
+      'name': name,
+      'imageUrl': imageUrl,
+    },
+  );
+
+  _i2.Future<bool> deleteOrganization(int id) =>
+      caller.callServerEndpoint<bool>(
+        'admin',
+        'deleteOrganization',
+        {'id': id},
+      );
+
   _i2.Future<List<_i3.Organization>> getAllOrganizations() =>
       caller.callServerEndpoint<List<_i3.Organization>>(
         'admin',
         'getAllOrganizations',
         {},
       );
+
+  _i2.Future<bool> updateUser(
+    int appUserId,
+    String userName,
+    _i5.Role role,
+  ) => caller.callServerEndpoint<bool>(
+    'admin',
+    'updateUser',
+    {
+      'appUserId': appUserId,
+      'userName': userName,
+      'role': role,
+    },
+  );
+
+  _i2.Future<bool> deleteUser(int appUserId) => caller.callServerEndpoint<bool>(
+    'admin',
+    'deleteUser',
+    {'appUserId': appUserId},
+  );
 
   _i2.Future<List<_i4.AppUser>> getAllUsers({_i5.Role? role}) =>
       caller.callServerEndpoint<List<_i4.AppUser>>(
@@ -594,20 +628,24 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  /// Returns the full theory section for [organizationId]: module title + all
-  /// chapters with their video metadata and quiz questions, ordered by chapter.
-  ///
-  /// JSON shape:
-  /// ```json
-  /// {
-  ///   "moduleTitle": "Fire Safety Training",
-  ///   "chapters": [ { "chapterId": 1, "title": "Fire", ... } ]
-  /// }
-  /// ```
-  _i2.Future<_i17.TheorySectionResponse> getTheorySection(
+  /// Returns theory, training parameters, and assessment parameters for
+  /// [organizationId] in a single call.
+  _i2.Future<Map<String, dynamic>> getContentBundle(
     int organizationId,
     String apiKey,
-  ) => caller.callServerEndpoint<_i17.TheorySectionResponse>(
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'publicApi',
+    'getContentBundle',
+    {
+      'organizationId': organizationId,
+      'apiKey': apiKey,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> getTheorySection(
+    int organizationId,
+    String apiKey,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'getTheorySection',
     {
@@ -616,25 +654,10 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  /// Returns all training parameters for [organizationId], including per-level
-  /// feedback and scoring logic.
-  ///
-  /// JSON shape:
-  /// ```json
-  /// [
-  ///   {
-  ///     "paramId": "duration",
-  ///     "name": "Duration",
-  ///     "maxScore": 5,
-  ///     "feedbackLow": { "scoreRange": "0/5", ... },
-  ///     ...
-  ///   }
-  /// ]
-  /// ```
-  _i2.Future<List<_i9.TrainingParameter>> getTrainingParameters(
+  _i2.Future<List<Map<String, dynamic>>> getTrainingParameters(
     int organizationId,
     String apiKey,
-  ) => caller.callServerEndpoint<List<_i9.TrainingParameter>>(
+  ) => caller.callServerEndpoint<List<Map<String, dynamic>>>(
     'publicApi',
     'getTrainingParameters',
     {
@@ -643,13 +666,10 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  /// Returns all assessment parameters for [organizationId].
-  ///
-  /// JSON shape mirrors training parameters but without the hint field.
-  _i2.Future<List<_i10.AssessmentParameter>> getAssessmentParameters(
+  _i2.Future<List<Map<String, dynamic>>> getAssessmentParameters(
     int organizationId,
     String apiKey,
-  ) => caller.callServerEndpoint<List<_i10.AssessmentParameter>>(
+  ) => caller.callServerEndpoint<List<Map<String, dynamic>>>(
     'publicApi',
     'getAssessmentParameters',
     {
@@ -658,30 +678,11 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  /// Returns the public module configuration for [organizationId], with
-  /// subscription modules resolved to the effective per-user state.
-  ///
-  /// [userId] is the AppUser.id as a string (same convention as
-  /// [submitTrainingCertificate]). When provided and matched, each module's
-  /// enabled flag reflects the user's individual override from
-  /// [UserModuleProgress]; otherwise the org-level default is used.
-  ///
-  /// JSON shape:
-  /// ```json
-  /// {
-  ///   "configId": "ORG1_v1.0.0",
-  ///   "lastUpdated": "2026-03-19",
-  ///   "subscriptionModules": { "theoryModule": true, ... },
-  ///   "languages": { "defaultLanguage": "en", "supported": [...] },
-  ///   "passingPercentage": 60,
-  ///   "aiChatPrompt": "You are a fire safety expert..."
-  /// }
-  /// ```
-  _i2.Future<_i18.ModuleConfigPublic> getModuleConfig(
+  _i2.Future<Map<String, dynamic>> getModuleConfig(
     int organizationId,
     String apiKey,
     String userId,
-  ) => caller.callServerEndpoint<_i18.ModuleConfigPublic>(
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'getModuleConfig',
     {
@@ -691,23 +692,10 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  /// Returns the language configuration for [organizationId]: default language
-  /// code and the list of supported languages with optional content URLs.
-  ///
-  /// JSON shape:
-  /// ```json
-  /// {
-  ///   "defaultLanguage": "en",
-  ///   "supported": [
-  ///     { "code": "en", "name": "English", "contentUrl": "..." },
-  ///     ...
-  ///   ]
-  /// }
-  /// ```
-  _i2.Future<_i19.LanguagesConfig> getLanguages(
+  _i2.Future<Map<String, dynamic>> getLanguages(
     int organizationId,
     String apiKey,
-  ) => caller.callServerEndpoint<_i19.LanguagesConfig>(
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'getLanguages',
     {
@@ -716,24 +704,10 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  /// Returns all assets for [organizationId]. Assets can be filtered on the
-  /// client side by the [Asset.module] field (e.g. "theory", "smartTraining").
-  ///
-  /// JSON shape:
-  /// ```json
-  /// [
-  ///   {
-  ///     "name": "Fire Extinguisher Model",
-  ///     "version": "1.0",
-  ///     "url": "https://...",
-  ///     "module": "smartTraining"
-  ///   }
-  /// ]
-  /// ```
-  _i2.Future<List<_i11.Asset>> getAssets(
+  _i2.Future<List<Map<String, dynamic>>> getAssets(
     int organizationId,
     String apiKey,
-  ) => caller.callServerEndpoint<List<_i11.Asset>>(
+  ) => caller.callServerEndpoint<List<Map<String, dynamic>>>(
     'publicApi',
     'getAssets',
     {
@@ -742,27 +716,6 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  /// Updates the module progress status for a user, called by the external
-  /// training application when a user starts or completes a module.
-  ///
-  /// The [userId] is the AppUser.id as a string (same convention as
-  /// [submitTrainingCertificate]). The record is created automatically if it
-  /// does not exist yet, using the org-level default for [isEnabled].
-  ///
-  /// Timestamps are managed automatically:
-  /// - [startedAt] is set on the first `inProgress` transition.
-  /// - [completedAt] is set on the first `completed` transition.
-  ///
-  /// Request body:
-  /// ```json
-  /// {
-  ///   "organizationId": 1,
-  ///   "apiKey": "...",
-  ///   "userId": "3",
-  ///   "moduleId": "smartTraining",
-  ///   "status": "completed"
-  /// }
-  /// ```
   _i2.Future<bool> updateModuleStatus(
     int organizationId,
     String apiKey,
@@ -781,34 +734,13 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  /// Records a completed Smart Training session submitted by the external
-  /// training application. Stores the result and returns a confirmation.
-  ///
-  /// Request body:
-  /// ```json
-  /// {
-  ///   "organizationId": 1,
-  ///   "apiKey": "...",
-  ///   "userId": "S1244",
-  ///   "overallPercentage": 85,
-  ///   "criteriaValidation": [
-  ///     { "parameter": "Duration", "score": 4 },
-  ///     ...
-  ///   ]
-  /// }
-  /// ```
-  ///
-  /// Response:
-  /// ```json
-  /// { "success": true, "resultId": 42, "message": "Training result recorded." }
-  /// ```
-  _i2.Future<_i20.CertificateResponse> submitTrainingCertificate(
+  _i2.Future<Map<String, dynamic>> submitTrainingCertificate(
     int organizationId,
     String apiKey,
     String userId,
     int overallPercentage,
-    List<_i21.TrainingCriteriaScore> criteriaValidation,
-  ) => caller.callServerEndpoint<_i20.CertificateResponse>(
+    List<_i17.TrainingCriteriaScore> criteriaValidation,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'submitTrainingCertificate',
     {
@@ -888,7 +820,7 @@ class EndpointUser extends _i1.EndpointRef {
   _i2.Future<_i13.TrainingSessionResult?> submitTrainingResult(
     String externalUserId,
     int overallPercentage,
-    List<_i21.TrainingCriteriaScore> criteriaScores,
+    List<_i17.TrainingCriteriaScore> criteriaScores,
   ) => caller.callServerEndpoint<_i13.TrainingSessionResult?>(
     'user',
     'submitTrainingResult',
@@ -924,10 +856,10 @@ class EndpointUser extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    auth = _i22.Caller(client);
+    auth = _i18.Caller(client);
   }
 
-  late final _i22.Caller auth;
+  late final _i18.Caller auth;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -950,7 +882,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i23.Protocol(),
+         _i19.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
