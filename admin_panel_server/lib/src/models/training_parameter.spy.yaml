@@ -6,8 +6,4 @@ fields:
   name: String
   description: String
   maxScore: int
-  logic: String
-  hint: String?
-  feedbackLow: FeedbackLevel
-  feedbackMedium: FeedbackLevel
-  feedbackHigh: FeedbackLevel
+  scoringRules: List<ScoringRule>

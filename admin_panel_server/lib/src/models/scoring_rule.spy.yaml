@@ -1,0 +1,5 @@
+class: ScoringRule
+fields:
+  threshold: int
+  score: int
+  feedback: String

@@ -1,5 +1,0 @@
-class: FeedbackLevel
-fields:
-  scoreRange: String
-  criteria: String
-  comment: String

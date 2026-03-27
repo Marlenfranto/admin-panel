@@ -13,7 +13,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'organization.dart' as _i2;
-import 'feedback_level.dart' as _i3;
+import 'scoring_rule.dart' as _i3;
 import 'package:admin_panel_server/src/generated/protocol.dart' as _i4;
 
 abstract class TrainingParameter
@@ -26,11 +26,7 @@ abstract class TrainingParameter
     required this.name,
     required this.description,
     required this.maxScore,
-    required this.logic,
-    this.hint,
-    required this.feedbackLow,
-    required this.feedbackMedium,
-    required this.feedbackHigh,
+    required this.scoringRules,
   });
 
   factory TrainingParameter({
@@ -41,11 +37,7 @@ abstract class TrainingParameter
     required String name,
     required String description,
     required int maxScore,
-    required String logic,
-    String? hint,
-    required _i3.FeedbackLevel feedbackLow,
-    required _i3.FeedbackLevel feedbackMedium,
-    required _i3.FeedbackLevel feedbackHigh,
+    required List<_i3.ScoringRule> scoringRules,
   }) = _TrainingParameterImpl;
 
   factory TrainingParameter.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -61,16 +53,8 @@ abstract class TrainingParameter
       name: jsonSerialization['name'] as String,
       description: jsonSerialization['description'] as String,
       maxScore: jsonSerialization['maxScore'] as int,
-      logic: jsonSerialization['logic'] as String,
-      hint: jsonSerialization['hint'] as String?,
-      feedbackLow: _i4.Protocol().deserialize<_i3.FeedbackLevel>(
-        jsonSerialization['feedbackLow'],
-      ),
-      feedbackMedium: _i4.Protocol().deserialize<_i3.FeedbackLevel>(
-        jsonSerialization['feedbackMedium'],
-      ),
-      feedbackHigh: _i4.Protocol().deserialize<_i3.FeedbackLevel>(
-        jsonSerialization['feedbackHigh'],
+      scoringRules: _i4.Protocol().deserialize<List<_i3.ScoringRule>>(
+        jsonSerialization['scoringRules'],
       ),
     );
   }
@@ -94,15 +78,7 @@ abstract class TrainingParameter
 
   int maxScore;
 
-  String logic;
-
-  String? hint;
-
-  _i3.FeedbackLevel feedbackLow;
-
-  _i3.FeedbackLevel feedbackMedium;
-
-  _i3.FeedbackLevel feedbackHigh;
+  List<_i3.ScoringRule> scoringRules;
 
   @override
   _i1.Table<int?> get table => t;
@@ -118,11 +94,7 @@ abstract class TrainingParameter
     String? name,
     String? description,
     int? maxScore,
-    String? logic,
-    String? hint,
-    _i3.FeedbackLevel? feedbackLow,
-    _i3.FeedbackLevel? feedbackMedium,
-    _i3.FeedbackLevel? feedbackHigh,
+    List<_i3.ScoringRule>? scoringRules,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -135,11 +107,7 @@ abstract class TrainingParameter
       'name': name,
       'description': description,
       'maxScore': maxScore,
-      'logic': logic,
-      if (hint != null) 'hint': hint,
-      'feedbackLow': feedbackLow.toJson(),
-      'feedbackMedium': feedbackMedium.toJson(),
-      'feedbackHigh': feedbackHigh.toJson(),
+      'scoringRules': scoringRules.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -155,11 +123,9 @@ abstract class TrainingParameter
       'name': name,
       'description': description,
       'maxScore': maxScore,
-      'logic': logic,
-      if (hint != null) 'hint': hint,
-      'feedbackLow': feedbackLow.toJsonForProtocol(),
-      'feedbackMedium': feedbackMedium.toJsonForProtocol(),
-      'feedbackHigh': feedbackHigh.toJsonForProtocol(),
+      'scoringRules': scoringRules.toJson(
+        valueToJson: (v) => v.toJsonForProtocol(),
+      ),
     };
   }
 
@@ -206,11 +172,7 @@ class _TrainingParameterImpl extends TrainingParameter {
     required String name,
     required String description,
     required int maxScore,
-    required String logic,
-    String? hint,
-    required _i3.FeedbackLevel feedbackLow,
-    required _i3.FeedbackLevel feedbackMedium,
-    required _i3.FeedbackLevel feedbackHigh,
+    required List<_i3.ScoringRule> scoringRules,
   }) : super._(
          id: id,
          organizationId: organizationId,
@@ -219,11 +181,7 @@ class _TrainingParameterImpl extends TrainingParameter {
          name: name,
          description: description,
          maxScore: maxScore,
-         logic: logic,
-         hint: hint,
-         feedbackLow: feedbackLow,
-         feedbackMedium: feedbackMedium,
-         feedbackHigh: feedbackHigh,
+         scoringRules: scoringRules,
        );
 
   /// Returns a shallow copy of this [TrainingParameter]
@@ -238,11 +196,7 @@ class _TrainingParameterImpl extends TrainingParameter {
     String? name,
     String? description,
     int? maxScore,
-    String? logic,
-    Object? hint = _Undefined,
-    _i3.FeedbackLevel? feedbackLow,
-    _i3.FeedbackLevel? feedbackMedium,
-    _i3.FeedbackLevel? feedbackHigh,
+    List<_i3.ScoringRule>? scoringRules,
   }) {
     return TrainingParameter(
       id: id is int? ? id : this.id,
@@ -256,11 +210,8 @@ class _TrainingParameterImpl extends TrainingParameter {
       name: name ?? this.name,
       description: description ?? this.description,
       maxScore: maxScore ?? this.maxScore,
-      logic: logic ?? this.logic,
-      hint: hint is String? ? hint : this.hint,
-      feedbackLow: feedbackLow ?? this.feedbackLow.copyWith(),
-      feedbackMedium: feedbackMedium ?? this.feedbackMedium.copyWith(),
-      feedbackHigh: feedbackHigh ?? this.feedbackHigh.copyWith(),
+      scoringRules:
+          scoringRules ?? this.scoringRules.map((e0) => e0.copyWith()).toList(),
     );
   }
 }
@@ -294,34 +245,10 @@ class TrainingParameterUpdateTable
     value,
   );
 
-  _i1.ColumnValue<String, String> logic(String value) => _i1.ColumnValue(
-    table.logic,
-    value,
-  );
-
-  _i1.ColumnValue<String, String> hint(String? value) => _i1.ColumnValue(
-    table.hint,
-    value,
-  );
-
-  _i1.ColumnValue<_i3.FeedbackLevel, _i3.FeedbackLevel> feedbackLow(
-    _i3.FeedbackLevel value,
+  _i1.ColumnValue<List<_i3.ScoringRule>, List<_i3.ScoringRule>> scoringRules(
+    List<_i3.ScoringRule> value,
   ) => _i1.ColumnValue(
-    table.feedbackLow,
-    value,
-  );
-
-  _i1.ColumnValue<_i3.FeedbackLevel, _i3.FeedbackLevel> feedbackMedium(
-    _i3.FeedbackLevel value,
-  ) => _i1.ColumnValue(
-    table.feedbackMedium,
-    value,
-  );
-
-  _i1.ColumnValue<_i3.FeedbackLevel, _i3.FeedbackLevel> feedbackHigh(
-    _i3.FeedbackLevel value,
-  ) => _i1.ColumnValue(
-    table.feedbackHigh,
+    table.scoringRules,
     value,
   );
 }
@@ -350,24 +277,8 @@ class TrainingParameterTable extends _i1.Table<int?> {
       'maxScore',
       this,
     );
-    logic = _i1.ColumnString(
-      'logic',
-      this,
-    );
-    hint = _i1.ColumnString(
-      'hint',
-      this,
-    );
-    feedbackLow = _i1.ColumnSerializable<_i3.FeedbackLevel>(
-      'feedbackLow',
-      this,
-    );
-    feedbackMedium = _i1.ColumnSerializable<_i3.FeedbackLevel>(
-      'feedbackMedium',
-      this,
-    );
-    feedbackHigh = _i1.ColumnSerializable<_i3.FeedbackLevel>(
-      'feedbackHigh',
+    scoringRules = _i1.ColumnSerializable<List<_i3.ScoringRule>>(
+      'scoringRules',
       this,
     );
   }
@@ -386,15 +297,7 @@ class TrainingParameterTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt maxScore;
 
-  late final _i1.ColumnString logic;
-
-  late final _i1.ColumnString hint;
-
-  late final _i1.ColumnSerializable<_i3.FeedbackLevel> feedbackLow;
-
-  late final _i1.ColumnSerializable<_i3.FeedbackLevel> feedbackMedium;
-
-  late final _i1.ColumnSerializable<_i3.FeedbackLevel> feedbackHigh;
+  late final _i1.ColumnSerializable<List<_i3.ScoringRule>> scoringRules;
 
   _i2.OrganizationTable get organization {
     if (_organization != null) return _organization!;
@@ -417,11 +320,7 @@ class TrainingParameterTable extends _i1.Table<int?> {
     name,
     description,
     maxScore,
-    logic,
-    hint,
-    feedbackLow,
-    feedbackMedium,
-    feedbackHigh,
+    scoringRules,
   ];
 
   @override

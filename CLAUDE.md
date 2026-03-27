@@ -125,6 +125,40 @@ Role-based redirect in `core/router/app_router.dart`:
 - **Timestamp idempotency**: `startedAt` / `completedAt` are only set once (won't overwrite if already present)
 - **External training integration**: `PublicApiEndpoint` accepts training results and certificate submissions from an external training app authenticated via API key (not user session)
 - **Authorization by query filtering**: Managers can only access their managed org's data — enforced server-side via `managerId.equals()` and `organizationId.equals()` filters, not just by scope
+- **Content versioning**: Every content mutation (module config, theory/training/assessment/assets) must call `bumpOrgContentVersion(session, organizationId)` from `lib/src/util/version_util.dart`. The `Organization.contentVersion` int is returned in the login response so clients can decide whether to re-fetch cached data.
+
+### Critical Constraints & Gotchas
+
+**Serverpod Dart client cannot deserialize `Map<String, dynamic>` returns.**
+Any endpoint method returning `Map<String, dynamic>` or `List<Map<String, dynamic>>` is inaccessible from the generated Flutter Dart client — it will throw a silent exception caught by `try/catch`, returning `null`/`false` with no useful error. Only typed model returns work with the Dart client. `PublicApiEndpoint.login` returns `LoginResponse` (typed) for this reason, while the other public endpoints return maps exclusively for the external HTTP training app.
+
+**Every Serverpod model's `toJson()` includes `__className__`.**
+This key is baked into code generation and cannot be removed from model definitions. `PublicApiEndpoint` has `_clean()` / `_cleanValue()` recursive helpers that strip it before returning JSON to external HTTP clients. Do not try to remove `__className__` from `.spy.yaml` or generated files.
+
+**`TheoryChapter`, `TrainingParameter`, `AssessmentParameter` have nullable `organizationId`.**
+These models use `relation(optional)`, making their `organizationId` field `int?`. Always null-check before calling `bumpOrgContentVersion`:
+```dart
+if (param.organizationId != null) {
+  await bumpOrgContentVersion(session, param.organizationId!);
+}
+```
+Manager endpoint upsert methods receive `organizationId` as an explicit non-nullable parameter, so they can call `bumpOrgContentVersion` directly. Delete methods must fetch the record first, then null-check its `organizationId`.
+
+**`.spy.yaml` default value syntax.**
+The correct field syntax for database defaults is `default=value, defaultPersist=value`. The property `defaultPersistenceValue` does not exist and causes a generation error.
+
+**`AppDataTable` column `alignment` controls both the cell AND the header.**
+The `alignment` property on `AppTableColumn` is used to align cell content AND to derive the header label's `mainAxisAlignment`. Use `Alignment.center` for icon-only columns like Actions, `Alignment.centerLeft` for text columns.
+
+### Shared Widget Patterns (Flutter)
+
+**`AppSideSheet.show()`** — used for all create/edit forms. `onSave` is an async callback; throw an `Exception` to show an error and keep the sheet open.
+
+**`AppDataTable<T>`** — sortable, searchable, paginated table. Define columns via `AppTableColumn` with `cellBuilder`, `flex`, `sortKey`/`comparator`, `searchValue`, and `alignment`. Rows get hover highlight automatically.
+
+**`AppStatusChip`** — use `AppChipVariant` (`primary`, `info`, `success`, `warning`, `error`) for role/status badges.
+
+**`AppGradientButton`** — primary CTA button; supports `isLoading`, `width`, `icon`.
 
 ### Configuration
 - Server config: `admin_panel_server/config/{development,production,staging,test}.yaml`

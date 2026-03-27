@@ -805,113 +805,89 @@ class _ParamDialog<T> extends ConsumerStatefulWidget {
   ConsumerState<_ParamDialog<T>> createState() => _ParamDialogState<T>();
 }
 
-class _ParamDialogState<T> extends ConsumerState<_ParamDialog<T>> {
-  late final TextEditingController _idCtrl, _nameCtrl, _descCtrl,
-      _maxCtrl, _logicCtrl;
-  TextEditingController? _hintCtrl;
-  late final TextEditingController _lowRange, _lowCriteria, _lowComment;
-  late final TextEditingController _midRange, _midCriteria, _midComment;
-  late final TextEditingController _highRange, _highCriteria, _highComment;
-  bool _saving = false;
+class _ScoringRuleEntry {
+  _ScoringRuleEntry({int threshold = 0, int score = 0, String feedback = ''})
+      : thresholdCtrl = TextEditingController(text: '$threshold'),
+        scoreCtrl     = TextEditingController(text: '$score'),
+        feedbackCtrl  = TextEditingController(text: feedback);
 
-  FeedbackLevel? _low() => widget.isTraining
-      ? (widget.existing as TrainingParameter?)?.feedbackLow
-      : (widget.existing as AssessmentParameter?)?.feedbackLow;
-  FeedbackLevel? _mid() => widget.isTraining
-      ? (widget.existing as TrainingParameter?)?.feedbackMedium
-      : (widget.existing as AssessmentParameter?)?.feedbackMedium;
-  FeedbackLevel? _high() => widget.isTraining
-      ? (widget.existing as TrainingParameter?)?.feedbackHigh
-      : (widget.existing as AssessmentParameter?)?.feedbackHigh;
+  final TextEditingController thresholdCtrl;
+  final TextEditingController scoreCtrl;
+  final TextEditingController feedbackCtrl;
+
+  void dispose() {
+    thresholdCtrl.dispose();
+    scoreCtrl.dispose();
+    feedbackCtrl.dispose();
+  }
+}
+
+class _ParamDialogState<T> extends ConsumerState<_ParamDialog<T>> {
+  late final TextEditingController _idCtrl;
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _maxCtrl;
+  late List<_ScoringRuleEntry>     _rules;
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    final tp =
-        widget.isTraining ? widget.existing as TrainingParameter? : null;
-    final ap =
-        !widget.isTraining ? widget.existing as AssessmentParameter? : null;
+    final tp = widget.isTraining ? widget.existing as TrainingParameter? : null;
+    final ap = !widget.isTraining ? widget.existing as AssessmentParameter? : null;
 
-    _idCtrl    = TextEditingController(text: tp?.paramId    ?? ap?.paramId    ?? '');
-    _nameCtrl  = TextEditingController(text: tp?.name       ?? ap?.name       ?? '');
-    _descCtrl  = TextEditingController(text: tp?.description ?? ap?.description ?? '');
-    _maxCtrl   = TextEditingController(
-        text: '${tp?.maxScore ?? ap?.maxScore ?? 5}');
-    _logicCtrl = TextEditingController(text: tp?.logic      ?? ap?.logic      ?? '');
+    _idCtrl   = TextEditingController(text: tp?.paramId     ?? ap?.paramId     ?? '');
+    _nameCtrl = TextEditingController(text: tp?.name        ?? ap?.name        ?? '');
+    _descCtrl = TextEditingController(text: tp?.description ?? ap?.description ?? '');
+    _maxCtrl  = TextEditingController(text: '${tp?.maxScore ?? ap?.maxScore ?? 5}');
 
-    if (widget.isTraining) {
-      _hintCtrl = TextEditingController(text: tp?.hint ?? '');
-    }
-
-    _lowRange    = TextEditingController(text: _low()?.scoreRange  ?? '0-2/5');
-    _lowCriteria = TextEditingController(text: _low()?.criteria    ?? '');
-    _lowComment  = TextEditingController(text: _low()?.comment     ?? '');
-    _midRange    = TextEditingController(text: _mid()?.scoreRange  ?? '3-4/5');
-    _midCriteria = TextEditingController(text: _mid()?.criteria    ?? '');
-    _midComment  = TextEditingController(text: _mid()?.comment     ?? '');
-    _highRange   = TextEditingController(text: _high()?.scoreRange ?? '5/5');
-    _highCriteria = TextEditingController(text: _high()?.criteria  ?? '');
-    _highComment  = TextEditingController(text: _high()?.comment   ?? '');
+    final existingRules = tp?.scoringRules ?? ap?.scoringRules ?? [];
+    _rules = existingRules
+        .map((r) => _ScoringRuleEntry(
+              threshold: r.threshold,
+              score:     r.score,
+              feedback:  r.feedback,
+            ))
+        .toList();
   }
 
   @override
   void dispose() {
-    for (final c in [
-      _idCtrl, _nameCtrl, _descCtrl, _maxCtrl, _logicCtrl,
-      _lowRange, _lowCriteria, _lowComment,
-      _midRange, _midCriteria, _midComment,
-      _highRange, _highCriteria, _highComment,
-    ]) {
-      c.dispose();
-    }
-    _hintCtrl?.dispose();
+    for (final c in [_idCtrl, _nameCtrl, _descCtrl, _maxCtrl]) { c.dispose(); }
+    for (final r in _rules) { r.dispose(); }
     super.dispose();
   }
 
   Future<void> _save() async {
     setState(() => _saving = true);
-    final low  = FeedbackLevel(
-        scoreRange: _lowRange.text,
-        criteria:   _lowCriteria.text,
-        comment:    _lowComment.text);
-    final mid  = FeedbackLevel(
-        scoreRange: _midRange.text,
-        criteria:   _midCriteria.text,
-        comment:    _midComment.text);
-    final high = FeedbackLevel(
-        scoreRange: _highRange.text,
-        criteria:   _highCriteria.text,
-        comment:    _highComment.text);
+    final rules = _rules
+        .map((r) => ScoringRule(
+              threshold: int.tryParse(r.thresholdCtrl.text.trim()) ?? 0,
+              score:     int.tryParse(r.scoreCtrl.text.trim()) ?? 0,
+              feedback:  r.feedbackCtrl.text.trim(),
+            ))
+        .toList();
 
     dynamic param;
     if (widget.isTraining) {
       final tp = widget.existing as TrainingParameter?;
       param = TrainingParameter(
-        id:             tp?.id,
-        paramId:        _idCtrl.text.trim(),
-        name:           _nameCtrl.text.trim(),
-        description:    _descCtrl.text.trim(),
-        maxScore:       int.tryParse(_maxCtrl.text.trim()) ?? 5,
-        logic:          _logicCtrl.text.trim(),
-        hint:           _hintCtrl!.text.trim().isEmpty
-            ? null
-            : _hintCtrl!.text.trim(),
-        feedbackLow:    low,
-        feedbackMedium: mid,
-        feedbackHigh:   high,
+        id:           tp?.id,
+        paramId:      _idCtrl.text.trim(),
+        name:         _nameCtrl.text.trim(),
+        description:  _descCtrl.text.trim(),
+        maxScore:     int.tryParse(_maxCtrl.text.trim()) ?? 5,
+        scoringRules: rules,
       );
     } else {
       final ap = widget.existing as AssessmentParameter?;
       param = AssessmentParameter(
-        id:             ap?.id,
-        paramId:        _idCtrl.text.trim(),
-        name:           _nameCtrl.text.trim(),
-        description:    _descCtrl.text.trim(),
-        maxScore:       int.tryParse(_maxCtrl.text.trim()) ?? 5,
-        logic:          _logicCtrl.text.trim(),
-        feedbackLow:    low,
-        feedbackMedium: mid,
-        feedbackHigh:   high,
+        id:           ap?.id,
+        paramId:      _idCtrl.text.trim(),
+        name:         _nameCtrl.text.trim(),
+        description:  _descCtrl.text.trim(),
+        maxScore:     int.tryParse(_maxCtrl.text.trim()) ?? 5,
+        scoringRules: rules,
       );
     }
     try {
@@ -928,60 +904,6 @@ class _ParamDialogState<T> extends ConsumerState<_ParamDialog<T>> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
-  }
-
-  Widget _feedbackBlock(
-    String label,
-    Color  color,
-    TextEditingController range,
-    TextEditingController criteria,
-    TextEditingController comment,
-  ) {
-    return Container(
-      margin:  const EdgeInsets.only(bottom: AppSpacing.md),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color:        color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border:       Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width:  8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color:  color,
-                  shape:  BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text('$label Feedback',
-                  style: AppTextStyles.labelMd.copyWith(color: color)),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-              controller: range,
-              decoration: const InputDecoration(
-                  labelText: 'Score Range', isDense: true)),
-          const SizedBox(height: 6),
-          TextField(
-              controller: criteria,
-              decoration:
-                  const InputDecoration(labelText: 'Criteria', isDense: true)),
-          const SizedBox(height: 6),
-          TextField(
-              controller: comment,
-              maxLines:   2,
-              decoration:
-                  const InputDecoration(labelText: 'Comment', isDense: true)),
-        ],
-      ),
-    );
   }
 
   @override
@@ -1003,8 +925,7 @@ class _ParamDialogState<T> extends ConsumerState<_ParamDialog<T>> {
               Expanded(
                 child: TextField(
                   controller: _idCtrl,
-                  decoration:
-                      const InputDecoration(labelText: 'Parameter ID *'),
+                  decoration: const InputDecoration(labelText: 'Parameter ID *'),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -1013,8 +934,7 @@ class _ParamDialogState<T> extends ConsumerState<_ParamDialog<T>> {
                 child: TextField(
                   controller:   _maxCtrl,
                   keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: 'Max Score'),
+                  decoration:   const InputDecoration(labelText: 'Max Score'),
                 ),
               ),
             ],
@@ -1022,35 +942,127 @@ class _ParamDialogState<T> extends ConsumerState<_ParamDialog<T>> {
           const SizedBox(height: AppSpacing.md),
           TextField(
               controller: _nameCtrl,
-              decoration:
-                  const InputDecoration(labelText: 'Name *')),
+              decoration: const InputDecoration(labelText: 'Name *')),
           const SizedBox(height: AppSpacing.md),
           TextField(
               controller: _descCtrl,
               maxLines:   2,
-              decoration:
-                  const InputDecoration(labelText: 'Description')),
-          const SizedBox(height: AppSpacing.md),
-          TextField(
-              controller: _logicCtrl,
-              decoration:
-                  const InputDecoration(labelText: 'Scoring Logic')),
-          if (widget.isTraining) ...[
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-                controller: _hintCtrl,
-                decoration:
-                    const InputDecoration(labelText: 'Hint (optional)')),
-          ],
+              decoration: const InputDecoration(labelText: 'Description')),
           const SizedBox(height: AppSpacing.lg),
-          const _DialogSection(title: 'Feedback Levels'),
+          Row(
+            children: [
+              const _DialogSection(title: 'Scoring Rules'),
+              const Spacer(),
+              TextButton.icon(
+                icon:     const Icon(Icons.add_rounded, size: 16),
+                label:    const Text('Add Rule'),
+                onPressed: () =>
+                    setState(() => _rules.add(_ScoringRuleEntry())),
+              ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.sm),
-          _feedbackBlock(
-              'Low',    AppColors.error,   _lowRange,  _lowCriteria,  _lowComment),
-          _feedbackBlock(
-              'Medium', AppColors.warning, _midRange,  _midCriteria,  _midComment),
-          _feedbackBlock(
-              'High',   AppColors.success, _highRange, _highCriteria, _highComment),
+          if (_rules.isEmpty)
+            _EmptySlot(
+              icon:    Icons.rule_rounded,
+              message: 'No scoring rules added yet.',
+            )
+          else
+            ...List.generate(_rules.length, (i) {
+              final r = _rules[i];
+              return _ScoringRuleCard(
+                index:   i,
+                entry:   r,
+                onDelete: () {
+                  r.dispose();
+                  setState(() => _rules.removeAt(i));
+                },
+              );
+            }),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScoringRuleCard extends StatelessWidget {
+  const _ScoringRuleCard({
+    required this.index,
+    required this.entry,
+    required this.onDelete,
+  });
+
+  final int               index;
+  final _ScoringRuleEntry entry;
+  final VoidCallback      onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin:  const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color:        AppColors.surfaceHigh,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border:       Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color:        AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusChip),
+                ),
+                child: Text(
+                  'Rule ${index + 1}',
+                  style: AppTextStyles.labelMd.copyWith(color: AppColors.primary),
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon:        const Icon(Icons.delete_outline_rounded,
+                    size: 18, color: AppColors.error),
+                onPressed:   onDelete,
+                padding:     EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              SizedBox(
+                width: 120,
+                child: TextField(
+                  controller:   entry.thresholdCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration:   const InputDecoration(
+                      labelText: 'Threshold', isDense: true),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              SizedBox(
+                width: 80,
+                child: TextField(
+                  controller:   entry.scoreCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration:   const InputDecoration(
+                      labelText: 'Score', isDense: true),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            controller: entry.feedbackCtrl,
+            maxLines:   3,
+            decoration: const InputDecoration(
+                labelText: 'Feedback', isDense: true),
+          ),
         ],
       ),
     );

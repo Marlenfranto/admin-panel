@@ -12,7 +12,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'organization.dart' as _i2;
-import 'feedback_level.dart' as _i3;
+import 'scoring_rule.dart' as _i3;
 import 'package:admin_panel_client/src/protocol/protocol.dart' as _i4;
 
 abstract class AssessmentParameter implements _i1.SerializableModel {
@@ -24,10 +24,7 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
     required this.name,
     required this.description,
     required this.maxScore,
-    required this.logic,
-    required this.feedbackLow,
-    required this.feedbackMedium,
-    required this.feedbackHigh,
+    required this.scoringRules,
   });
 
   factory AssessmentParameter({
@@ -38,10 +35,7 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
     required String name,
     required String description,
     required int maxScore,
-    required String logic,
-    required _i3.FeedbackLevel feedbackLow,
-    required _i3.FeedbackLevel feedbackMedium,
-    required _i3.FeedbackLevel feedbackHigh,
+    required List<_i3.ScoringRule> scoringRules,
   }) = _AssessmentParameterImpl;
 
   factory AssessmentParameter.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -57,15 +51,8 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
       name: jsonSerialization['name'] as String,
       description: jsonSerialization['description'] as String,
       maxScore: jsonSerialization['maxScore'] as int,
-      logic: jsonSerialization['logic'] as String,
-      feedbackLow: _i4.Protocol().deserialize<_i3.FeedbackLevel>(
-        jsonSerialization['feedbackLow'],
-      ),
-      feedbackMedium: _i4.Protocol().deserialize<_i3.FeedbackLevel>(
-        jsonSerialization['feedbackMedium'],
-      ),
-      feedbackHigh: _i4.Protocol().deserialize<_i3.FeedbackLevel>(
-        jsonSerialization['feedbackHigh'],
+      scoringRules: _i4.Protocol().deserialize<List<_i3.ScoringRule>>(
+        jsonSerialization['scoringRules'],
       ),
     );
   }
@@ -87,13 +74,7 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
 
   int maxScore;
 
-  String logic;
-
-  _i3.FeedbackLevel feedbackLow;
-
-  _i3.FeedbackLevel feedbackMedium;
-
-  _i3.FeedbackLevel feedbackHigh;
+  List<_i3.ScoringRule> scoringRules;
 
   /// Returns a shallow copy of this [AssessmentParameter]
   /// with some or all fields replaced by the given arguments.
@@ -106,10 +87,7 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
     String? name,
     String? description,
     int? maxScore,
-    String? logic,
-    _i3.FeedbackLevel? feedbackLow,
-    _i3.FeedbackLevel? feedbackMedium,
-    _i3.FeedbackLevel? feedbackHigh,
+    List<_i3.ScoringRule>? scoringRules,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -122,10 +100,7 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
       'name': name,
       'description': description,
       'maxScore': maxScore,
-      'logic': logic,
-      'feedbackLow': feedbackLow.toJson(),
-      'feedbackMedium': feedbackMedium.toJson(),
-      'feedbackHigh': feedbackHigh.toJson(),
+      'scoringRules': scoringRules.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -146,10 +121,7 @@ class _AssessmentParameterImpl extends AssessmentParameter {
     required String name,
     required String description,
     required int maxScore,
-    required String logic,
-    required _i3.FeedbackLevel feedbackLow,
-    required _i3.FeedbackLevel feedbackMedium,
-    required _i3.FeedbackLevel feedbackHigh,
+    required List<_i3.ScoringRule> scoringRules,
   }) : super._(
          id: id,
          organizationId: organizationId,
@@ -158,10 +130,7 @@ class _AssessmentParameterImpl extends AssessmentParameter {
          name: name,
          description: description,
          maxScore: maxScore,
-         logic: logic,
-         feedbackLow: feedbackLow,
-         feedbackMedium: feedbackMedium,
-         feedbackHigh: feedbackHigh,
+         scoringRules: scoringRules,
        );
 
   /// Returns a shallow copy of this [AssessmentParameter]
@@ -176,10 +145,7 @@ class _AssessmentParameterImpl extends AssessmentParameter {
     String? name,
     String? description,
     int? maxScore,
-    String? logic,
-    _i3.FeedbackLevel? feedbackLow,
-    _i3.FeedbackLevel? feedbackMedium,
-    _i3.FeedbackLevel? feedbackHigh,
+    List<_i3.ScoringRule>? scoringRules,
   }) {
     return AssessmentParameter(
       id: id is int? ? id : this.id,
@@ -193,10 +159,8 @@ class _AssessmentParameterImpl extends AssessmentParameter {
       name: name ?? this.name,
       description: description ?? this.description,
       maxScore: maxScore ?? this.maxScore,
-      logic: logic ?? this.logic,
-      feedbackLow: feedbackLow ?? this.feedbackLow.copyWith(),
-      feedbackMedium: feedbackMedium ?? this.feedbackMedium.copyWith(),
-      feedbackHigh: feedbackHigh ?? this.feedbackHigh.copyWith(),
+      scoringRules:
+          scoringRules ?? this.scoringRules.map((e0) => e0.copyWith()).toList(),
     );
   }
 }
