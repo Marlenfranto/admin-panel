@@ -114,6 +114,14 @@ abstract final class AppTextStyles {
     height: 1.4,
   );
 
+  static const labelXs = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+    color: AppColors.onSurfaceMuted,
+    letterSpacing: 0.4,
+    height: 1.4,
+  );
+
   // ── Special ────────────────────────────────────────────────────────────────
   static const kpiValue = TextStyle(
     fontSize: 34,

@@ -256,7 +256,32 @@ class PublicApiEndpoint extends Endpoint {
     if (config == null) {
       throw Exception('Module configuration not found for this organization.');
     }
-    return _clean(config.toJson());
+    
+    final result = _clean(config.toJson());
+
+    if (appUser != null) {
+      final userProgress = await UserModuleProgress.db.find(
+        session,
+        where: (p) =>
+            p.appUserId.equals(appUser.id) &
+            p.organizationId.equals(organizationId),
+      );
+
+      final statuses = <String, String>{
+        'theory': ModuleProgressStatus.notStarted.name,
+        'aiExpert': ModuleProgressStatus.notStarted.name,
+        'smartTraining': ModuleProgressStatus.notStarted.name,
+        'assessment': ModuleProgressStatus.notStarted.name,
+      };
+
+      for (final p in userProgress) {
+        statuses[p.moduleId] = p.status.name;
+      }
+      
+      result['moduleStatuses'] = statuses;
+    }
+
+    return result;
   }
 
   // ── Language (GET) ──────────────────────────────────────────────────────────
