@@ -30,7 +30,7 @@ class ManagerOverviewScreen extends ConsumerWidget {
     ].where((e) => e).length;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
+      padding: EdgeInsets.all(context.responsivePagePadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

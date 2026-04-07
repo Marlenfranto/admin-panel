@@ -13,8 +13,9 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'app_user.dart' as _i2;
-import 'organization_user_link.dart' as _i3;
-import 'package:admin_panel_server/src/generated/protocol.dart' as _i4;
+import 'organization.dart' as _i3;
+import 'organization_user_link.dart' as _i4;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i5;
 
 abstract class Organization
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -25,6 +26,9 @@ abstract class Organization
     int? contentVersion,
     this.managerId,
     this.manager,
+    this.parentId,
+    this.parent,
+    this.children,
     this.users,
   }) : contentVersion = contentVersion ?? 1;
 
@@ -35,7 +39,10 @@ abstract class Organization
     int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
-    List<_i3.OrganizationUserLink>? users,
+    int? parentId,
+    _i3.Organization? parent,
+    List<_i3.Organization>? children,
+    List<_i4.OrganizationUserLink>? users,
   }) = _OrganizationImpl;
 
   factory Organization.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -47,12 +54,23 @@ abstract class Organization
       managerId: jsonSerialization['managerId'] as int?,
       manager: jsonSerialization['manager'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.AppUser>(
+          : _i5.Protocol().deserialize<_i2.AppUser>(
               jsonSerialization['manager'],
+            ),
+      parentId: jsonSerialization['parentId'] as int?,
+      parent: jsonSerialization['parent'] == null
+          ? null
+          : _i5.Protocol().deserialize<_i3.Organization>(
+              jsonSerialization['parent'],
+            ),
+      children: jsonSerialization['children'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i3.Organization>>(
+              jsonSerialization['children'],
             ),
       users: jsonSerialization['users'] == null
           ? null
-          : _i4.Protocol().deserialize<List<_i3.OrganizationUserLink>>(
+          : _i5.Protocol().deserialize<List<_i4.OrganizationUserLink>>(
               jsonSerialization['users'],
             ),
     );
@@ -75,7 +93,13 @@ abstract class Organization
 
   _i2.AppUser? manager;
 
-  List<_i3.OrganizationUserLink>? users;
+  int? parentId;
+
+  _i3.Organization? parent;
+
+  List<_i3.Organization>? children;
+
+  List<_i4.OrganizationUserLink>? users;
 
   @override
   _i1.Table<int?> get table => t;
@@ -90,7 +114,10 @@ abstract class Organization
     int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
-    List<_i3.OrganizationUserLink>? users,
+    int? parentId,
+    _i3.Organization? parent,
+    List<_i3.Organization>? children,
+    List<_i4.OrganizationUserLink>? users,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -102,6 +129,10 @@ abstract class Organization
       'contentVersion': contentVersion,
       if (managerId != null) 'managerId': managerId,
       if (manager != null) 'manager': manager?.toJson(),
+      if (parentId != null) 'parentId': parentId,
+      if (parent != null) 'parent': parent?.toJson(),
+      if (children != null)
+        'children': children?.toJson(valueToJson: (v) => v.toJson()),
       if (users != null) 'users': users?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
@@ -116,6 +147,10 @@ abstract class Organization
       'contentVersion': contentVersion,
       if (managerId != null) 'managerId': managerId,
       if (manager != null) 'manager': manager?.toJsonForProtocol(),
+      if (parentId != null) 'parentId': parentId,
+      if (parent != null) 'parent': parent?.toJsonForProtocol(),
+      if (children != null)
+        'children': children?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
       if (users != null)
         'users': users?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
     };
@@ -123,10 +158,14 @@ abstract class Organization
 
   static OrganizationInclude include({
     _i2.AppUserInclude? manager,
-    _i3.OrganizationUserLinkIncludeList? users,
+    _i3.OrganizationInclude? parent,
+    _i3.OrganizationIncludeList? children,
+    _i4.OrganizationUserLinkIncludeList? users,
   }) {
     return OrganizationInclude._(
       manager: manager,
+      parent: parent,
+      children: children,
       users: users,
     );
   }
@@ -167,7 +206,10 @@ class _OrganizationImpl extends Organization {
     int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
-    List<_i3.OrganizationUserLink>? users,
+    int? parentId,
+    _i3.Organization? parent,
+    List<_i3.Organization>? children,
+    List<_i4.OrganizationUserLink>? users,
   }) : super._(
          id: id,
          name: name,
@@ -175,6 +217,9 @@ class _OrganizationImpl extends Organization {
          contentVersion: contentVersion,
          managerId: managerId,
          manager: manager,
+         parentId: parentId,
+         parent: parent,
+         children: children,
          users: users,
        );
 
@@ -189,6 +234,9 @@ class _OrganizationImpl extends Organization {
     int? contentVersion,
     Object? managerId = _Undefined,
     Object? manager = _Undefined,
+    Object? parentId = _Undefined,
+    Object? parent = _Undefined,
+    Object? children = _Undefined,
     Object? users = _Undefined,
   }) {
     return Organization(
@@ -198,7 +246,12 @@ class _OrganizationImpl extends Organization {
       contentVersion: contentVersion ?? this.contentVersion,
       managerId: managerId is int? ? managerId : this.managerId,
       manager: manager is _i2.AppUser? ? manager : this.manager?.copyWith(),
-      users: users is List<_i3.OrganizationUserLink>?
+      parentId: parentId is int? ? parentId : this.parentId,
+      parent: parent is _i3.Organization? ? parent : this.parent?.copyWith(),
+      children: children is List<_i3.Organization>?
+          ? children
+          : this.children?.map((e0) => e0.copyWith()).toList(),
+      users: users is List<_i4.OrganizationUserLink>?
           ? users
           : this.users?.map((e0) => e0.copyWith()).toList(),
     );
@@ -227,6 +280,11 @@ class OrganizationUpdateTable extends _i1.UpdateTable<OrganizationTable> {
     table.managerId,
     value,
   );
+
+  _i1.ColumnValue<int, int> parentId(int? value) => _i1.ColumnValue(
+    table.parentId,
+    value,
+  );
 }
 
 class OrganizationTable extends _i1.Table<int?> {
@@ -249,6 +307,10 @@ class OrganizationTable extends _i1.Table<int?> {
       'managerId',
       this,
     );
+    parentId = _i1.ColumnInt(
+      'parentId',
+      this,
+    );
   }
 
   late final OrganizationUpdateTable updateTable;
@@ -263,9 +325,17 @@ class OrganizationTable extends _i1.Table<int?> {
 
   _i2.AppUserTable? _manager;
 
-  _i3.OrganizationUserLinkTable? ___users;
+  late final _i1.ColumnInt parentId;
 
-  _i1.ManyRelation<_i3.OrganizationUserLinkTable>? _users;
+  _i3.OrganizationTable? _parent;
+
+  _i3.OrganizationTable? ___children;
+
+  _i1.ManyRelation<_i3.OrganizationTable>? _children;
+
+  _i4.OrganizationUserLinkTable? ___users;
+
+  _i1.ManyRelation<_i4.OrganizationUserLinkTable>? _users;
 
   _i2.AppUserTable get manager {
     if (_manager != null) return _manager!;
@@ -280,32 +350,77 @@ class OrganizationTable extends _i1.Table<int?> {
     return _manager!;
   }
 
-  _i3.OrganizationUserLinkTable get __users {
+  _i3.OrganizationTable get parent {
+    if (_parent != null) return _parent!;
+    _parent = _i1.createRelationTable(
+      relationFieldName: 'parent',
+      field: Organization.t.parentId,
+      foreignField: _i3.Organization.t.id,
+      tableRelation: tableRelation,
+      createTable: (foreignTableRelation) =>
+          _i3.OrganizationTable(tableRelation: foreignTableRelation),
+    );
+    return _parent!;
+  }
+
+  _i3.OrganizationTable get __children {
+    if (___children != null) return ___children!;
+    ___children = _i1.createRelationTable(
+      relationFieldName: '__children',
+      field: Organization.t.id,
+      foreignField: _i3.Organization.t.parentId,
+      tableRelation: tableRelation,
+      createTable: (foreignTableRelation) =>
+          _i3.OrganizationTable(tableRelation: foreignTableRelation),
+    );
+    return ___children!;
+  }
+
+  _i4.OrganizationUserLinkTable get __users {
     if (___users != null) return ___users!;
     ___users = _i1.createRelationTable(
       relationFieldName: '__users',
       field: Organization.t.id,
-      foreignField: _i3.OrganizationUserLink.t.organizationId,
+      foreignField: _i4.OrganizationUserLink.t.organizationId,
       tableRelation: tableRelation,
       createTable: (foreignTableRelation) =>
-          _i3.OrganizationUserLinkTable(tableRelation: foreignTableRelation),
+          _i4.OrganizationUserLinkTable(tableRelation: foreignTableRelation),
     );
     return ___users!;
   }
 
-  _i1.ManyRelation<_i3.OrganizationUserLinkTable> get users {
+  _i1.ManyRelation<_i3.OrganizationTable> get children {
+    if (_children != null) return _children!;
+    var relationTable = _i1.createRelationTable(
+      relationFieldName: 'children',
+      field: Organization.t.id,
+      foreignField: _i3.Organization.t.parentId,
+      tableRelation: tableRelation,
+      createTable: (foreignTableRelation) =>
+          _i3.OrganizationTable(tableRelation: foreignTableRelation),
+    );
+    _children = _i1.ManyRelation<_i3.OrganizationTable>(
+      tableWithRelations: relationTable,
+      table: _i3.OrganizationTable(
+        tableRelation: relationTable.tableRelation!.lastRelation,
+      ),
+    );
+    return _children!;
+  }
+
+  _i1.ManyRelation<_i4.OrganizationUserLinkTable> get users {
     if (_users != null) return _users!;
     var relationTable = _i1.createRelationTable(
       relationFieldName: 'users',
       field: Organization.t.id,
-      foreignField: _i3.OrganizationUserLink.t.organizationId,
+      foreignField: _i4.OrganizationUserLink.t.organizationId,
       tableRelation: tableRelation,
       createTable: (foreignTableRelation) =>
-          _i3.OrganizationUserLinkTable(tableRelation: foreignTableRelation),
+          _i4.OrganizationUserLinkTable(tableRelation: foreignTableRelation),
     );
-    _users = _i1.ManyRelation<_i3.OrganizationUserLinkTable>(
+    _users = _i1.ManyRelation<_i4.OrganizationUserLinkTable>(
       tableWithRelations: relationTable,
-      table: _i3.OrganizationUserLinkTable(
+      table: _i4.OrganizationUserLinkTable(
         tableRelation: relationTable.tableRelation!.lastRelation,
       ),
     );
@@ -319,12 +434,19 @@ class OrganizationTable extends _i1.Table<int?> {
     imageUrl,
     contentVersion,
     managerId,
+    parentId,
   ];
 
   @override
   _i1.Table? getRelationTable(String relationField) {
     if (relationField == 'manager') {
       return manager;
+    }
+    if (relationField == 'parent') {
+      return parent;
+    }
+    if (relationField == 'children') {
+      return __children;
     }
     if (relationField == 'users') {
       return __users;
@@ -336,19 +458,29 @@ class OrganizationTable extends _i1.Table<int?> {
 class OrganizationInclude extends _i1.IncludeObject {
   OrganizationInclude._({
     _i2.AppUserInclude? manager,
-    _i3.OrganizationUserLinkIncludeList? users,
+    _i3.OrganizationInclude? parent,
+    _i3.OrganizationIncludeList? children,
+    _i4.OrganizationUserLinkIncludeList? users,
   }) {
     _manager = manager;
+    _parent = parent;
+    _children = children;
     _users = users;
   }
 
   _i2.AppUserInclude? _manager;
 
-  _i3.OrganizationUserLinkIncludeList? _users;
+  _i3.OrganizationInclude? _parent;
+
+  _i3.OrganizationIncludeList? _children;
+
+  _i4.OrganizationUserLinkIncludeList? _users;
 
   @override
   Map<String, _i1.Include?> get includes => {
     'manager': _manager,
+    'parent': _parent,
+    'children': _children,
     'users': _users,
   };
 
@@ -680,12 +812,37 @@ class OrganizationRepository {
 class OrganizationAttachRepository {
   const OrganizationAttachRepository._();
 
+  /// Creates a relation between this [Organization] and the given [Organization]s
+  /// by setting each [Organization]'s foreign key `parentId` to refer to this [Organization].
+  Future<void> children(
+    _i1.DatabaseSession session,
+    Organization organization,
+    List<_i3.Organization> nestedOrganization, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (nestedOrganization.any((e) => e.id == null)) {
+      throw ArgumentError.notNull('nestedOrganization.id');
+    }
+    if (organization.id == null) {
+      throw ArgumentError.notNull('organization.id');
+    }
+
+    var $nestedOrganization = nestedOrganization
+        .map((e) => e.copyWith(parentId: organization.id))
+        .toList();
+    await session.db.update<_i3.Organization>(
+      $nestedOrganization,
+      columns: [_i3.Organization.t.parentId],
+      transaction: transaction,
+    );
+  }
+
   /// Creates a relation between this [Organization] and the given [OrganizationUserLink]s
   /// by setting each [OrganizationUserLink]'s foreign key `organizationId` to refer to this [Organization].
   Future<void> users(
     _i1.DatabaseSession session,
     Organization organization,
-    List<_i3.OrganizationUserLink> organizationUserLink, {
+    List<_i4.OrganizationUserLink> organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
     if (organizationUserLink.any((e) => e.id == null)) {
@@ -698,9 +855,9 @@ class OrganizationAttachRepository {
     var $organizationUserLink = organizationUserLink
         .map((e) => e.copyWith(organizationId: organization.id))
         .toList();
-    await session.db.update<_i3.OrganizationUserLink>(
+    await session.db.update<_i4.OrganizationUserLink>(
       $organizationUserLink,
-      columns: [_i3.OrganizationUserLink.t.organizationId],
+      columns: [_i4.OrganizationUserLink.t.organizationId],
       transaction: transaction,
     );
   }
@@ -732,12 +889,60 @@ class OrganizationAttachRowRepository {
     );
   }
 
+  /// Creates a relation between the given [Organization] and [Organization]
+  /// by setting the [Organization]'s foreign key `parentId` to refer to the [Organization].
+  Future<void> parent(
+    _i1.DatabaseSession session,
+    Organization organization,
+    _i3.Organization parent, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (organization.id == null) {
+      throw ArgumentError.notNull('organization.id');
+    }
+    if (parent.id == null) {
+      throw ArgumentError.notNull('parent.id');
+    }
+
+    var $organization = organization.copyWith(parentId: parent.id);
+    await session.db.updateRow<Organization>(
+      $organization,
+      columns: [Organization.t.parentId],
+      transaction: transaction,
+    );
+  }
+
+  /// Creates a relation between this [Organization] and the given [Organization]
+  /// by setting the [Organization]'s foreign key `parentId` to refer to this [Organization].
+  Future<void> children(
+    _i1.DatabaseSession session,
+    Organization organization,
+    _i3.Organization nestedOrganization, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (nestedOrganization.id == null) {
+      throw ArgumentError.notNull('nestedOrganization.id');
+    }
+    if (organization.id == null) {
+      throw ArgumentError.notNull('organization.id');
+    }
+
+    var $nestedOrganization = nestedOrganization.copyWith(
+      parentId: organization.id,
+    );
+    await session.db.updateRow<_i3.Organization>(
+      $nestedOrganization,
+      columns: [_i3.Organization.t.parentId],
+      transaction: transaction,
+    );
+  }
+
   /// Creates a relation between this [Organization] and the given [OrganizationUserLink]
   /// by setting the [OrganizationUserLink]'s foreign key `organizationId` to refer to this [Organization].
   Future<void> users(
     _i1.DatabaseSession session,
     Organization organization,
-    _i3.OrganizationUserLink organizationUserLink, {
+    _i4.OrganizationUserLink organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
     if (organizationUserLink.id == null) {
@@ -750,9 +955,9 @@ class OrganizationAttachRowRepository {
     var $organizationUserLink = organizationUserLink.copyWith(
       organizationId: organization.id,
     );
-    await session.db.updateRow<_i3.OrganizationUserLink>(
+    await session.db.updateRow<_i4.OrganizationUserLink>(
       $organizationUserLink,
-      columns: [_i3.OrganizationUserLink.t.organizationId],
+      columns: [_i4.OrganizationUserLink.t.organizationId],
       transaction: transaction,
     );
   }
@@ -761,6 +966,30 @@ class OrganizationAttachRowRepository {
 class OrganizationDetachRepository {
   const OrganizationDetachRepository._();
 
+  /// Detaches the relation between this [Organization] and the given [Organization]
+  /// by setting the [Organization]'s foreign key `parentId` to `null`.
+  ///
+  /// This removes the association between the two models without deleting
+  /// the related record.
+  Future<void> children(
+    _i1.DatabaseSession session,
+    List<_i3.Organization> organization, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (organization.any((e) => e.id == null)) {
+      throw ArgumentError.notNull('organization.id');
+    }
+
+    var $organization = organization
+        .map((e) => e.copyWith(parentId: null))
+        .toList();
+    await session.db.update<_i3.Organization>(
+      $organization,
+      columns: [_i3.Organization.t.parentId],
+      transaction: transaction,
+    );
+  }
+
   /// Detaches the relation between this [Organization] and the given [OrganizationUserLink]
   /// by setting the [OrganizationUserLink]'s foreign key `organizationId` to `null`.
   ///
@@ -768,7 +997,7 @@ class OrganizationDetachRepository {
   /// the related record.
   Future<void> users(
     _i1.DatabaseSession session,
-    List<_i3.OrganizationUserLink> organizationUserLink, {
+    List<_i4.OrganizationUserLink> organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
     if (organizationUserLink.any((e) => e.id == null)) {
@@ -778,9 +1007,9 @@ class OrganizationDetachRepository {
     var $organizationUserLink = organizationUserLink
         .map((e) => e.copyWith(organizationId: null))
         .toList();
-    await session.db.update<_i3.OrganizationUserLink>(
+    await session.db.update<_i4.OrganizationUserLink>(
       $organizationUserLink,
-      columns: [_i3.OrganizationUserLink.t.organizationId],
+      columns: [_i4.OrganizationUserLink.t.organizationId],
       transaction: transaction,
     );
   }
@@ -811,6 +1040,50 @@ class OrganizationDetachRowRepository {
     );
   }
 
+  /// Detaches the relation between this [Organization] and the [Organization] set in `parent`
+  /// by setting the [Organization]'s foreign key `parentId` to `null`.
+  ///
+  /// This removes the association between the two models without deleting
+  /// the related record.
+  Future<void> parent(
+    _i1.DatabaseSession session,
+    Organization organization, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (organization.id == null) {
+      throw ArgumentError.notNull('organization.id');
+    }
+
+    var $organization = organization.copyWith(parentId: null);
+    await session.db.updateRow<Organization>(
+      $organization,
+      columns: [Organization.t.parentId],
+      transaction: transaction,
+    );
+  }
+
+  /// Detaches the relation between this [Organization] and the given [Organization]
+  /// by setting the [Organization]'s foreign key `parentId` to `null`.
+  ///
+  /// This removes the association between the two models without deleting
+  /// the related record.
+  Future<void> children(
+    _i1.DatabaseSession session,
+    _i3.Organization organization, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (organization.id == null) {
+      throw ArgumentError.notNull('organization.id');
+    }
+
+    var $organization = organization.copyWith(parentId: null);
+    await session.db.updateRow<_i3.Organization>(
+      $organization,
+      columns: [_i3.Organization.t.parentId],
+      transaction: transaction,
+    );
+  }
+
   /// Detaches the relation between this [Organization] and the given [OrganizationUserLink]
   /// by setting the [OrganizationUserLink]'s foreign key `organizationId` to `null`.
   ///
@@ -818,7 +1091,7 @@ class OrganizationDetachRowRepository {
   /// the related record.
   Future<void> users(
     _i1.DatabaseSession session,
-    _i3.OrganizationUserLink organizationUserLink, {
+    _i4.OrganizationUserLink organizationUserLink, {
     _i1.Transaction? transaction,
   }) async {
     if (organizationUserLink.id == null) {
@@ -828,9 +1101,9 @@ class OrganizationDetachRowRepository {
     var $organizationUserLink = organizationUserLink.copyWith(
       organizationId: null,
     );
-    await session.db.updateRow<_i3.OrganizationUserLink>(
+    await session.db.updateRow<_i4.OrganizationUserLink>(
       $organizationUserLink,
-      columns: [_i3.OrganizationUserLink.t.organizationId],
+      columns: [_i4.OrganizationUserLink.t.organizationId],
       transaction: transaction,
     );
   }

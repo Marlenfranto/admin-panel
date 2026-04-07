@@ -6,6 +6,8 @@ admin:
   - deleteOrganization:
   - getAllOrganizations:
   - updateUser:
+  - updateOrgAdminUser:
+  - adminResetUserPassword:
   - deleteUser:
   - getAllUsers:
   - setModuleConfig:
@@ -24,12 +26,15 @@ admin:
   - deleteAsset:
   - getUserModuleProgress:
   - setUserModuleProgress:
+  - getTrainingHistory:
+  - getTrainingUserSummaries:
   - getUserTrainingHistory:
   - updateUserModuleStatus:
 manager:
   - getManagedOrganization:
   - getManagedOrganizations:
   - createUserAndAssignToOrg:
+  - getTeams:
   - removeUserFromOrganization:
   - getMyModuleConfig:
   - updateMyModuleConfig:
@@ -48,12 +53,46 @@ manager:
   - getUserModuleProgress:
   - setUserModuleProgress:
   - updateUserModuleStatus:
+  - getTrainingHistory:
   - getUserTrainingHistory:
+  - getTrainingUserSummaries:
   - getNotifications:
   - getUnreadNotificationCount:
   - markNotificationRead:
   - markAllNotificationsRead:
   - deleteNotification:
+organizationAdmin:
+  - getMyOrganization:
+  - createTeam:
+  - getTeams:
+  - assignManagerToTeam:
+  - deleteTeam:
+  - updateTeam:
+  - createUserInTeam:
+  - updateOrgUser:
+  - deleteOrgUser:
+  - resetOrgUserPassword:
+  - getModuleConfig:
+  - setModuleConfig:
+  - getOrgUserModuleProgress:
+  - setOrgUserModuleProgress:
+  - updateOrgUserModuleStatus:
+  - getOrgTheoryChapters:
+  - upsertOrgTheoryChapter:
+  - deleteOrgTheoryChapter:
+  - getOrgTrainingParameters:
+  - upsertOrgTrainingParameter:
+  - deleteOrgTrainingParameter:
+  - getOrgAssessmentParameters:
+  - upsertOrgAssessmentParameter:
+  - deleteOrgAssessmentParameter:
+  - getOrgAssets:
+  - upsertOrgAsset:
+  - deleteOrgAsset:
+  - getTrainingHistory:
+  - getOrgUserTrainingHistory:
+  - getTrainingUserSummaries:
+  - getUserTrainingHistory:
 publicApi:
   - login:
   - getContentBundle:
@@ -76,3 +115,5 @@ user:
   - submitTrainingResult:
   - getMyTrainingHistory:
   - updateMyModuleStatus:
+  - getTheoryChaptersWithProgress:
+  - submitTheoryQuiz:

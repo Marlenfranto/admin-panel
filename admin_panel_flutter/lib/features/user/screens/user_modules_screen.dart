@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'theory_chapters_screen.dart';
+
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../providers/user_providers.dart';
+import '../../../src/providers.dart';
 
 class UserModulesScreen extends ConsumerWidget {
   const UserModulesScreen({super.key});
@@ -54,13 +57,17 @@ class _ModulesContent extends StatelessWidget {
   final AsyncValue<List<TrainingSessionResult>> historyAsync;
   final int                                    passingPct;
 
-  static const _allModules = [
+  static final _allModules = [
     _ModuleInfo(
       icon:  Icons.menu_book_rounded,
       color: AppColors.theory,
       label: 'Theory',
       desc:  'Learn concepts, procedures and safety standards through structured lessons.',
       key:   'theory',
+      activityTypes: [
+        (icon: Icons.play_circle_outline_rounded, label: 'Videos'),
+        (icon: Icons.quiz_outlined,               label: 'Quizzes'),
+      ],
     ),
     _ModuleInfo(
       icon:  Icons.smart_toy_rounded,
@@ -112,9 +119,9 @@ class _ModulesContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (config == null) {
-      return const SingleChildScrollView(
-        padding: EdgeInsets.all(AppSpacing.pagePadding),
-        child: _NoOrgCard(),
+      return SingleChildScrollView(
+        padding: EdgeInsets.all(context.responsivePagePadding),
+        child: const _NoOrgCard(),
       );
     }
 
@@ -131,7 +138,7 @@ class _ModulesContent extends StatelessWidget {
     }).length;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
+      padding: EdgeInsets.all(context.responsivePagePadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -144,22 +151,22 @@ class _ModulesContent extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          // ── Summary strip ────────────────────────────────────────────────
-          Row(
+          // ── Summary strip — wraps on mobile ──────────────────────────────
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
             children: [
               _SummaryChip(
                 icon:  Icons.extension_rounded,
                 label: '${enabledModules.length} module${enabledModules.length == 1 ? "" : "s"} assigned',
                 color: AppColors.primary,
               ),
-              if (overdueCount > 0) ...[
-                const SizedBox(width: AppSpacing.sm),
+              if (overdueCount > 0)
                 _SummaryChip(
                   icon:  Icons.warning_rounded,
                   label: '$overdueCount overdue',
                   color: AppColors.error,
                 ),
-              ],
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -170,7 +177,8 @@ class _ModulesContent extends StatelessWidget {
           else
             LayoutBuilder(
               builder: (context, constraints) {
-                final twoCol = constraints.maxWidth >= 900;
+                // Single column on mobile/narrow, two columns on wide
+                final twoCol = constraints.maxWidth >= 700;
                 final cardWidth = twoCol
                     ? (constraints.maxWidth - AppSpacing.md) / 2
                     : constraints.maxWidth;
@@ -183,6 +191,15 @@ class _ModulesContent extends StatelessWidget {
                       child: _ModuleCard(
                         module:   m,
                         progress: _progressFor(m.key),
+                        onTap: () {
+                          if (m.key == 'theory') {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const TheoryChaptersScreen(),
+                              ),
+                            );
+                          }
+                        },
                       ),
                     );
                   }).toList(),
@@ -244,10 +261,12 @@ class _ModuleCard extends StatelessWidget {
   const _ModuleCard({
     required this.module,
     required this.progress,
+    this.onTap,
   });
 
   final _ModuleInfo          module;
   final UserModuleProgress?  progress;
+  final VoidCallback?        onTap;
 
   static final _dateFmt = DateFormat('MMM d, y');
 
@@ -270,10 +289,13 @@ class _ModuleCard extends StatelessWidget {
     final status   = progress?.status ?? ModuleProgressStatus.notStarted;
     final deadline = progress?.deadline;
 
+    final isTheory = module.key == 'theory';
+    final hasAction = onTap != null;
+
     final cardColor   = overdue ? AppColors.errorSurface : module.color.withValues(alpha: 0.08);
     final borderColor = overdue
         ? AppColors.error.withValues(alpha: 0.50)
-        : module.color.withValues(alpha: 0.35);
+        : (isTheory ? module.color.withValues(alpha: 0.7) : module.color.withValues(alpha: 0.35));
     final iconBg = overdue
         ? AppColors.error.withValues(alpha: 0.12)
         : module.color.withValues(alpha: 0.15);
@@ -285,96 +307,153 @@ class _ModuleCard extends StatelessWidget {
       decoration: BoxDecoration(
         color:        cardColor,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border:       Border.all(color: borderColor, width: 1.5),
+        border:       Border.all(color: borderColor, width: isTheory ? 2 : 1.5),
+        boxShadow: isTheory ? [
+          BoxShadow(
+            color: module.color.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          )
+        ] : null,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Card body ──────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.cardPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top row: icon + label + description
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width:  48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color:        iconBg,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Card body ──────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.cardPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top row: icon + label + description
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width:  48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color:        iconBg,
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                        ),
+                        child: Icon(module.icon, size: 22, color: iconColor),
                       ),
-                      child: Icon(module.icon, size: 22, color: iconColor),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            module.label,
-                            style: AppTextStyles.headingSm.copyWith(color: labelColor),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            module.desc,
-                            style: AppTextStyles.bodyXs.copyWith(
-                              color: AppColors.onSurfaceMuted,
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              module.label,
+                              style: AppTextStyles.headingSm.copyWith(color: labelColor),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                            const SizedBox(height: 3),
+                            Text(
+                              module.desc,
+                              style: AppTextStyles.bodyXs.copyWith(
+                                color: AppColors.onSurfaceMuted,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (module.activityTypes != null) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              Row(
+                                children: module.activityTypes!.map((act) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          act.icon,
+                                          size: 14,
+                                          color: AppColors.onSurfaceMuted,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          act.label,
+                                          style: AppTextStyles.bodyXs.copyWith(
+                                            color:      AppColors.onSurfaceMuted,
+                                            fontSize:   11,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      if (hasAction)
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: module.color.withValues(alpha: 0.5),
+                        ),
+                    ],
+                  ),
+  
+                  // Status + deadline row (only when progress exists)
+                  if (progress != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    const Divider(height: 1),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        _statusChip(status),
+                        const Spacer(),
+                        if (deadline != null) ...[
+                          _DeadlineLabel(deadline: deadline, isOverdue: overdue),
+                        ] else if (isTheory) ...[
+                           Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'View Details',
+                                style: AppTextStyles.labelXs.copyWith(color: module.color),
+                              ),
+                              Icon(Icons.arrow_forward_rounded, size: 12, color: module.color),
+                            ],
                           ),
                         ],
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+  
+            // ── Overdue banner ─────────────────────────────────────────────
+            if (overdue)
+              Container(
+                width:   double.infinity,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.cardPadding, vertical: 9),
+                color: AppColors.error,
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded,
+                        size: 14, color: Colors.white),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$_daysOverdue ${_daysOverdue == 1 ? "day" : "days"} overdue — contact your manager',
+                      style: const TextStyle(
+                        color:      Colors.white,
+                        fontSize:   12,
+                        fontWeight: FontWeight.w600,
+                        height:     1.2,
                       ),
                     ),
                   ],
                 ),
-
-                // Status + deadline row (only when progress exists)
-                if (progress != null) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  const Divider(height: 1),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      _statusChip(status),
-                      const Spacer(),
-                      if (deadline != null) _DeadlineLabel(deadline: deadline, isOverdue: overdue),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          // ── Overdue banner ─────────────────────────────────────────────
-          if (overdue)
-            Container(
-              width:   double.infinity,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.cardPadding, vertical: 9),
-              color: AppColors.error,
-              child: Row(
-                children: [
-                  const Icon(Icons.warning_amber_rounded,
-                      size: 14, color: Colors.white),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${_daysOverdue} ${_daysOverdue == 1 ? "day" : "days"} overdue — contact your manager',
-                    style: const TextStyle(
-                      color:      Colors.white,
-                      fontSize:   12,
-                      fontWeight: FontWeight.w600,
-                      height:     1.2,
-                    ),
-                  ),
-                ],
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -487,7 +566,7 @@ class _NoModulesCard extends StatelessWidget {
 
 // ── Training history section ───────────────────────────────────────────────────
 
-class _TrainingHistorySection extends StatelessWidget {
+class _TrainingHistorySection extends ConsumerWidget {
   const _TrainingHistorySection({
     required this.historyAsync,
     required this.passingPct,
@@ -497,7 +576,7 @@ class _TrainingHistorySection extends StatelessWidget {
   final int passingPct;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -527,6 +606,7 @@ class _TrainingHistorySection extends StatelessWidget {
           data:    (history) => TrainingHistoryPanel(
             results:           history,
             passingPercentage: passingPct,
+            recipientName:     ref.watch(authProvider).userInfo?.userName,
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error:   (e, _) => Text('Error loading history: $e',
@@ -546,6 +626,7 @@ class _ModuleInfo {
     required this.label,
     required this.desc,
     required this.key,
+    this.activityTypes,
   });
 
   final IconData icon;
@@ -553,4 +634,5 @@ class _ModuleInfo {
   final String   label;
   final String   desc;
   final String   key;
+  final List<({IconData icon, String label})>? activityTypes;
 }

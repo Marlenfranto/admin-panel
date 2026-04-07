@@ -1,0 +1,4 @@
+class: TheoryChapterWithProgress
+fields:
+  chapter: TheoryChapter
+  progress: UserTheoryProgress?

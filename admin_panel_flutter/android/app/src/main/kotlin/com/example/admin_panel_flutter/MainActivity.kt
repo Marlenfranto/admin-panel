@@ -1,4 +1,4 @@
-package com.example.admin_panel_flutter
+package com.mako.firesafex
 
 import io.flutter.embedding.android.FlutterActivity
 

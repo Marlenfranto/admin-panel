@@ -17,6 +17,12 @@ class AdminShell extends StatelessWidget {
       route:      AppRoutes.adminOrganizations,
     ),
     NavItem(
+      icon:       Icons.groups_outlined,
+      activeIcon: Icons.groups_rounded,
+      label:      'Teams',
+      route:      AppRoutes.adminTeams,
+    ),
+    NavItem(
       icon:       Icons.people_outline_rounded,
       activeIcon: Icons.people_rounded,
       label:      'Users',
@@ -33,6 +39,12 @@ class AdminShell extends StatelessWidget {
       activeIcon: Icons.folder_rounded,
       label:      'Content',
       route:      AppRoutes.adminContent,
+    ),
+    NavItem(
+      icon:       Icons.history_edu_outlined,
+      activeIcon: Icons.history_edu_rounded,
+      label:      'Training History',
+      route:      AppRoutes.adminTrainingHistory,
     ),
     NavItem(
       icon:       Icons.settings_outlined,

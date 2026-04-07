@@ -79,6 +79,34 @@ class ManagerEndpoint extends Endpoint {
     return appUser;
   }
 
+  /// Returns all teams (child organizations) for a managed parent organization,
+  /// including each team's users with their info.
+  Future<List<Organization>> getTeams(
+      Session session, int organizationId) async {
+    final manager = await _getManagerAppUser(session);
+    if (manager == null) return [];
+
+    // Only serve teams for orgs this manager actually manages.
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) =>
+          o.id.equals(organizationId) & o.managerId.equals(manager.id),
+    );
+    if (org == null) return [];
+
+    return await Organization.db.find(
+      session,
+      where: (o) => o.parentId.equals(organizationId),
+      include: Organization.include(
+        users: OrganizationUserLink.includeList(
+          include: OrganizationUserLink.include(
+            appUser: AppUser.include(userInfo: UserInfo.include()),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<bool> removeUserFromOrganization(Session session, int appUserId, int organizationId) async {
     await OrganizationUserLink.db.deleteWhere(
       session,
@@ -99,9 +127,12 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return null;
 
+    // If the org is a team (has parentId), module config lives on the parent org.
+    final effectiveOrgId = org.parentId ?? org.id!;
+
     return await ModuleConfig.db.findFirstRow(
       session,
-      where: (c) => c.organizationId.equals(org.id),
+      where: (c) => c.organizationId.equals(effectiveOrgId),
     );
   }
 
@@ -372,11 +403,13 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return [];
 
+    final effectiveOrgId = org.parentId ?? org.id!;
+
     return await UserModuleProgress.db.find(
       session,
       where: (p) =>
           p.appUserId.equals(appUserId) &
-          p.organizationId.equals(organizationId),
+          p.organizationId.equals(effectiveOrgId),
     );
   }
 
@@ -398,11 +431,13 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return null;
 
+    final effectiveOrgId = org.parentId ?? org.id!;
+
     var existing = await UserModuleProgress.db.findFirstRow(
       session,
       where: (p) =>
           p.appUserId.equals(appUserId) &
-          p.organizationId.equals(organizationId) &
+          p.organizationId.equals(effectiveOrgId) &
           p.moduleId.equals(moduleId),
     );
 
@@ -414,7 +449,7 @@ class ManagerEndpoint extends Endpoint {
 
     final progress = UserModuleProgress(
       appUserId: appUserId,
-      organizationId: organizationId,
+      organizationId: effectiveOrgId,
       moduleId: moduleId,
       isEnabled: isEnabled,
       deadline: deadline,
@@ -442,11 +477,13 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return null;
 
+    final effectiveOrgId = org.parentId ?? org.id!;
+
     var existing = await UserModuleProgress.db.findFirstRow(
       session,
       where: (p) =>
           p.appUserId.equals(appUserId) &
-          p.organizationId.equals(organizationId) &
+          p.organizationId.equals(effectiveOrgId) &
           p.moduleId.equals(moduleId),
     );
     if (existing == null) return null;
@@ -458,6 +495,91 @@ class ManagerEndpoint extends Endpoint {
   }
 
   // ── Training session results ───────────────────────────────────────────────
+
+  /// Returns paginated and filtered Smart Training results for Managers.
+  /// Returns paginated and filtered Smart Training results for Managers.
+  Future<TrainingSessionResultPage> getTrainingHistory(
+    Session session, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+    int? organizationId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    final manager = await _getManagerAppUser(session);
+    if (manager == null) throw Exception('Manager not found.');
+
+    final offset = (page - 1) * limit;
+
+    // Use Expression type for complex query building.
+    Expression where;
+    if (organizationId != null) {
+      final org = await Organization.db.findFirstRow(
+        session,
+        where: (o) => o.id.equals(organizationId) & o.managerId.equals(manager.id),
+      );
+      if (org == null) throw Exception('Unauthorized access to organization.');
+      where = TrainingSessionResult.t.organizationId.equals(organizationId);
+    } else {
+      // Find all orgs managed by this manager.
+      final managedOrgs = await Organization.db.find(
+        session,
+        where: (o) => o.managerId.equals(manager.id),
+      );
+      if (managedOrgs.isEmpty) {
+        return TrainingSessionResultPage(results: [], totalCount: 0, hasMore: false);
+      }
+      final orgIds = managedOrgs.map((o) => o.id!).toSet();
+      where = TrainingSessionResult.t.organizationId.inSet(orgIds);
+    }
+
+    if (start != null) {
+      where = where & (TrainingSessionResult.t.completedAt >= start);
+    }
+    if (end != null) {
+      where = where & (TrainingSessionResult.t.completedAt <= end);
+    }
+    if (passed != null) {
+      final passingPercentage = 60;
+      if (passed) {
+        where = where & (TrainingSessionResult.t.overallPercentage >= passingPercentage);
+      } else {
+        where = where & (TrainingSessionResult.t.overallPercentage < passingPercentage);
+      }
+    }
+
+    if (search != null && search.trim().isNotEmpty) {
+      final query = search.trim().toLowerCase();
+      where = where & (TrainingSessionResult.t.appUser.userInfo.userName.ilike('%$query%') | 
+               TrainingSessionResult.t.appUser.userInfo.email.ilike('%$query%'));
+    }
+
+    final results = await TrainingSessionResult.db.find(
+      session,
+      where: (_) => where,
+      limit: limit,
+      offset: offset,
+      orderBy: (r) => r.completedAt,
+      orderDescending: true,
+      include: TrainingSessionResult.include(
+        appUser: AppUser.include(userInfo: UserInfo.include()),
+        organization: Organization.include(),
+      ),
+    );
+
+    final totalCount = await TrainingSessionResult.db.count(
+      session,
+      where: (_) => where,
+    );
+
+    return TrainingSessionResultPage(
+      results: results,
+      totalCount: totalCount,
+      hasMore: offset + results.length < totalCount,
+    );
+  }
 
   /// Returns all Smart Training results for [appUserId] within this manager's org.
   Future<List<TrainingSessionResult>> getUserTrainingHistory(
@@ -475,20 +597,25 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return [];
 
+    // Final Authorization: Verify the target user belongs to the target organization!
+    final hasLink = await OrganizationUserLink.db.findFirstRow(
+      session,
+      where: (l) => l.organizationId.equals(organizationId) & l.appUserId.equals(appUserId),
+    );
+    if (hasLink == null) return [];
+
     // Two separate queries to avoid any Serverpod OR behavior issues on
     // nullable columns. Records submitted before appUserId was resolved will
     // only match on externalUserId; newer records match on appUserId.
+    // Note: We deliberately DO NOT filter by organizationId here so managers 
+    // can see the full history of their team members.
     final byAppUser = await TrainingSessionResult.db.find(
       session,
-      where: (r) =>
-          r.organizationId.equals(organizationId) &
-          r.appUserId.equals(appUserId),
+      where: (r) => r.appUserId.equals(appUserId),
     );
     final byExternal = await TrainingSessionResult.db.find(
       session,
-      where: (r) =>
-          r.organizationId.equals(organizationId) &
-          r.externalUserId.equals(appUserId.toString()),
+      where: (r) => r.externalUserId.equals(appUserId.toString()),
     );
     final seen = <int>{};
     final results = [...byAppUser, ...byExternal]
@@ -496,6 +623,156 @@ class ManagerEndpoint extends Endpoint {
         .toList();
     results.sort((a, b) => b.completedAt.compareTo(a.completedAt));
     return results;
+  }
+
+  /// Returns paginated unique users who have smart training results, grouped by user,
+  /// scoped to the teams managed by this manager.
+  Future<TrainingUserSummaryPage> getTrainingUserSummaries(
+    Session session, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    final manager = await _getManagerAppUser(session);
+    if (manager == null) throw Exception('Manager not found.');
+
+    final offset = (page - 1) * limit;
+
+    // 1. Resolve teams managed by this manager.
+    final managedOrgs = await Organization.db.find(
+      session,
+      where: (o) => o.managerId.equals(manager.id),
+      limit: 1000,
+    );
+    final targetOrgIds = managedOrgs.map((o) => o.id!).toSet();
+    
+    if (targetOrgIds.isEmpty) {
+      return TrainingUserSummaryPage(summaries: [], totalCount: 0, hasMore: false);
+    }
+
+    // 2. Identify the AppUser IDs belonging to these organizations.
+    final links = await OrganizationUserLink.db.find(
+      session,
+      where: (l) => l.organizationId.inSet(targetOrgIds),
+    );
+    final targetUserIds = links.map((l) => l.appUserId).toSet();
+    
+    if (targetUserIds.isEmpty) {
+      return TrainingUserSummaryPage(summaries: [], totalCount: 0, hasMore: false);
+    }
+
+    // 3. Build the core filter (Users in managed teams + optional filters).
+    Expression where = TrainingSessionResult.t.appUserId.inSet(targetUserIds);
+
+    if (start != null) {
+      where = where & (TrainingSessionResult.t.completedAt >= start);
+    }
+    if (end != null) {
+      where = where & (TrainingSessionResult.t.completedAt <= end);
+    }
+    if (passed != null) {
+      const passingPercentage = 60;
+      if (passed) {
+        where = where & (TrainingSessionResult.t.overallPercentage >= passingPercentage);
+      } else {
+        where = where & (TrainingSessionResult.t.overallPercentage < passingPercentage);
+      }
+    }
+
+    if (search != null && search.trim().isNotEmpty) {
+      final query = search.trim().toLowerCase();
+      where = where & (TrainingSessionResult.t.appUser.userInfo.userName.ilike('%$query%') | 
+               TrainingSessionResult.t.appUser.userInfo.email.ilike('%$query%'));
+    }
+
+    // 4. Fetch results and group them.
+    final results = await TrainingSessionResult.db.find(
+      session,
+      where: (_) => where,
+      orderBy: (r) => r.completedAt,
+      orderDescending: true,
+      limit: 5000,
+      include: TrainingSessionResult.include(
+        appUser: AppUser.include(userInfo: UserInfo.include()),
+        organization: Organization.include(),
+      ),
+    );
+
+    final List<TrainingSessionResult> uniqueUserResults = [];
+    final seenUids = <int>{};
+    for (final res in results) {
+      if (seenUids.add(res.appUserId!)) {
+        uniqueUserResults.add(res);
+      }
+    }
+
+    // 5. Hierarchy Resolution for teams/parents.
+    final uids = uniqueUserResults.map((r) => r.appUserId!).toSet();
+    final allLinks = await OrganizationUserLink.db.find(
+      session,
+      where: (l) => l.appUserId.inSet(uids),
+      include: OrganizationUserLink.include(organization: Organization.include()),
+    );
+    
+    final userLinksMap = <int, List<OrganizationUserLink>>{};
+    for (final link in allLinks) {
+       (userLinksMap[link.appUserId] ??= []).add(link);
+    }
+
+    // Resolve parents for the teams
+    final parentIds = allLinks.map((l) => l.organization?.parentId).where((id) => id != null).cast<int>().toSet();
+    final Map<int, Organization> parentMap = {};
+    if (parentIds.isNotEmpty) {
+      final parents = await Organization.db.find(session, where: (o) => o.id.inSet(parentIds));
+      for (final p in parents) {
+        if (p.id != null) parentMap[p.id!] = p;
+      }
+    }
+
+    final allSummaries = uniqueUserResults.map((res) {
+      final uid = res.appUserId!;
+      final userLinks = userLinksMap[uid] ?? [];
+      
+      Organization? userTeam;
+      Organization? userParent;
+      
+      for (final link in userLinks) {
+        final org = link.organization;
+        if (org == null) continue;
+        if (org.parentId != null) {
+          userTeam = org;
+          userParent = parentMap[org.parentId];
+          break;
+        }
+      }
+      
+      if (userTeam == null && userLinks.isNotEmpty) {
+        userTeam = userLinks.first.organization;
+      }
+      userTeam ??= res.organization;
+
+      final userTotal = results.where((r) => r.appUserId == uid).length;
+
+      return TrainingUserSummary(
+        user: res.appUser!,
+        parentOrg: userParent,
+        team: userTeam!,
+        latestResult: res,
+        totalSessions: userTotal,
+      );
+    }).toList();
+
+    final totalCount = allSummaries.length;
+    final pagedSummaries = allSummaries.skip(offset).take(limit).toList();
+
+    return TrainingUserSummaryPage(
+      summaries: pagedSummaries,
+      totalCount: totalCount,
+      hasMore: offset + pagedSummaries.length < totalCount,
+    );
   }
 
   // ── Notifications ─────────────────────────────────────────────────────────
@@ -517,12 +794,13 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return [];
 
+    final effectiveOrgId = org.parentId ?? org.id!;
     final now = DateTime.now().toUtc();
 
     // Find all progress records for this org and detect overdue ones in Dart.
     final allProgress = await UserModuleProgress.db.find(
       session,
-      where: (p) => p.organizationId.equals(organizationId),
+      where: (p) => p.organizationId.equals(effectiveOrgId),
     );
     final overdueProgress = allProgress
         .where((p) =>

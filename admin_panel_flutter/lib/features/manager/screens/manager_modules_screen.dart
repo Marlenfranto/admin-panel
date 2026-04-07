@@ -7,169 +7,36 @@ import '../../../shared/widgets/widgets.dart';
 import '../providers/manager_providers.dart';
 import '../../../src/providers.dart';
 
-// ── Module metadata ───────────────────────────────────────────────────────────
-
-class _ModuleMeta {
-  const _ModuleMeta({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.description,
-  });
-  final IconData icon;
-  final Color    color;
-  final String   label;
-  final String   description;
-}
-
-const _modules = [
-  _ModuleMeta(
-    icon:        Icons.menu_book_rounded,
-    color:       AppColors.theory,
-    label:       'Theory',
-    description: 'Learning content, chapters and study materials',
-  ),
-  _ModuleMeta(
-    icon:        Icons.smart_toy_rounded,
-    color:       AppColors.aiExpert,
-    label:       'AR Expert',
-    description: 'AI-powered expert assistance and chat sessions',
-  ),
-  _ModuleMeta(
-    icon:        Icons.fitness_center_rounded,
-    color:       AppColors.training,
-    label:       'Smart Training',
-    description: 'Adaptive training sessions and performance tracking',
-  ),
-  _ModuleMeta(
-    icon:        Icons.quiz_rounded,
-    color:       AppColors.assess,
-    label:       'Assessment',
-    description: 'Quizzes, tests and scoring parameters',
-  ),
-];
-
 // ── Screen ────────────────────────────────────────────────────────────────────
 
-class ManagerModulesScreen extends ConsumerStatefulWidget {
+class ManagerModulesScreen extends ConsumerWidget {
   const ManagerModulesScreen({super.key});
 
   @override
-  ConsumerState<ManagerModulesScreen> createState() =>
-      _ManagerModulesScreenState();
-}
-
-class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
-  bool? _theory;
-  bool? _ai;
-  bool? _training;
-  bool? _assessment;
-  int   _passing      = 60;
-  final _aiPromptCtrl = TextEditingController();
-  bool  _loaded       = false;
-  bool  _saving       = false;
-
-  @override
-  void dispose() {
-    _aiPromptCtrl.dispose();
-    super.dispose();
-  }
-
-  void _loadConfig(ModuleConfig? config) {
-    if (_loaded) return;
-    setState(() {
-      _theory     = config?.theoryModule ?? false;
-      _ai         = config?.aiExpertModule ?? false;
-      _training   = config?.smartTrainingModule ?? false;
-      _assessment = config?.assessmentModule ?? false;
-      _passing    = config?.passingPercentage ?? 60;
-      _aiPromptCtrl.text = config?.aiChatPrompt ?? '';
-      _loaded = true;
-    });
-  }
-
-  // Reset loaded flag when org changes so we reload config for the new org.
-  int? _lastOrgId;
-  void _checkOrgChanged(int? orgId) {
-    if (orgId != _lastOrgId) {
-      _lastOrgId = orgId;
-      _loaded    = false;
-    }
-  }
-
-  Future<void> _save() async {
-    if (_theory == null) return;
-    setState(() => _saving = true);
-    try {
-      final prompt = _aiPromptCtrl.text.trim();
-      final orgId  = ref.read(activeOrgIdProvider);
-      if (orgId == null) return;
-      await ref.read(clientProvider).manager.updateMyModuleConfig(
-            orgId, _theory!, _ai!, _training!, _assessment!,
-            prompt.isEmpty ? null : prompt,
-            _passing,
-          );
-      ref.invalidate(managerModuleConfigProvider);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:         Text('Configuration saved.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:         Text('Error: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final orgsAsync   = ref.watch(managedOrganizationsProvider);
     final activeOrgId = ref.watch(activeOrgIdProvider);
     final configAsync = ref.watch(managerModuleConfigProvider);
+    final teamsAsync  = ref.watch(activeOrgTeamsProvider);
 
-    _checkOrgChanged(activeOrgId);
+    final config = configAsync.value;
+    final globalEnabled = {
+      'theory':        config?.theoryModule        ?? false,
+      'aiExpert':      config?.aiExpertModule      ?? false,
+      'smartTraining': config?.smartTrainingModule ?? false,
+      'assessment':    config?.assessmentModule    ?? false,
+    };
 
-    return configAsync.when(
-      data: (config) {
-        _loadConfig(config);
-        if (_theory == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return _buildContent(orgsAsync, activeOrgId);
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(
-        child: Text('Error: $e',
-            style: AppTextStyles.bodySm.copyWith(color: AppColors.error)),
-      ),
-    );
-  }
-
-  Widget _buildContent(
-    AsyncValue<List<Organization>> orgsAsync,
-    int? activeOrgId,
-  ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
+      padding: EdgeInsets.all(context.responsivePagePadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ──────────────────────────────────────────────────────
-          Text('Module Configuration', style: AppTextStyles.headingLg),
+          Text('Modules', style: AppTextStyles.headingLg),
           const SizedBox(height: 4),
           Text(
-            'Enable or disable modules for your organization.',
+            'Configure per-user module access for your organization.',
             style: AppTextStyles.bodySm,
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -193,10 +60,9 @@ class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
                           child: _OrgChip(
                             org:      org,
                             isActive: isActive,
-                            onTap: () {
-                              ref.read(selectedOrgIdProvider.notifier).state =
-                                  org.id;
-                            },
+                            onTap: () => ref
+                                .read(selectedOrgIdProvider.notifier)
+                                .state = org.id,
                           ),
                         );
                       }).toList(),
@@ -210,116 +76,36 @@ class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
             error:   (_, __) => const SizedBox.shrink(),
           ),
 
-          // ── Module access ────────────────────────────────────────────────
-          _SectionCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _CardHeader(
-                  icon:     Icons.extension_rounded,
-                  color:    AppColors.aiExpert,
-                  title:    'Module Access',
-                  subtitle: 'Toggle which modules are available to your organization',
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _ModuleRow(
-                  meta:     _modules[0],
-                  value:    _theory!,
-                  onChange: (v) => setState(() => _theory = v),
-                ),
-                const Divider(height: 1),
-                _ModuleRow(
-                  meta:     _modules[1],
-                  value:    _ai!,
-                  onChange: (v) => setState(() => _ai = v),
-                ),
-                const Divider(height: 1),
-                _ModuleRow(
-                  meta:     _modules[2],
-                  value:    _training!,
-                  onChange: (v) => setState(() => _training = v),
-                ),
-                const Divider(height: 1),
-                _ModuleRow(
-                  meta:     _modules[3],
-                  value:    _assessment!,
-                  onChange: (v) => setState(() => _assessment = v),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Passing score ────────────────────────────────────────────────
-          const SizedBox(height: AppSpacing.lg),
-          _SectionCard(
-            child: _PassingScoreRow(
-              value:     _passing,
-              onChanged: (v) => setState(() => _passing = v),
-            ),
-          ),
-
-          // ── AR Expert AI prompt ──────────────────────────────────────────
-          if (_ai == true) ...[
-            const SizedBox(height: AppSpacing.lg),
-            _SectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _CardHeader(
-                    icon:     Icons.smart_toy_rounded,
-                    color:    AppColors.aiExpert,
-                    title:    'AR Expert AI System Prompt',
-                    subtitle: 'Sent as the system message for every AI chat session',
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  TextField(
-                    controller: _aiPromptCtrl,
-                    maxLines:   6,
-                    decoration: const InputDecoration(
-                      hintText:           'You are a helpful AR Expert assistant…',
-                      alignLabelWithHint: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-
-          const SizedBox(height: AppSpacing.xl),
-
-          // ── Save ─────────────────────────────────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              AppGradientButton(
-                label:     'Save Configuration',
-                icon:      Icons.save_rounded,
-                isLoading: _saving,
-                onPressed: _save,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: AppSpacing.xl),
-          const Divider(),
-          const SizedBox(height: AppSpacing.lg),
-
           // ── Per-user module configuration ──────────────────────────────
           if (activeOrgId != null)
-            UserModuleConfigPanel(
-              orgUsers: ref.watch(activeOrgProvider)
-                          ?.users
-                          ?.map((l) => l.appUser)
-                          .whereType<AppUser>()
-                          .where((u) => u.role == Role.User)
-                          .toList() ??
-                      [],
-              globalEnabled: {
-                'theory':        _theory ?? false,
-                'aiExpert':      _ai ?? false,
-                'smartTraining': _training ?? false,
-                'assessment':    _assessment ?? false,
-              },
+            Builder(builder: (_) {
+              // Collect users from the active org + all its teams,
+              // and build a teamLabels map for display.
+              final activeOrg  = ref.watch(activeOrgProvider);
+              final teamLabels = <int, String>{};
+              final seen       = <int>{};
+              final allUsers   = <AppUser>[];
+
+              for (final link in (activeOrg?.users ?? [])) {
+                final u = link.appUser;
+                if (u?.id != null && u!.role == Role.User && seen.add(u.id!)) {
+                  allUsers.add(u);
+                }
+              }
+              for (final team in (teamsAsync.value ?? [])) {
+                for (final link in (team.users ?? [])) {
+                  final u = link.appUser;
+                  if (u?.id != null && u!.role == Role.User && seen.add(u.id!)) {
+                    allUsers.add(u);
+                    teamLabels[u.id!] = team.name;
+                  }
+                }
+              }
+
+              return UserModuleConfigPanel(
+              orgUsers:   allUsers,
+              teamLabels: teamLabels.isNotEmpty ? teamLabels : null,
+              globalEnabled: globalEnabled,
               onLoadProgress: (userId) => ref
                   .read(clientProvider)
                   .manager
@@ -349,273 +135,9 @@ class _ManagerModulesScreenState extends ConsumerState<ManagerModulesScreen> {
                       );
                 }
               },
-            ),
+            ); // UserModuleConfigPanel
+            }), // Builder
         ],
-      ),
-    );
-  }
-}
-
-// ── Passing score row ─────────────────────────────────────────────────────────
-
-class _PassingScoreRow extends StatelessWidget {
-  const _PassingScoreRow({required this.value, required this.onChanged});
-
-  final int               value;
-  final ValueChanged<int> onChanged;
-
-  Color get _color {
-    if (value >= 80) return AppColors.success;
-    if (value >= 50) return AppColors.training;
-    return AppColors.error;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _color;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _CardHeader(
-          icon:     Icons.emoji_events_rounded,
-          color:    color,
-          title:    'Passing Score',
-          subtitle: 'Minimum percentage a user must score to pass any module',
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Percentage badge
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width:  76,
-              height: 76,
-              decoration: BoxDecoration(
-                color:        color.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                border:       Border.all(color: color.withValues(alpha: 0.30)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '$value',
-                    style: AppTextStyles.headingLg.copyWith(color: color),
-                  ),
-                  Text('%', style: AppTextStyles.labelMd.copyWith(color: color)),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.lg),
-
-            // Slider + tick labels
-            Expanded(
-              child: Column(
-                children: [
-                  SliderTheme(
-                    data: SliderThemeData(
-                      trackHeight:        4,
-                      activeTrackColor:   color,
-                      inactiveTrackColor: color.withValues(alpha: 0.15),
-                      thumbColor:         color,
-                      overlayColor:       color.withValues(alpha: 0.12),
-                      thumbShape:  const RoundSliderThumbShape(
-                                       enabledThumbRadius: 8),
-                      overlayShape: const RoundSliderOverlayShape(
-                                       overlayRadius: 18),
-                    ),
-                    child: Slider(
-                      value:     value.toDouble(),
-                      min:       0,
-                      max:       100,
-                      divisions: 100,
-                      onChanged: (v) => onChanged(v.round()),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('0%',   style: AppTextStyles.bodyXs),
-                        Text('50%',  style: AppTextStyles.bodyXs),
-                        Text('100%', style: AppTextStyles.bodyXs),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// ── Section card wrapper ───────────────────────────────────────────────────────
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
-      decoration: BoxDecoration(
-        color:        AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border:       Border.all(color: AppColors.divider),
-      ),
-      child: child,
-    );
-  }
-}
-
-// ── Card header with icon ──────────────────────────────────────────────────────
-
-class _CardHeader extends StatelessWidget {
-  const _CardHeader({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final IconData icon;
-  final Color    color;
-  final String   title;
-  final String   subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width:  38,
-          height: 38,
-          decoration: BoxDecoration(
-            color:        color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          ),
-          child: Icon(icon, size: 18, color: color),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title,    style: AppTextStyles.headingSm),
-              Text(subtitle, style: AppTextStyles.bodyXs),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Full-width module toggle row ───────────────────────────────────────────────
-
-class _ModuleRow extends StatefulWidget {
-  const _ModuleRow({
-    required this.meta,
-    required this.value,
-    required this.onChange,
-  });
-
-  final _ModuleMeta        meta;
-  final bool               value;
-  final ValueChanged<bool> onChange;
-
-  @override
-  State<_ModuleRow> createState() => _ModuleRowState();
-}
-
-class _ModuleRowState extends State<_ModuleRow> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final color   = widget.meta.color;
-    final enabled = widget.value;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit:  (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: () => widget.onChange(!enabled),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm, vertical: 14),
-          decoration: BoxDecoration(
-            color: _hovered ? AppColors.surfaceVariant : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          ),
-          child: Row(
-            children: [
-              // Icon
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                width:  40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: enabled
-                      ? color.withValues(alpha: 0.15)
-                      : AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: Icon(
-                  widget.meta.icon,
-                  size:  18,
-                  color: enabled ? color : AppColors.onSurfaceSubtle,
-                ),
-              ),
-              const SizedBox(width: 14),
-
-              // Label + description
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.meta.label,
-                      style: AppTextStyles.labelLg.copyWith(
-                        color: enabled
-                            ? AppColors.onSurface
-                            : AppColors.onSurfaceMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(widget.meta.description, style: AppTextStyles.bodyXs),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-
-              // Status chip + switch
-              AppStatusChip(
-                label:   enabled ? 'Enabled' : 'Disabled',
-                variant: enabled
-                    ? AppChipVariant.success
-                    : AppChipVariant.neutral,
-                small: true,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Switch(
-                value:            enabled,
-                onChanged:        widget.onChange,
-                activeThumbColor: color,
-                activeTrackColor: color.withValues(alpha: 0.3),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

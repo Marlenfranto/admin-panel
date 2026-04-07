@@ -28,15 +28,23 @@ import 'package:admin_panel_server/src/generated/assessment_parameter.dart'
 import 'package:admin_panel_server/src/generated/asset.dart' as _i12;
 import 'package:admin_panel_server/src/generated/user_module_progress.dart'
     as _i13;
-import 'package:admin_panel_server/src/generated/training_session_result.dart'
+import 'package:admin_panel_server/src/generated/training_session_result_page.dart'
     as _i14;
-import 'package:admin_panel_server/src/generated/module_progress_status.dart'
+import 'package:admin_panel_server/src/generated/training_user_summary_page.dart'
     as _i15;
-import 'package:admin_panel_server/src/generated/manager_notification_detail.dart'
+import 'package:admin_panel_server/src/generated/training_session_result.dart'
     as _i16;
-import 'package:admin_panel_server/src/generated/login_response.dart' as _i17;
-import 'package:admin_panel_server/src/generated/training_criteria_score.dart'
+import 'package:admin_panel_server/src/generated/module_progress_status.dart'
+    as _i17;
+import 'package:admin_panel_server/src/generated/manager_notification_detail.dart'
     as _i18;
+import 'package:admin_panel_server/src/generated/login_response.dart' as _i19;
+import 'package:admin_panel_server/src/generated/training_criteria_score.dart'
+    as _i20;
+import 'package:admin_panel_server/src/generated/theory_chapter_with_progress.dart'
+    as _i21;
+import 'package:admin_panel_server/src/generated/user_theory_progress.dart'
+    as _i22;
 import 'package:admin_panel_server/src/generated/protocol.dart';
 import 'package:admin_panel_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -148,6 +156,8 @@ class TestEndpoints {
 
   late final _ManagerEndpoint manager;
 
+  late final _OrganizationAdminEndpoint organizationAdmin;
+
   late final _PublicApiEndpoint publicApi;
 
   late final _UserEndpoint user;
@@ -165,6 +175,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     manager = _ManagerEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    organizationAdmin = _OrganizationAdminEndpoint(
       endpoints,
       serializationManager,
     );
@@ -419,6 +433,78 @@ class _AdminEndpoint {
             'appUserId': appUserId,
             'userName': userName,
             'role': role,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> updateOrgAdminUser(
+    _i1.TestSessionBuilder sessionBuilder,
+    int appUserId,
+    String userName,
+    _i6.Role role,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'updateOrgAdminUser',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'updateOrgAdminUser',
+          parameters: _i1.testObjectToJson({
+            'appUserId': appUserId,
+            'userName': userName,
+            'role': role,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> adminResetUserPassword(
+    _i1.TestSessionBuilder sessionBuilder,
+    int appUserId,
+    String newPassword,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'adminResetUserPassword',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'adminResetUserPassword',
+          parameters: _i1.testObjectToJson({
+            'appUserId': appUserId,
+            'newPassword': newPassword,
           }),
           serializationManager: _serializationManager,
         );
@@ -1025,7 +1111,101 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i14.TrainingSessionResult>> getUserTrainingHistory(
+  _i3.Future<_i14.TrainingSessionResultPage> getTrainingHistory(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int page,
+    required int limit,
+    String? search,
+    int? organizationId,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getTrainingHistory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getTrainingHistory',
+          parameters: _i1.testObjectToJson({
+            'page': page,
+            'limit': limit,
+            'search': search,
+            'organizationId': organizationId,
+            'teamId': teamId,
+            'start': start,
+            'end': end,
+            'passed': passed,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i14.TrainingSessionResultPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int page,
+    required int limit,
+    String? search,
+    int? organizationId,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getTrainingUserSummaries',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getTrainingUserSummaries',
+          parameters: _i1.testObjectToJson({
+            'page': page,
+            'limit': limit,
+            'search': search,
+            'organizationId': organizationId,
+            'teamId': teamId,
+            'start': start,
+            'end': end,
+            'passed': passed,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i15.TrainingUserSummaryPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
   ) async {
@@ -1048,7 +1228,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i14.TrainingSessionResult>>);
+                as _i3.Future<List<_i16.TrainingSessionResult>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1061,7 +1241,7 @@ class _AdminEndpoint {
     int appUserId,
     int organizationId,
     String moduleId,
-    _i15.ModuleProgressStatus status,
+    _i17.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
   ) async {
@@ -1204,6 +1384,37 @@ class _ManagerEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<_i5.AppUser?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i4.Organization>> getTeams(
+    _i1.TestSessionBuilder sessionBuilder,
+    int organizationId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'manager',
+            method: 'getTeams',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'manager',
+          methodName: 'getTeams',
+          parameters: _i1.testObjectToJson({'organizationId': organizationId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i4.Organization>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1791,7 +2002,7 @@ class _ManagerEndpoint {
     int appUserId,
     int organizationId,
     String moduleId,
-    _i15.ModuleProgressStatus status,
+    _i17.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
   ) async {
@@ -1829,7 +2040,52 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i14.TrainingSessionResult>> getUserTrainingHistory(
+  _i3.Future<_i14.TrainingSessionResultPage> getTrainingHistory(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int page,
+    required int limit,
+    String? search,
+    int? organizationId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'manager',
+            method: 'getTrainingHistory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'manager',
+          methodName: 'getTrainingHistory',
+          parameters: _i1.testObjectToJson({
+            'page': page,
+            'limit': limit,
+            'search': search,
+            'organizationId': organizationId,
+            'start': start,
+            'end': end,
+            'passed': passed,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i14.TrainingSessionResultPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
     int organizationId,
@@ -1856,7 +2112,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i14.TrainingSessionResult>>);
+                as _i3.Future<List<_i16.TrainingSessionResult>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1864,7 +2120,50 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i16.ManagerNotificationDetail>> getNotifications(
+  _i3.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int page,
+    required int limit,
+    String? search,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'manager',
+            method: 'getTrainingUserSummaries',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'manager',
+          methodName: 'getTrainingUserSummaries',
+          parameters: _i1.testObjectToJson({
+            'page': page,
+            'limit': limit,
+            'search': search,
+            'start': start,
+            'end': end,
+            'passed': passed,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i15.TrainingUserSummaryPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i18.ManagerNotificationDetail>> getNotifications(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -1887,7 +2186,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.ManagerNotificationDetail>>);
+                as _i3.Future<List<_i18.ManagerNotificationDetail>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2019,6 +2318,1068 @@ class _ManagerEndpoint {
   }
 }
 
+class _OrganizationAdminEndpoint {
+  _OrganizationAdminEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i4.Organization?> getMyOrganization(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getMyOrganization',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getMyOrganization',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i4.Organization?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i4.Organization?> createTeam(
+    _i1.TestSessionBuilder sessionBuilder,
+    String name,
+    int parentOrgId,
+    String? imageUrl,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'createTeam',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'createTeam',
+          parameters: _i1.testObjectToJson({
+            'name': name,
+            'parentOrgId': parentOrgId,
+            'imageUrl': imageUrl,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i4.Organization?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i4.Organization>> getTeams(
+    _i1.TestSessionBuilder sessionBuilder,
+    int parentOrgId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getTeams',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getTeams',
+          parameters: _i1.testObjectToJson({'parentOrgId': parentOrgId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i4.Organization>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> assignManagerToTeam(
+    _i1.TestSessionBuilder sessionBuilder,
+    int managerAppUserId,
+    int teamId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'assignManagerToTeam',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'assignManagerToTeam',
+          parameters: _i1.testObjectToJson({
+            'managerAppUserId': managerAppUserId,
+            'teamId': teamId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteTeam(
+    _i1.TestSessionBuilder sessionBuilder,
+    int teamId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'deleteTeam',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'deleteTeam',
+          parameters: _i1.testObjectToJson({'teamId': teamId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> updateTeam(
+    _i1.TestSessionBuilder sessionBuilder,
+    int teamId,
+    String name,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'updateTeam',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'updateTeam',
+          parameters: _i1.testObjectToJson({
+            'teamId': teamId,
+            'name': name,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i5.AppUser?> createUserInTeam(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userName,
+    String email,
+    String password,
+    _i6.Role role,
+    int teamId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'createUserInTeam',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'createUserInTeam',
+          parameters: _i1.testObjectToJson({
+            'userName': userName,
+            'email': email,
+            'password': password,
+            'role': role,
+            'teamId': teamId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i5.AppUser?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> updateOrgUser(
+    _i1.TestSessionBuilder sessionBuilder,
+    int appUserId,
+    String userName,
+    _i6.Role role,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'updateOrgUser',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'updateOrgUser',
+          parameters: _i1.testObjectToJson({
+            'appUserId': appUserId,
+            'userName': userName,
+            'role': role,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteOrgUser(
+    _i1.TestSessionBuilder sessionBuilder,
+    int appUserId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'deleteOrgUser',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'deleteOrgUser',
+          parameters: _i1.testObjectToJson({'appUserId': appUserId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> resetOrgUserPassword(
+    _i1.TestSessionBuilder sessionBuilder,
+    int appUserId,
+    String newPassword,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'resetOrgUserPassword',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'resetOrgUserPassword',
+          parameters: _i1.testObjectToJson({
+            'appUserId': appUserId,
+            'newPassword': newPassword,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i7.ModuleConfig?> getModuleConfig(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getModuleConfig',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getModuleConfig',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i7.ModuleConfig?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i7.ModuleConfig?> setModuleConfig(
+    _i1.TestSessionBuilder sessionBuilder,
+    bool theoryModule,
+    bool aiExpertModule,
+    bool smartTrainingModule,
+    bool assessmentModule,
+    String defaultLanguage,
+    List<_i8.SupportedLanguage> supportedLanguages,
+    String? aiChatPrompt,
+    int passingPercentage,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'setModuleConfig',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'setModuleConfig',
+          parameters: _i1.testObjectToJson({
+            'theoryModule': theoryModule,
+            'aiExpertModule': aiExpertModule,
+            'smartTrainingModule': smartTrainingModule,
+            'assessmentModule': assessmentModule,
+            'defaultLanguage': defaultLanguage,
+            'supportedLanguages': supportedLanguages,
+            'aiChatPrompt': aiChatPrompt,
+            'passingPercentage': passingPercentage,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i7.ModuleConfig?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i13.UserModuleProgress>> getOrgUserModuleProgress(
+    _i1.TestSessionBuilder sessionBuilder,
+    int userId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getOrgUserModuleProgress',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getOrgUserModuleProgress',
+          parameters: _i1.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i13.UserModuleProgress>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i13.UserModuleProgress?> setOrgUserModuleProgress(
+    _i1.TestSessionBuilder sessionBuilder,
+    int userId,
+    String moduleId,
+    bool isEnabled,
+    DateTime? deadline,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'setOrgUserModuleProgress',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'setOrgUserModuleProgress',
+          parameters: _i1.testObjectToJson({
+            'userId': userId,
+            'moduleId': moduleId,
+            'isEnabled': isEnabled,
+            'deadline': deadline,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i13.UserModuleProgress?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i13.UserModuleProgress?> updateOrgUserModuleStatus(
+    _i1.TestSessionBuilder sessionBuilder,
+    int userId,
+    String moduleId,
+    _i17.ModuleProgressStatus status,
+    DateTime? startedAt,
+    DateTime? completedAt,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'updateOrgUserModuleStatus',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'updateOrgUserModuleStatus',
+          parameters: _i1.testObjectToJson({
+            'userId': userId,
+            'moduleId': moduleId,
+            'status': status,
+            'startedAt': startedAt,
+            'completedAt': completedAt,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i13.UserModuleProgress?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i9.TheoryChapter>> getOrgTheoryChapters(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getOrgTheoryChapters',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getOrgTheoryChapters',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i9.TheoryChapter>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i9.TheoryChapter> upsertOrgTheoryChapter(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i9.TheoryChapter chapter,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'upsertOrgTheoryChapter',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'upsertOrgTheoryChapter',
+          parameters: _i1.testObjectToJson({'chapter': chapter}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i9.TheoryChapter>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteOrgTheoryChapter(
+    _i1.TestSessionBuilder sessionBuilder,
+    int chapterId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'deleteOrgTheoryChapter',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'deleteOrgTheoryChapter',
+          parameters: _i1.testObjectToJson({'chapterId': chapterId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i10.TrainingParameter>> getOrgTrainingParameters(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getOrgTrainingParameters',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getOrgTrainingParameters',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i10.TrainingParameter>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i10.TrainingParameter> upsertOrgTrainingParameter(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i10.TrainingParameter param,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'upsertOrgTrainingParameter',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'upsertOrgTrainingParameter',
+          parameters: _i1.testObjectToJson({'param': param}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i10.TrainingParameter>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteOrgTrainingParameter(
+    _i1.TestSessionBuilder sessionBuilder,
+    int paramId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'deleteOrgTrainingParameter',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'deleteOrgTrainingParameter',
+          parameters: _i1.testObjectToJson({'paramId': paramId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i11.AssessmentParameter>> getOrgAssessmentParameters(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getOrgAssessmentParameters',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getOrgAssessmentParameters',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i11.AssessmentParameter>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i11.AssessmentParameter> upsertOrgAssessmentParameter(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i11.AssessmentParameter param,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'upsertOrgAssessmentParameter',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'upsertOrgAssessmentParameter',
+          parameters: _i1.testObjectToJson({'param': param}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i11.AssessmentParameter>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteOrgAssessmentParameter(
+    _i1.TestSessionBuilder sessionBuilder,
+    int paramId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'deleteOrgAssessmentParameter',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'deleteOrgAssessmentParameter',
+          parameters: _i1.testObjectToJson({'paramId': paramId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i12.Asset>> getOrgAssets(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getOrgAssets',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getOrgAssets',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i12.Asset>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i12.Asset> upsertOrgAsset(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i12.Asset asset,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'upsertOrgAsset',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'upsertOrgAsset',
+          parameters: _i1.testObjectToJson({'asset': asset}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i12.Asset>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteOrgAsset(
+    _i1.TestSessionBuilder sessionBuilder,
+    int assetId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'deleteOrgAsset',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'deleteOrgAsset',
+          parameters: _i1.testObjectToJson({'assetId': assetId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i14.TrainingSessionResultPage> getTrainingHistory(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int page,
+    required int limit,
+    String? search,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getTrainingHistory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getTrainingHistory',
+          parameters: _i1.testObjectToJson({
+            'page': page,
+            'limit': limit,
+            'search': search,
+            'teamId': teamId,
+            'start': start,
+            'end': end,
+            'passed': passed,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i14.TrainingSessionResultPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i16.TrainingSessionResult>> getOrgUserTrainingHistory(
+    _i1.TestSessionBuilder sessionBuilder,
+    int userId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getOrgUserTrainingHistory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getOrgUserTrainingHistory',
+          parameters: _i1.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i16.TrainingSessionResult>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int page,
+    required int limit,
+    String? search,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getTrainingUserSummaries',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getTrainingUserSummaries',
+          parameters: _i1.testObjectToJson({
+            'page': page,
+            'limit': limit,
+            'search': search,
+            'teamId': teamId,
+            'start': start,
+            'end': end,
+            'passed': passed,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i15.TrainingUserSummaryPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
+    _i1.TestSessionBuilder sessionBuilder,
+    int appUserId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'organizationAdmin',
+            method: 'getUserTrainingHistory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'organizationAdmin',
+          methodName: 'getUserTrainingHistory',
+          parameters: _i1.testObjectToJson({'appUserId': appUserId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i16.TrainingSessionResult>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _PublicApiEndpoint {
   _PublicApiEndpoint(
     this._endpointDispatch,
@@ -2029,7 +3390,7 @@ class _PublicApiEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i17.LoginResponse> login(
+  _i3.Future<_i19.LoginResponse> login(
     _i1.TestSessionBuilder sessionBuilder,
     String email,
     String password,
@@ -2056,7 +3417,7 @@ class _PublicApiEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i17.LoginResponse>);
+                as _i3.Future<_i19.LoginResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2317,7 +3678,7 @@ class _PublicApiEndpoint {
     String apiKey,
     String userId,
     String moduleId,
-    _i15.ModuleProgressStatus status,
+    _i17.ModuleProgressStatus status,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2358,7 +3719,7 @@ class _PublicApiEndpoint {
     String apiKey,
     String userId,
     int overallPercentage,
-    List<_i18.TrainingCriteriaScore> criteriaValidation,
+    List<_i20.TrainingCriteriaScore> criteriaValidation,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2619,11 +3980,11 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<_i14.TrainingSessionResult?> submitTrainingResult(
+  _i3.Future<_i16.TrainingSessionResult?> submitTrainingResult(
     _i1.TestSessionBuilder sessionBuilder,
     String externalUserId,
     int overallPercentage,
-    List<_i18.TrainingCriteriaScore> criteriaScores,
+    List<_i20.TrainingCriteriaScore> criteriaScores,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2648,7 +4009,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.TrainingSessionResult?>);
+                as _i3.Future<_i16.TrainingSessionResult?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2656,7 +4017,7 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<List<_i14.TrainingSessionResult>> getMyTrainingHistory(
+  _i3.Future<List<_i16.TrainingSessionResult>> getMyTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2678,7 +4039,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i14.TrainingSessionResult>>);
+                as _i3.Future<List<_i16.TrainingSessionResult>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2689,7 +4050,7 @@ class _UserEndpoint {
   _i3.Future<_i13.UserModuleProgress?> updateMyModuleStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String moduleId,
-    _i15.ModuleProgressStatus status,
+    _i17.ModuleProgressStatus status,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2714,6 +4075,70 @@ class _UserEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<_i13.UserModuleProgress?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i21.TheoryChapterWithProgress>>
+  getTheoryChaptersWithProgress(_i1.TestSessionBuilder sessionBuilder) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'user',
+            method: 'getTheoryChaptersWithProgress',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'user',
+          methodName: 'getTheoryChaptersWithProgress',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i21.TheoryChapterWithProgress>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i22.UserTheoryProgress?> submitTheoryQuiz(
+    _i1.TestSessionBuilder sessionBuilder,
+    int chapterId,
+    int score,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'user',
+            method: 'submitTheoryQuiz',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'user',
+          methodName: 'submitTheoryQuiz',
+          parameters: _i1.testObjectToJson({
+            'chapterId': chapterId,
+            'score': score,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i22.UserTheoryProgress?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

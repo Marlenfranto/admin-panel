@@ -33,31 +33,38 @@ import 'scoring_rule.dart' as _i20;
 import 'subscription_modules.dart' as _i21;
 import 'supported_language.dart' as _i22;
 import 'theory_chapter.dart' as _i23;
-import 'theory_section_response.dart' as _i24;
-import 'tools.dart' as _i25;
-import 'training_criteria_score.dart' as _i26;
-import 'training_parameter.dart' as _i27;
-import 'training_session_result.dart' as _i28;
-import 'user_module_progress.dart' as _i29;
-import 'video_metadata.dart' as _i30;
-import 'package:admin_panel_server/src/generated/organization.dart' as _i31;
-import 'package:admin_panel_server/src/generated/app_user.dart' as _i32;
+import 'theory_chapter_with_progress.dart' as _i24;
+import 'theory_section_response.dart' as _i25;
+import 'tools.dart' as _i26;
+import 'training_criteria_score.dart' as _i27;
+import 'training_parameter.dart' as _i28;
+import 'training_session_result.dart' as _i29;
+import 'training_session_result_page.dart' as _i30;
+import 'training_user_summary.dart' as _i31;
+import 'training_user_summary_page.dart' as _i32;
+import 'user_module_progress.dart' as _i33;
+import 'user_theory_progress.dart' as _i34;
+import 'video_metadata.dart' as _i35;
+import 'package:admin_panel_server/src/generated/organization.dart' as _i36;
+import 'package:admin_panel_server/src/generated/app_user.dart' as _i37;
 import 'package:admin_panel_server/src/generated/supported_language.dart'
-    as _i33;
-import 'package:admin_panel_server/src/generated/theory_chapter.dart' as _i34;
-import 'package:admin_panel_server/src/generated/training_parameter.dart'
-    as _i35;
-import 'package:admin_panel_server/src/generated/assessment_parameter.dart'
-    as _i36;
-import 'package:admin_panel_server/src/generated/asset.dart' as _i37;
-import 'package:admin_panel_server/src/generated/user_module_progress.dart'
     as _i38;
-import 'package:admin_panel_server/src/generated/training_session_result.dart'
-    as _i39;
-import 'package:admin_panel_server/src/generated/manager_notification_detail.dart'
+import 'package:admin_panel_server/src/generated/theory_chapter.dart' as _i39;
+import 'package:admin_panel_server/src/generated/training_parameter.dart'
     as _i40;
-import 'package:admin_panel_server/src/generated/training_criteria_score.dart'
+import 'package:admin_panel_server/src/generated/assessment_parameter.dart'
     as _i41;
+import 'package:admin_panel_server/src/generated/asset.dart' as _i42;
+import 'package:admin_panel_server/src/generated/user_module_progress.dart'
+    as _i43;
+import 'package:admin_panel_server/src/generated/training_session_result.dart'
+    as _i44;
+import 'package:admin_panel_server/src/generated/manager_notification_detail.dart'
+    as _i45;
+import 'package:admin_panel_server/src/generated/training_criteria_score.dart'
+    as _i46;
+import 'package:admin_panel_server/src/generated/theory_chapter_with_progress.dart'
+    as _i47;
 export 'app_user.dart';
 export 'assessment_parameter.dart';
 export 'asset.dart';
@@ -78,12 +85,17 @@ export 'scoring_rule.dart';
 export 'subscription_modules.dart';
 export 'supported_language.dart';
 export 'theory_chapter.dart';
+export 'theory_chapter_with_progress.dart';
 export 'theory_section_response.dart';
 export 'tools.dart';
 export 'training_criteria_score.dart';
 export 'training_parameter.dart';
 export 'training_session_result.dart';
+export 'training_session_result_page.dart';
+export 'training_user_summary.dart';
+export 'training_user_summary_page.dart';
 export 'user_module_progress.dart';
+export 'user_theory_progress.dart';
 export 'video_metadata.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
@@ -552,12 +564,28 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: true,
           dartType: 'int?',
         ),
+        _i2.ColumnDefinition(
+          name: 'parentId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
       ],
       foreignKeys: [
         _i2.ForeignKeyDefinition(
           constraintName: 'organization_fk_0',
           columns: ['managerId'],
           referenceTable: 'app_user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _i2.ForeignKeyDefinition(
+          constraintName: 'organization_fk_1',
+          columns: ['parentId'],
+          referenceTable: 'organization',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
           onUpdate: _i2.ForeignKeyAction.noAction,
@@ -1055,6 +1083,80 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
+    _i2.TableDefinition(
+      name: 'user_theory_progress',
+      dartName: 'UserTheoryProgress',
+      schema: 'public',
+      module: 'admin_panel',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'user_theory_progress_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'appUserId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'organizationId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'chapterId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'score',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'status',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:ModuleProgressStatus',
+        ),
+        _i2.ColumnDefinition(
+          name: 'lastWatchedPosition',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'completedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'user_theory_progress_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+      ],
+      managed: true,
+    ),
     ..._i3.Protocol.targetTableDefinitions,
     ..._i2.Protocol.targetTableDefinitions,
   ];
@@ -1146,26 +1248,41 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i23.TheoryChapter) {
       return _i23.TheoryChapter.fromJson(data) as T;
     }
-    if (t == _i24.TheorySectionResponse) {
-      return _i24.TheorySectionResponse.fromJson(data) as T;
+    if (t == _i24.TheoryChapterWithProgress) {
+      return _i24.TheoryChapterWithProgress.fromJson(data) as T;
     }
-    if (t == _i25.Tools) {
-      return _i25.Tools.fromJson(data) as T;
+    if (t == _i25.TheorySectionResponse) {
+      return _i25.TheorySectionResponse.fromJson(data) as T;
     }
-    if (t == _i26.TrainingCriteriaScore) {
-      return _i26.TrainingCriteriaScore.fromJson(data) as T;
+    if (t == _i26.Tools) {
+      return _i26.Tools.fromJson(data) as T;
     }
-    if (t == _i27.TrainingParameter) {
-      return _i27.TrainingParameter.fromJson(data) as T;
+    if (t == _i27.TrainingCriteriaScore) {
+      return _i27.TrainingCriteriaScore.fromJson(data) as T;
     }
-    if (t == _i28.TrainingSessionResult) {
-      return _i28.TrainingSessionResult.fromJson(data) as T;
+    if (t == _i28.TrainingParameter) {
+      return _i28.TrainingParameter.fromJson(data) as T;
     }
-    if (t == _i29.UserModuleProgress) {
-      return _i29.UserModuleProgress.fromJson(data) as T;
+    if (t == _i29.TrainingSessionResult) {
+      return _i29.TrainingSessionResult.fromJson(data) as T;
     }
-    if (t == _i30.VideoMetadata) {
-      return _i30.VideoMetadata.fromJson(data) as T;
+    if (t == _i30.TrainingSessionResultPage) {
+      return _i30.TrainingSessionResultPage.fromJson(data) as T;
+    }
+    if (t == _i31.TrainingUserSummary) {
+      return _i31.TrainingUserSummary.fromJson(data) as T;
+    }
+    if (t == _i32.TrainingUserSummaryPage) {
+      return _i32.TrainingUserSummaryPage.fromJson(data) as T;
+    }
+    if (t == _i33.UserModuleProgress) {
+      return _i33.UserModuleProgress.fromJson(data) as T;
+    }
+    if (t == _i34.UserTheoryProgress) {
+      return _i34.UserTheoryProgress.fromJson(data) as T;
+    }
+    if (t == _i35.VideoMetadata) {
+      return _i35.VideoMetadata.fromJson(data) as T;
     }
     if (t == _i1.getType<_i4.AppUser?>()) {
       return (data != null ? _i4.AppUser.fromJson(data) : null) as T;
@@ -1237,30 +1354,54 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i23.TheoryChapter?>()) {
       return (data != null ? _i23.TheoryChapter.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i24.TheorySectionResponse?>()) {
-      return (data != null ? _i24.TheorySectionResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i24.TheoryChapterWithProgress?>()) {
+      return (data != null
+              ? _i24.TheoryChapterWithProgress.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i25.Tools?>()) {
-      return (data != null ? _i25.Tools.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i26.TrainingCriteriaScore?>()) {
-      return (data != null ? _i26.TrainingCriteriaScore.fromJson(data) : null)
+    if (t == _i1.getType<_i25.TheorySectionResponse?>()) {
+      return (data != null ? _i25.TheorySectionResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i27.TrainingParameter?>()) {
-      return (data != null ? _i27.TrainingParameter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i26.Tools?>()) {
+      return (data != null ? _i26.Tools.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i28.TrainingSessionResult?>()) {
-      return (data != null ? _i28.TrainingSessionResult.fromJson(data) : null)
+    if (t == _i1.getType<_i27.TrainingCriteriaScore?>()) {
+      return (data != null ? _i27.TrainingCriteriaScore.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i29.UserModuleProgress?>()) {
-      return (data != null ? _i29.UserModuleProgress.fromJson(data) : null)
+    if (t == _i1.getType<_i28.TrainingParameter?>()) {
+      return (data != null ? _i28.TrainingParameter.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i29.TrainingSessionResult?>()) {
+      return (data != null ? _i29.TrainingSessionResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i30.VideoMetadata?>()) {
-      return (data != null ? _i30.VideoMetadata.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i30.TrainingSessionResultPage?>()) {
+      return (data != null
+              ? _i30.TrainingSessionResultPage.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _i1.getType<_i31.TrainingUserSummary?>()) {
+      return (data != null ? _i31.TrainingUserSummary.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i32.TrainingUserSummaryPage?>()) {
+      return (data != null ? _i32.TrainingUserSummaryPage.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i33.UserModuleProgress?>()) {
+      return (data != null ? _i33.UserModuleProgress.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i34.UserTheoryProgress?>()) {
+      return (data != null ? _i34.UserTheoryProgress.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i35.VideoMetadata?>()) {
+      return (data != null ? _i35.VideoMetadata.fromJson(data) : null) as T;
     }
     if (t == List<_i17.OrganizationUserLink>) {
       return (data as List)
@@ -1282,9 +1423,9 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i27.TrainingParameter>) {
+    if (t == List<_i28.TrainingParameter>) {
       return (data as List)
-              .map((e) => deserialize<_i27.TrainingParameter>(e))
+              .map((e) => deserialize<_i28.TrainingParameter>(e))
               .toList()
           as T;
     }
@@ -1304,6 +1445,20 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null
               ? (data as List)
                     .map((e) => deserialize<_i22.SupportedLanguage>(e))
+                    .toList()
+              : null)
+          as T;
+    }
+    if (t == List<_i16.Organization>) {
+      return (data as List)
+              .map((e) => deserialize<_i16.Organization>(e))
+              .toList()
+          as T;
+    }
+    if (t == _i1.getType<List<_i16.Organization>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_i16.Organization>(e))
                     .toList()
               : null)
           as T;
@@ -1331,73 +1486,85 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i26.TrainingCriteriaScore>) {
+    if (t == List<_i27.TrainingCriteriaScore>) {
       return (data as List)
-              .map((e) => deserialize<_i26.TrainingCriteriaScore>(e))
+              .map((e) => deserialize<_i27.TrainingCriteriaScore>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i26.TrainingCriteriaScore>?>()) {
+    if (t == _i1.getType<List<_i27.TrainingCriteriaScore>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i26.TrainingCriteriaScore>(e))
+                    .map((e) => deserialize<_i27.TrainingCriteriaScore>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i31.Organization>) {
+    if (t == List<_i29.TrainingSessionResult>) {
       return (data as List)
-              .map((e) => deserialize<_i31.Organization>(e))
+              .map((e) => deserialize<_i29.TrainingSessionResult>(e))
               .toList()
           as T;
     }
-    if (t == List<_i32.AppUser>) {
-      return (data as List).map((e) => deserialize<_i32.AppUser>(e)).toList()
-          as T;
-    }
-    if (t == List<_i33.SupportedLanguage>) {
+    if (t == List<_i31.TrainingUserSummary>) {
       return (data as List)
-              .map((e) => deserialize<_i33.SupportedLanguage>(e))
+              .map((e) => deserialize<_i31.TrainingUserSummary>(e))
               .toList()
           as T;
     }
-    if (t == List<_i34.TheoryChapter>) {
+    if (t == List<_i36.Organization>) {
       return (data as List)
-              .map((e) => deserialize<_i34.TheoryChapter>(e))
+              .map((e) => deserialize<_i36.Organization>(e))
               .toList()
           as T;
     }
-    if (t == List<_i35.TrainingParameter>) {
+    if (t == List<_i37.AppUser>) {
+      return (data as List).map((e) => deserialize<_i37.AppUser>(e)).toList()
+          as T;
+    }
+    if (t == List<_i38.SupportedLanguage>) {
       return (data as List)
-              .map((e) => deserialize<_i35.TrainingParameter>(e))
+              .map((e) => deserialize<_i38.SupportedLanguage>(e))
               .toList()
           as T;
     }
-    if (t == List<_i36.AssessmentParameter>) {
+    if (t == List<_i39.TheoryChapter>) {
       return (data as List)
-              .map((e) => deserialize<_i36.AssessmentParameter>(e))
+              .map((e) => deserialize<_i39.TheoryChapter>(e))
               .toList()
           as T;
     }
-    if (t == List<_i37.Asset>) {
-      return (data as List).map((e) => deserialize<_i37.Asset>(e)).toList()
-          as T;
-    }
-    if (t == List<_i38.UserModuleProgress>) {
+    if (t == List<_i40.TrainingParameter>) {
       return (data as List)
-              .map((e) => deserialize<_i38.UserModuleProgress>(e))
+              .map((e) => deserialize<_i40.TrainingParameter>(e))
               .toList()
           as T;
     }
-    if (t == List<_i39.TrainingSessionResult>) {
+    if (t == List<_i41.AssessmentParameter>) {
       return (data as List)
-              .map((e) => deserialize<_i39.TrainingSessionResult>(e))
+              .map((e) => deserialize<_i41.AssessmentParameter>(e))
               .toList()
           as T;
     }
-    if (t == List<_i40.ManagerNotificationDetail>) {
+    if (t == List<_i42.Asset>) {
+      return (data as List).map((e) => deserialize<_i42.Asset>(e)).toList()
+          as T;
+    }
+    if (t == List<_i43.UserModuleProgress>) {
       return (data as List)
-              .map((e) => deserialize<_i40.ManagerNotificationDetail>(e))
+              .map((e) => deserialize<_i43.UserModuleProgress>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i44.TrainingSessionResult>) {
+      return (data as List)
+              .map((e) => deserialize<_i44.TrainingSessionResult>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i45.ManagerNotificationDetail>) {
+      return (data as List)
+              .map((e) => deserialize<_i45.ManagerNotificationDetail>(e))
               .toList()
           as T;
     }
@@ -1413,9 +1580,15 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i41.TrainingCriteriaScore>) {
+    if (t == List<_i46.TrainingCriteriaScore>) {
       return (data as List)
-              .map((e) => deserialize<_i41.TrainingCriteriaScore>(e))
+              .map((e) => deserialize<_i46.TrainingCriteriaScore>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i47.TheoryChapterWithProgress>) {
+      return (data as List)
+              .map((e) => deserialize<_i47.TheoryChapterWithProgress>(e))
               .toList()
           as T;
     }
@@ -1450,13 +1623,18 @@ class Protocol extends _i1.SerializationManagerServer {
       _i21.SubscriptionModules => 'SubscriptionModules',
       _i22.SupportedLanguage => 'SupportedLanguage',
       _i23.TheoryChapter => 'TheoryChapter',
-      _i24.TheorySectionResponse => 'TheorySectionResponse',
-      _i25.Tools => 'Tools',
-      _i26.TrainingCriteriaScore => 'TrainingCriteriaScore',
-      _i27.TrainingParameter => 'TrainingParameter',
-      _i28.TrainingSessionResult => 'TrainingSessionResult',
-      _i29.UserModuleProgress => 'UserModuleProgress',
-      _i30.VideoMetadata => 'VideoMetadata',
+      _i24.TheoryChapterWithProgress => 'TheoryChapterWithProgress',
+      _i25.TheorySectionResponse => 'TheorySectionResponse',
+      _i26.Tools => 'Tools',
+      _i27.TrainingCriteriaScore => 'TrainingCriteriaScore',
+      _i28.TrainingParameter => 'TrainingParameter',
+      _i29.TrainingSessionResult => 'TrainingSessionResult',
+      _i30.TrainingSessionResultPage => 'TrainingSessionResultPage',
+      _i31.TrainingUserSummary => 'TrainingUserSummary',
+      _i32.TrainingUserSummaryPage => 'TrainingUserSummaryPage',
+      _i33.UserModuleProgress => 'UserModuleProgress',
+      _i34.UserTheoryProgress => 'UserTheoryProgress',
+      _i35.VideoMetadata => 'VideoMetadata',
       _ => null,
     };
   }
@@ -1511,19 +1689,29 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'SupportedLanguage';
       case _i23.TheoryChapter():
         return 'TheoryChapter';
-      case _i24.TheorySectionResponse():
+      case _i24.TheoryChapterWithProgress():
+        return 'TheoryChapterWithProgress';
+      case _i25.TheorySectionResponse():
         return 'TheorySectionResponse';
-      case _i25.Tools():
+      case _i26.Tools():
         return 'Tools';
-      case _i26.TrainingCriteriaScore():
+      case _i27.TrainingCriteriaScore():
         return 'TrainingCriteriaScore';
-      case _i27.TrainingParameter():
+      case _i28.TrainingParameter():
         return 'TrainingParameter';
-      case _i28.TrainingSessionResult():
+      case _i29.TrainingSessionResult():
         return 'TrainingSessionResult';
-      case _i29.UserModuleProgress():
+      case _i30.TrainingSessionResultPage():
+        return 'TrainingSessionResultPage';
+      case _i31.TrainingUserSummary():
+        return 'TrainingUserSummary';
+      case _i32.TrainingUserSummaryPage():
+        return 'TrainingUserSummaryPage';
+      case _i33.UserModuleProgress():
         return 'UserModuleProgress';
-      case _i30.VideoMetadata():
+      case _i34.UserTheoryProgress():
+        return 'UserTheoryProgress';
+      case _i35.VideoMetadata():
         return 'VideoMetadata';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -1603,26 +1791,41 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'TheoryChapter') {
       return deserialize<_i23.TheoryChapter>(data['data']);
     }
+    if (dataClassName == 'TheoryChapterWithProgress') {
+      return deserialize<_i24.TheoryChapterWithProgress>(data['data']);
+    }
     if (dataClassName == 'TheorySectionResponse') {
-      return deserialize<_i24.TheorySectionResponse>(data['data']);
+      return deserialize<_i25.TheorySectionResponse>(data['data']);
     }
     if (dataClassName == 'Tools') {
-      return deserialize<_i25.Tools>(data['data']);
+      return deserialize<_i26.Tools>(data['data']);
     }
     if (dataClassName == 'TrainingCriteriaScore') {
-      return deserialize<_i26.TrainingCriteriaScore>(data['data']);
+      return deserialize<_i27.TrainingCriteriaScore>(data['data']);
     }
     if (dataClassName == 'TrainingParameter') {
-      return deserialize<_i27.TrainingParameter>(data['data']);
+      return deserialize<_i28.TrainingParameter>(data['data']);
     }
     if (dataClassName == 'TrainingSessionResult') {
-      return deserialize<_i28.TrainingSessionResult>(data['data']);
+      return deserialize<_i29.TrainingSessionResult>(data['data']);
+    }
+    if (dataClassName == 'TrainingSessionResultPage') {
+      return deserialize<_i30.TrainingSessionResultPage>(data['data']);
+    }
+    if (dataClassName == 'TrainingUserSummary') {
+      return deserialize<_i31.TrainingUserSummary>(data['data']);
+    }
+    if (dataClassName == 'TrainingUserSummaryPage') {
+      return deserialize<_i32.TrainingUserSummaryPage>(data['data']);
     }
     if (dataClassName == 'UserModuleProgress') {
-      return deserialize<_i29.UserModuleProgress>(data['data']);
+      return deserialize<_i33.UserModuleProgress>(data['data']);
+    }
+    if (dataClassName == 'UserTheoryProgress') {
+      return deserialize<_i34.UserTheoryProgress>(data['data']);
     }
     if (dataClassName == 'VideoMetadata') {
-      return deserialize<_i30.VideoMetadata>(data['data']);
+      return deserialize<_i35.VideoMetadata>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -1666,12 +1869,14 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i17.OrganizationUserLink.t;
       case _i23.TheoryChapter:
         return _i23.TheoryChapter.t;
-      case _i27.TrainingParameter:
-        return _i27.TrainingParameter.t;
-      case _i28.TrainingSessionResult:
-        return _i28.TrainingSessionResult.t;
-      case _i29.UserModuleProgress:
-        return _i29.UserModuleProgress.t;
+      case _i28.TrainingParameter:
+        return _i28.TrainingParameter.t;
+      case _i29.TrainingSessionResult:
+        return _i29.TrainingSessionResult.t;
+      case _i33.UserModuleProgress:
+        return _i33.UserModuleProgress.t;
+      case _i34.UserTheoryProgress:
+        return _i34.UserTheoryProgress.t;
     }
     return null;
   }

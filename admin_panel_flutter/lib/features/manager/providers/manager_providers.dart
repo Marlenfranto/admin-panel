@@ -45,6 +45,13 @@ final managedOrganizationProvider = FutureProvider<Organization?>((ref) async {
   return orgs.first;
 });
 
+/// Teams (child orgs) within the active managed organization, with users.
+final activeOrgTeamsProvider = FutureProvider<List<Organization>>((ref) async {
+  final orgId = ref.watch(activeOrgIdProvider);
+  if (orgId == null) return [];
+  return ref.watch(clientProvider).manager.getTeams(orgId);
+});
+
 final managerModuleConfigProvider = FutureProvider<ModuleConfig?>((ref) async {
   final orgId = ref.watch(activeOrgIdProvider);
   if (orgId == null) return null;

@@ -45,10 +45,10 @@ class _ManagerContentScreenState extends ConsumerState<ManagerContentScreen>
       children: [
         // ── Header ───────────────────────────────────────────────────────
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.pagePadding,
-            AppSpacing.pagePadding,
-            AppSpacing.pagePadding,
+          padding: EdgeInsets.fromLTRB(
+            context.responsivePagePadding,
+            context.responsivePagePadding,
+            context.responsivePagePadding,
             AppSpacing.md,
           ),
           child: Column(
@@ -198,6 +198,11 @@ class _TheoryTab extends ConsumerWidget {
         isLoading:  chaptersAsync.isLoading,
         rows:       chapters,
         searchable: true,
+        mobileCardBuilder: (c) => _TheoryMobileCard(
+          chapter: c,
+          onEdit:  () => _showDialog(context, ref, c),
+          onDelete: () => _confirmDelete(context, ref, c),
+        ),
         columns: [
           AppTableColumn(
             label:       'Order',
@@ -292,6 +297,13 @@ class _TrainingTab extends ConsumerWidget {
         isLoading:  paramsAsync.isLoading,
         rows:       params,
         searchable: true,
+        mobileCardBuilder: (p) => _ParamMobileCard(
+          name:     p.name,
+          subtitle: p.paramId,
+          maxScore: p.maxScore,
+          onEdit:   () => _showDialog(context, ref, p),
+          onDelete: () => _confirmDelete(context, ref, p),
+        ),
         columns: [
           AppTableColumn(
             label:       'Name',
@@ -379,6 +391,13 @@ class _AssessmentTab extends ConsumerWidget {
         isLoading:  paramsAsync.isLoading,
         rows:       params,
         searchable: true,
+        mobileCardBuilder: (p) => _ParamMobileCard(
+          name:     p.name,
+          subtitle: p.description,
+          maxScore: p.maxScore,
+          onEdit:   () => _showDialog(context, ref, p),
+          onDelete: () => _confirmDelete(context, ref, p),
+        ),
         columns: [
           AppTableColumn(
             label:       'Name',
@@ -1501,4 +1520,99 @@ Future<bool> _showDeleteDialog(BuildContext context, String name) async {
     ),
   );
   return result == true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile card builders for content tables
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TheoryMobileCard extends StatelessWidget {
+  const _TheoryMobileCard({
+    required this.chapter,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final TheoryChapter chapter;
+  final VoidCallback  onEdit;
+  final VoidCallback  onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return MobileDataCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _OrderBadge(order: chapter.chapterOrder),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(chapter.title, style: AppTextStyles.labelLg,
+                    overflow: TextOverflow.ellipsis, maxLines: 2),
+              ),
+              MobileCardActions(onEdit: onEdit, onDelete: onDelete),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              if (chapter.questions != null && chapter.questions!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: Text('${chapter.questions!.length} quiz question(s)',
+                      style: AppTextStyles.bodyXs),
+                ),
+              chapter.videoUrl != null
+                  ? const AppStatusChip(
+                      label: 'Has video', variant: AppChipVariant.success, small: true)
+                  : const AppStatusChip(
+                      label: 'No video', variant: AppChipVariant.neutral, small: true),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ParamMobileCard extends StatelessWidget {
+  const _ParamMobileCard({
+    required this.name,
+    required this.subtitle,
+    required this.maxScore,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final String       name;
+  final String       subtitle;
+  final int          maxScore;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return MobileDataCard(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: AppTextStyles.labelLg,
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(subtitle, style: AppTextStyles.bodyXs,
+                    overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          _ScoreBadge(score: maxScore),
+          const SizedBox(width: 4),
+          MobileCardActions(onEdit: onEdit, onDelete: onDelete),
+        ],
+      ),
+    );
+  }
 }

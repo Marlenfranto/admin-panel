@@ -7,6 +7,7 @@ import '../../core/theme/theme.dart';
 import '../../src/providers.dart';
 import 'app_breadcrumb.dart';
 import 'app_notification_bell.dart';
+import 'responsive_helper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NavItem definition
@@ -89,12 +90,19 @@ class _DashboardShellState extends ConsumerState<DashboardShell> {
     final width = MediaQuery.sizeOf(context).width;
     final showFull = width >= AppSpacing.breakpointWide;
     final showRail = width >= AppSpacing.breakpointTablet;
+    final isMobile = width < AppSpacing.breakpointMobile;
     final activeItem = _activeItem(location);
+
+    // On mobile: show bottom nav bar with up to 4 items + "More" if needed.
+    final showBottomNav = isMobile;
+    final needsMore = widget.navItems.length > 5;
+    final maxBottomItems = needsMore ? 4 : widget.navItems.length;
+    final bottomItems = widget.navItems.take(maxBottomItems).toList();
 
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
-      drawer: !showRail
+      drawer: !showRail && (!showBottomNav || needsMore)
           ? _NavDrawer(
               navItems: widget.navItems,
               activeItem: activeItem,
@@ -104,7 +112,7 @@ class _DashboardShellState extends ConsumerState<DashboardShell> {
       appBar: _TopBar(
         scaffoldKey: _scaffoldKey,
         breadcrumbs: _breadcrumbs(location),
-        showHamburger: !showRail,
+        showHamburger: !showRail && !showBottomNav,
         topBarActions: widget.topBarActions,
       ),
       body: Row(
@@ -117,6 +125,148 @@ class _DashboardShellState extends ConsumerState<DashboardShell> {
             ),
           Expanded(child: widget.child),
         ],
+      ),
+      // ── Bottom Navigation Bar (mobile only) ──────────────────────────
+      bottomNavigationBar: showBottomNav
+          ? _MobileBottomNav(
+              items:      bottomItems,
+              allItems:   widget.navItems,
+              activeItem: activeItem,
+              showMore:   needsMore,
+              scaffoldKey: _scaffoldKey,
+            )
+          : null,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile Bottom Navigation Bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _MobileBottomNav extends StatelessWidget {
+  const _MobileBottomNav({
+    required this.items,
+    required this.allItems,
+    required this.activeItem,
+    required this.showMore,
+    required this.scaffoldKey,
+  });
+
+  final List<NavItem> items;
+  final List<NavItem> allItems;
+  final NavItem? activeItem;
+  final bool showMore;
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
+  @override
+  Widget build(BuildContext context) {
+    // Determine the selected index
+    int selectedIndex = -1;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i] == activeItem) {
+        selectedIndex = i;
+        break;
+      }
+    }
+    // If active item is in the "More" overflow, highlight the More tab
+    if (selectedIndex == -1 && showMore) {
+      selectedIndex = items.length; // the "More" slot
+    }
+
+    final safeIndex = selectedIndex.clamp(0, items.length + (showMore ? 0 : -1));
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            children: [
+              for (var i = 0; i < items.length; i++)
+                _BottomNavItem(
+                  icon:       items[i].icon,
+                  activeIcon: items[i].activeIcon,
+                  label:      items[i].label,
+                  isActive:   i == safeIndex,
+                  onTap:      () => context.go(items[i].route),
+                ),
+              if (showMore)
+                _BottomNavItem(
+                  icon:       Icons.more_horiz_rounded,
+                  activeIcon: Icons.more_horiz_rounded,
+                  label:      'More',
+                  isActive:   selectedIndex == items.length,
+                  onTap:      () => scaffoldKey.currentState?.openDrawer(),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A single item in the mobile bottom navigation bar.
+class _BottomNavItem extends StatelessWidget {
+  const _BottomNavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? AppColors.primary : AppColors.onSurfaceMuted;
+
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Active indicator bar
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width:  isActive ? 32 : 0,
+              height: 3,
+              margin: const EdgeInsets.only(bottom: 4),
+              decoration: BoxDecoration(
+                color:        isActive ? AppColors.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Icon(
+              isActive ? activeIcon : icon,
+              size:  22,
+              color: color,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize:   10,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                color:      color,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -147,6 +297,7 @@ class _TopBar extends ConsumerWidget implements PreferredSizeWidget {
     final auth = ref.watch(authProvider);
     final userName = auth.userInfo?.userName ?? '—';
     final role = auth.appUser?.role;
+    final isMobile = context.isMobile;
 
     return Container(
       height: AppSpacing.topBarHeight,
@@ -155,7 +306,9 @@ class _TopBar extends ConsumerWidget implements PreferredSizeWidget {
         border: Border(bottom: BorderSide(color: AppColors.divider)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? AppSpacing.sm : AppSpacing.md,
+        ),
         child: Row(
           children: [
             // Hamburger (mobile) ──────────────────────────────────────────
@@ -168,9 +321,7 @@ class _TopBar extends ConsumerWidget implements PreferredSizeWidget {
               const SizedBox(width: AppSpacing.xs),
 
             // Breadcrumb ──────────────────────────────────────────────────
-            AppBreadcrumb(items: breadcrumbs),
-
-            const Spacer(),
+            Expanded(child: AppBreadcrumb(items: breadcrumbs)),
 
             // Top-bar actions (e.g. notification bell) ───────────────────
             if (topBarActions != null) ...[
@@ -180,10 +331,11 @@ class _TopBar extends ConsumerWidget implements PreferredSizeWidget {
               const SizedBox(width: AppSpacing.sm),
             ],
 
-            // User chip ───────────────────────────────────────────────────
+            // User chip — compact on mobile (avatar only) ────────────────
             _UserChip(
               userName: userName,
               role: role,
+              compact: isMobile,
               onLogout: () => ref.read(authProvider.notifier).logout(),
             ),
           ],
@@ -239,11 +391,15 @@ class _UserChip extends StatefulWidget {
     required this.userName,
     required this.role,
     required this.onLogout,
+    this.compact = false,
   });
 
   final String userName;
   final Role? role;
   final VoidCallback onLogout;
+
+  /// When true, only the avatar circle is shown (mobile).
+  final bool compact;
 
   @override
   State<_UserChip> createState() => _UserChipState();
@@ -257,7 +413,7 @@ class _UserChipState extends State<_UserChip> {
 
   String get _roleLabel => switch (widget.role) {
         Role.SuperAdmin => 'Super Admin',
-        Role.Admin => 'Admin',
+        Role.OrganizationAdmin => 'Org Admin',
         Role.Manager => 'Manager',
         Role.User => 'User',
         null => '—',
@@ -307,7 +463,10 @@ class _UserChipState extends State<_UserChip> {
         ],
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: EdgeInsets.symmetric(
+            horizontal: widget.compact ? 6 : 10,
+            vertical: 6,
+          ),
           decoration: BoxDecoration(
             color: _hovered ? AppColors.surfaceVariant : Colors.transparent,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -334,16 +493,19 @@ class _UserChipState extends State<_UserChip> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.userName, style: AppTextStyles.labelLg),
-                  Text(_roleLabel, style: AppTextStyles.labelMd),
-                ],
-              ),
-              const SizedBox(width: 6),
+              // Hide name/role on compact (mobile) mode
+              if (!widget.compact) ...[
+                const SizedBox(width: 8),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.userName, style: AppTextStyles.labelLg),
+                    Text(_roleLabel, style: AppTextStyles.labelMd),
+                  ],
+                ),
+              ],
+              SizedBox(width: widget.compact ? 2 : 6),
               const Icon(
                 Icons.expand_more_rounded,
                 size: 16,

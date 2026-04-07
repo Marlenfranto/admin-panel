@@ -1,0 +1,10 @@
+class: UserTheoryProgress
+table: user_theory_progress
+fields:
+  appUserId: int
+  organizationId: int
+  chapterId: int
+  score: int
+  status: ModuleProgressStatus
+  lastWatchedPosition: int?
+  completedAt: DateTime?

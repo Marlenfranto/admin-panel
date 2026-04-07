@@ -1,7 +1,6 @@
 import 'package:admin_panel_client/admin_panel_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../providers/admin_providers.dart';
@@ -12,47 +11,43 @@ class UsersScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usersAsync = ref.watch(allUsersProvider);
-    final orgsAsync  = ref.watch(allOrganizationsProvider);
-    final users      = usersAsync.value ?? [];
+    final usersAsync      = ref.watch(allUsersProvider);
+    final orgsAsync       = ref.watch(allOrganizationsProvider);
+    final parentOrgsAsync = ref.watch(parentOrgsProvider);
+    final allTeamsAsync   = ref.watch(allTeamsProvider);
+    final users           = usersAsync.value ?? [];
     final managers   = users.where((u) => u.role == Role.Manager).length;
     final regulars   = users.where((u) => u.role == Role.User).length;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Header ───────────────────────────────────────────────────────
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Users', style: AppTextStyles.headingLg),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Manage platform users and their roles.',
-                      style: AppTextStyles.bodySm,
-                    ),
-                  ],
+    return ScreenWithFab(
+      icon: Icons.person_add_rounded,
+      label: 'Add',
+      onPressed: () => _showAddUserSheet(
+        context, ref, parentOrgsAsync.value ?? [], allTeamsAsync.value ?? []),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(context.responsivePagePadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ───────────────────────────────────────────────────────
+            ResponsivePageHeader(
+                title:    'Users',
+                subtitle: 'Manage platform users and their roles.',
+                action: AppGradientButton(
+                  label:     'Add User',
+                  icon:      Icons.person_add_rounded,
+                  onPressed: () => _showAddUserSheet(
+                  context,
+                  ref,
+                  parentOrgsAsync.value ?? [],
+                  allTeamsAsync.value ?? [],
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
-              AppGradientButton(
-                label:     'Add User',
-                icon:      Icons.person_add_rounded,
-                onPressed: () => _showAddUserSheet(
-                    context, ref, orgsAsync.value ?? []),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
+            ),
+            const SizedBox(height: AppSpacing.lg),
 
-          // ── Stats row ─────────────────────────────────────────────────────
-          Wrap(
+            // ── Stats row ─────────────────────────────────────────────────────
+            Wrap(
             spacing:    AppSpacing.md,
             runSpacing: AppSpacing.md,
             children: [
@@ -81,13 +76,6 @@ class UsersScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          // ── Assign Manager card ───────────────────────────────────────────
-          _AssignManagerCard(
-            users: users,
-            orgs:  orgsAsync.value ?? [],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
           // ── Users table ───────────────────────────────────────────────────
           _UsersTable(
             usersAsync: usersAsync,
@@ -95,15 +83,8 @@ class UsersScreen extends ConsumerWidget {
             onEdit:     (u) => _showEditUserSheet(context, ref, u),
             onDelete:   (u) => _confirmDeleteUser(context, ref, u),
           ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // ── All users training history ─────────────────────────────────────
-          AllUsersTrainingHistoryPanel(
-            users: users.where((u) => u.role == Role.User).toList(),
-            historyLoader: (userId) =>
-                ref.read(clientProvider).admin.getUserTrainingHistory(userId),
-          ),
         ],
+      ),
       ),
     );
   }
@@ -113,8 +94,8 @@ class UsersScreen extends ConsumerWidget {
     WidgetRef ref,
     AppUser user,
   ) {
-    final nameCtrl = TextEditingController(
-        text: user.userInfo?.userName ?? '');
+    final nameCtrl     = TextEditingController(text: user.userInfo?.userName ?? '');
+    final passCtrl     = TextEditingController();
     final roleNotifier = ValueNotifier<Role>(user.role);
 
     AppSideSheet.show(
@@ -123,6 +104,7 @@ class UsersScreen extends ConsumerWidget {
       saveLabel: 'Save Changes',
       body: _EditUserBody(
         nameCtrl:     nameCtrl,
+        passCtrl:     passCtrl,
         roleNotifier: roleNotifier,
         currentRole:  user.role,
       ),
@@ -130,11 +112,26 @@ class UsersScreen extends ConsumerWidget {
         if (nameCtrl.text.trim().isEmpty) {
           throw Exception('Name is required.');
         }
-        await ref.read(clientProvider).admin.updateUser(
-              user.id!,
-              nameCtrl.text.trim(),
-              roleNotifier.value,
-            );
+        if (user.role == Role.OrganizationAdmin) {
+          await ref.read(clientProvider).admin.updateOrgAdminUser(
+                user.id!,
+                nameCtrl.text.trim(),
+                roleNotifier.value,
+              );
+        } else {
+          await ref.read(clientProvider).admin.updateUser(
+                user.id!,
+                nameCtrl.text.trim(),
+                roleNotifier.value,
+              );
+        }
+        final newPass = passCtrl.text.trim();
+        if (newPass.isNotEmpty) {
+          await ref.read(clientProvider).admin.adminResetUserPassword(
+                user.id!,
+                newPass,
+              );
+        }
         ref.invalidate(allUsersProvider);
       },
     );
@@ -192,13 +189,15 @@ class UsersScreen extends ConsumerWidget {
   void _showAddUserSheet(
     BuildContext context,
     WidgetRef ref,
-    List<Organization> orgs,
+    List<Organization> parentOrgs,
+    List<Organization> allTeams,
   ) {
-    final nameCtrl  = TextEditingController();
-    final emailCtrl = TextEditingController();
-    final passCtrl  = TextEditingController();
-    final roleNotifier = ValueNotifier<Role>(Role.User);
+    final nameCtrl     = TextEditingController();
+    final emailCtrl    = TextEditingController();
+    final passCtrl     = TextEditingController();
+    final roleNotifier = ValueNotifier<Role>(Role.Manager);
     final orgNotifier  = ValueNotifier<int?>(null);
+    final teamNotifier = ValueNotifier<int?>(null);
 
     AppSideSheet.show(
       context:   context,
@@ -210,22 +209,35 @@ class UsersScreen extends ConsumerWidget {
         passCtrl:     passCtrl,
         roleNotifier: roleNotifier,
         orgNotifier:  orgNotifier,
-        orgs:         orgs,
+        teamNotifier: teamNotifier,
+        parentOrgs:   parentOrgs,
+        allTeams:     allTeams,
       ),
       onSave: () async {
-        if (nameCtrl.text.trim().isEmpty ||
-            emailCtrl.text.trim().isEmpty ||
-            passCtrl.text.trim().isEmpty ||
-            orgNotifier.value == null) {
-          throw Exception('All fields are required.');
+        final name  = nameCtrl.text.trim();
+        final email = emailCtrl.text.trim();
+        final pass  = passCtrl.text.trim();
+        final role  = roleNotifier.value;
+        final orgId = orgNotifier.value;
+        final teamId = teamNotifier.value;
+
+        if (name.isEmpty || email.isEmpty || pass.isEmpty) {
+          throw Exception('Name, email and password are required.');
         }
-        await ref.read(clientProvider).admin.createUserAndAssignToOrg(
-              nameCtrl.text.trim(),
-              emailCtrl.text.trim(),
-              passCtrl.text.trim(),
-              roleNotifier.value,
-              orgNotifier.value!,
-            );
+        if (orgId == null) {
+          throw Exception('Please select an organization.');
+        }
+        if (role != Role.OrganizationAdmin && teamId == null) {
+          throw Exception('Please select a team.');
+        }
+
+        if (role == Role.OrganizationAdmin) {
+          await ref.read(clientProvider).admin.createUserAndAssignToOrg(
+                name, email, pass, role, orgId);
+        } else {
+          await ref.read(clientProvider).organizationAdmin.createUserInTeam(
+                name, email, pass, role, teamId!);
+        }
         ref.invalidate(allUsersProvider);
       },
     );
@@ -305,13 +317,24 @@ class _UsersTable extends StatelessWidget {
   final void Function(AppUser)    onEdit;
   final void Function(AppUser)    onDelete;
 
-  /// Builds a map of appUserId → organization name from the already-loaded orgs.
+  /// Builds a map of appUserId → display label.
+  /// Users in a team show "OrgName / TeamName"; users in a parent org show "OrgName".
   Map<int, String> _buildOrgMap() {
+    final orgById = <int, Organization>{
+      for (final o in orgs) if (o.id != null) o.id!: o,
+    };
     final map = <int, String>{};
     for (final org in orgs) {
       for (final link in org.users ?? []) {
         final userId = link.appUserId;
-        map[userId] = org.name;
+        if (org.parentId != null) {
+          final parentName = orgById[org.parentId!]?.name;
+          map[userId] = parentName != null
+              ? '$parentName / ${org.name}'
+              : org.name;
+        } else {
+          map[userId] = org.name;
+        }
       }
     }
     return map;
@@ -348,6 +371,12 @@ class _UsersTable extends StatelessWidget {
             isLoading:  usersAsync.isLoading,
             rows:       usersAsync.value ?? [],
             searchable: true,
+            mobileCardBuilder: (u) => _UserMobileCard(
+              user:    u,
+              orgName: u.id != null ? orgMap[u.id!] : null,
+              onEdit:  () => onEdit(u),
+              onDelete: () => onDelete(u),
+            ),
             columns: [
               // ── User (name + email) ────────────────────────────────────────
               AppTableColumn(
@@ -392,7 +421,8 @@ class _UsersTable extends StatelessWidget {
                 flex:        3,
                 searchValue: (u) => u.id != null ? (orgMap[u.id!] ?? '') : '',
                 cellBuilder: (u) {
-                  final showOrg = u.role == Role.Manager ||
+                  final showOrg = u.role == Role.OrganizationAdmin ||
+                      u.role == Role.Manager ||
                       u.role == Role.User;
                   final orgName = showOrg && u.id != null
                       ? orgMap[u.id!]
@@ -445,9 +475,7 @@ class _UsersTable extends StatelessWidget {
                 flex:       2,
                 alignment: Alignment.center,
                 cellBuilder: (u) {
-                  final isProtected = u.role == Role.SuperAdmin ||
-                      u.role == Role.Admin;
-                  if (isProtected) return const SizedBox.shrink();
+                  if (u.role == Role.SuperAdmin) return const SizedBox.shrink();
                   return Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -482,9 +510,10 @@ class _UserAvatar extends StatelessWidget {
   final Role   role;
 
   Color get _color => switch (role) {
-    Role.SuperAdmin || Role.Admin => AppColors.aiExpert,
-    Role.Manager                  => AppColors.info,
-    Role.User                     => AppColors.success,
+    Role.SuperAdmin         => AppColors.aiExpert,
+    Role.OrganizationAdmin  => AppColors.primary,
+    Role.Manager            => AppColors.info,
+    Role.User               => AppColors.success,
   };
 
   @override
@@ -522,14 +551,15 @@ class _RoleChip extends StatelessWidget {
     return AppStatusChip(
       label: switch (role) {
         Role.SuperAdmin => 'Super Admin',
-        Role.Admin      => 'Admin',
+        Role.OrganizationAdmin => 'Org Admin',
         Role.Manager    => 'Manager',
         Role.User       => 'User',
       },
       variant: switch (role) {
-        Role.SuperAdmin || Role.Admin => AppChipVariant.primary,
-        Role.Manager                  => AppChipVariant.info,
-        Role.User                     => AppChipVariant.success,
+        Role.SuperAdmin         => AppChipVariant.primary,
+        Role.OrganizationAdmin  => AppChipVariant.primary,
+        Role.Manager            => AppChipVariant.info,
+        Role.User               => AppChipVariant.success,
       },
     );
   }
@@ -587,7 +617,7 @@ class _AssignManagerCardState extends ConsumerState<_AssignManagerCard> {
   @override
   Widget build(BuildContext context) {
     final managers = widget.users
-        .where((u) => u.role == Role.Manager || u.role == Role.Admin)
+        .where((u) => u.role == Role.Manager || u.role == Role.OrganizationAdmin)
         .toList();
     final canAssign =
         _selectedManagerId != null && _selectedOrgId != null;
@@ -764,11 +794,13 @@ class _StyledDropdown<T> extends StatelessWidget {
 class _EditUserBody extends StatefulWidget {
   const _EditUserBody({
     required this.nameCtrl,
+    required this.passCtrl,
     required this.roleNotifier,
     required this.currentRole,
   });
 
   final TextEditingController nameCtrl;
+  final TextEditingController passCtrl;
   final ValueNotifier<Role>   roleNotifier;
   final Role                  currentRole;
 
@@ -777,6 +809,8 @@ class _EditUserBody extends StatefulWidget {
 }
 
 class _EditUserBodyState extends State<_EditUserBody> {
+  bool _showPasswordField = false;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -798,18 +832,77 @@ class _EditUserBodyState extends State<_EditUserBody> {
         const SizedBox(height: 6),
         ValueListenableBuilder<Role>(
           valueListenable: widget.roleNotifier,
-          builder: (_, role, __) => DropdownButtonFormField<Role>(
-            value:      role,
-            decoration: const InputDecoration(hintText: 'Select role'),
-            items: [Role.Manager, Role.User]
-                .map((r) => DropdownMenuItem(
-                      value: r,
-                      child: Text(r.name),
-                    ))
-                .toList(),
-            onChanged: (v) => widget.roleNotifier.value = v!,
+          builder: (_, role, __) {
+            final roles = widget.currentRole == Role.OrganizationAdmin
+                ? [Role.OrganizationAdmin, Role.Manager, Role.User]
+                : [Role.Manager, Role.User];
+            return DropdownButtonFormField<Role>(
+              value:      role,
+              decoration: const InputDecoration(hintText: 'Select role'),
+              items: roles
+                  .map((r) => DropdownMenuItem(
+                        value: r,
+                        child: Text(switch (r) {
+                          Role.OrganizationAdmin => 'Organization Admin',
+                          Role.Manager           => 'Manager',
+                          Role.User              => 'User',
+                          _                      => r.name,
+                        }),
+                      ))
+                  .toList(),
+              onChanged: (v) => widget.roleNotifier.value = v!,
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.lg),
+
+        // ── Change Password ───────────────────────────────────────────────
+        const SheetSection(title: 'Security'),
+        const SizedBox(height: AppSpacing.sm),
+        InkWell(
+          onTap: () => setState(() {
+            _showPasswordField = !_showPasswordField;
+            if (!_showPasswordField) widget.passCtrl.clear();
+          }),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              children: [
+                Icon(
+                  _showPasswordField
+                      ? Icons.lock_open_rounded
+                      : Icons.lock_reset_rounded,
+                  size:  16,
+                  color: AppColors.info,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Change Password',
+                  style: AppTextStyles.labelMd
+                      .copyWith(color: AppColors.info),
+                ),
+                const Spacer(),
+                Icon(
+                  _showPasswordField
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                  size:  16,
+                  color: AppColors.onSurfaceSubtle,
+                ),
+              ],
+            ),
           ),
         ),
+        if (_showPasswordField) ...[
+          const SizedBox(height: AppSpacing.sm),
+          SheetField(
+            label:      'New Password',
+            controller: widget.passCtrl,
+            hint:       '••••••••',
+            obscureText: true,
+          ),
+        ],
       ],
     );
   }
@@ -824,7 +917,9 @@ class _AddUserBody extends StatefulWidget {
     required this.passCtrl,
     required this.roleNotifier,
     required this.orgNotifier,
-    required this.orgs,
+    required this.teamNotifier,
+    required this.parentOrgs,
+    required this.allTeams,
   });
 
   final TextEditingController nameCtrl;
@@ -832,15 +927,46 @@ class _AddUserBody extends StatefulWidget {
   final TextEditingController passCtrl;
   final ValueNotifier<Role>   roleNotifier;
   final ValueNotifier<int?>   orgNotifier;
-  final List<Organization>    orgs;
+  final ValueNotifier<int?>   teamNotifier;
+  final List<Organization>    parentOrgs;
+  final List<Organization>    allTeams;
 
   @override
   State<_AddUserBody> createState() => _AddUserBodyState();
 }
 
 class _AddUserBodyState extends State<_AddUserBody> {
+  Role   _role = Role.Manager;
+  int?   _orgId;
+
+  @override
+  void initState() {
+    super.initState();
+    _role = widget.roleNotifier.value;
+    _orgId = widget.orgNotifier.value;
+  }
+
+  List<Organization> get _teamsForOrg => _orgId == null
+      ? []
+      : widget.allTeams.where((t) => t.parentId == _orgId).toList();
+
+  void _onRoleChanged(Role r) {
+    setState(() => _role = r);
+    widget.roleNotifier.value = r;
+    widget.teamNotifier.value = null;
+  }
+
+  void _onOrgChanged(int? orgId) {
+    setState(() => _orgId = orgId);
+    widget.orgNotifier.value = orgId;
+    widget.teamNotifier.value = null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final needsTeam = _role == Role.Manager || _role == Role.User;
+    final teams     = _teamsForOrg;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -866,45 +992,170 @@ class _AddUserBodyState extends State<_AddUserBody> {
         ),
         const SizedBox(height: AppSpacing.lg),
 
-        const SheetSection(title: 'Role & Organization'),
+        const SheetSection(title: 'Role & Assignment'),
         const SizedBox(height: AppSpacing.sm),
 
         Text('Role', style: AppTextStyles.labelMd),
         const SizedBox(height: 6),
-        ValueListenableBuilder<Role>(
-          valueListenable: widget.roleNotifier,
-          builder: (_, role, __) => DropdownButtonFormField<Role>(
-            value:      role,
-            decoration: const InputDecoration(hintText: 'Select role'),
-            items: [Role.Manager, Role.User]
-                .map((r) => DropdownMenuItem(
-                      value: r,
-                      child: Text(r.name),
-                    ))
-                .toList(),
-            onChanged: (v) => widget.roleNotifier.value = v!,
-          ),
+        DropdownButtonFormField<Role>(
+          value:      _role,
+          decoration: const InputDecoration(hintText: 'Select role'),
+          items: [Role.OrganizationAdmin, Role.Manager, Role.User]
+              .map((r) => DropdownMenuItem(
+                    value: r,
+                    child: Text(switch (r) {
+                      Role.OrganizationAdmin => 'Organization Admin',
+                      Role.Manager           => 'Manager',
+                      Role.User              => 'User',
+                      _                      => r.name,
+                    }),
+                  ))
+              .toList(),
+          onChanged: (v) => _onRoleChanged(v!),
         ),
         const SizedBox(height: AppSpacing.md),
 
         Text('Organization', style: AppTextStyles.labelMd),
         const SizedBox(height: 6),
-        ValueListenableBuilder<int?>(
-          valueListenable: widget.orgNotifier,
-          builder: (_, orgId, __) => DropdownButtonFormField<int>(
-            value:      orgId,
-            decoration:
-                const InputDecoration(hintText: 'Select organization'),
-            items: widget.orgs
-                .map((o) => DropdownMenuItem(
-                      value: o.id,
-                      child: Text(o.name),
-                    ))
-                .toList(),
-            onChanged: (v) => widget.orgNotifier.value = v,
-          ),
+        DropdownButtonFormField<int>(
+          value:      _orgId,
+          decoration: const InputDecoration(hintText: 'Select organization'),
+          items: widget.parentOrgs
+              .map((o) => DropdownMenuItem(value: o.id, child: Text(o.name)))
+              .toList(),
+          onChanged: _onOrgChanged,
         ),
+
+        if (needsTeam) ...[
+          const SizedBox(height: AppSpacing.md),
+          Text('Team', style: AppTextStyles.labelMd),
+          const SizedBox(height: 6),
+          if (_orgId == null)
+            Text(
+              'Select an organization first.',
+              style: AppTextStyles.bodySm
+                  .copyWith(color: AppColors.onSurfaceSubtle),
+            )
+          else if (teams.isEmpty)
+            Text(
+              'No teams found for this organization.',
+              style: AppTextStyles.bodySm
+                  .copyWith(color: AppColors.onSurfaceSubtle),
+            )
+          else
+            ValueListenableBuilder<int?>(
+              valueListenable: widget.teamNotifier,
+              builder: (_, teamId, __) => DropdownButtonFormField<int>(
+                value:      teamId,
+                decoration: const InputDecoration(hintText: 'Select team'),
+                items: teams
+                    .map((t) =>
+                        DropdownMenuItem(value: t.id, child: Text(t.name)))
+                    .toList(),
+                onChanged: (v) => widget.teamNotifier.value = v,
+              ),
+            ),
+        ],
       ],
+    );
+  }
+}
+
+// ── Mobile card for users ────────────────────────────────────────────────────
+
+class _UserMobileCard extends StatelessWidget {
+  const _UserMobileCard({
+    required this.user,
+    required this.onEdit,
+    required this.onDelete,
+    this.orgName,
+  });
+
+  final AppUser     user;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final String?     orgName;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSuperAdmin = user.role == Role.SuperAdmin;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color:        AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        border:       Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _UserAvatar(
+                  name: user.userInfo?.userName ?? '?', role: user.role),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.userInfo?.userName ?? '—',
+                      style: AppTextStyles.labelLg,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      user.userInfo?.email ?? '',
+                      style: AppTextStyles.bodyXs,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              _RoleChip(role: user.role),
+            ],
+          ),
+          if (orgName != null || !isSuperAdmin) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                if (orgName != null) ...[
+                  Icon(Icons.corporate_fare_rounded,
+                      size: 12, color: AppColors.onSurfaceMuted),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(orgName!,
+                        style: AppTextStyles.bodyXs,
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                ] else
+                  const Spacer(),
+                if (!isSuperAdmin) ...[
+                  IconButton(
+                    icon: const Icon(Icons.edit_rounded, size: 16),
+                    tooltip: 'Edit',
+                    onPressed: onEdit,
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
+                    padding: EdgeInsets.zero,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete_rounded,
+                        size: 16, color: AppColors.error),
+                    tooltip: 'Delete',
+                    onPressed: onDelete,
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
+                    padding: EdgeInsets.zero,
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

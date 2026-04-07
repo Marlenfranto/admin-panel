@@ -12,8 +12,9 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'app_user.dart' as _i2;
-import 'organization_user_link.dart' as _i3;
-import 'package:admin_panel_client/src/protocol/protocol.dart' as _i4;
+import 'organization.dart' as _i3;
+import 'organization_user_link.dart' as _i4;
+import 'package:admin_panel_client/src/protocol/protocol.dart' as _i5;
 
 abstract class Organization implements _i1.SerializableModel {
   Organization._({
@@ -23,6 +24,9 @@ abstract class Organization implements _i1.SerializableModel {
     int? contentVersion,
     this.managerId,
     this.manager,
+    this.parentId,
+    this.parent,
+    this.children,
     this.users,
   }) : contentVersion = contentVersion ?? 1;
 
@@ -33,7 +37,10 @@ abstract class Organization implements _i1.SerializableModel {
     int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
-    List<_i3.OrganizationUserLink>? users,
+    int? parentId,
+    _i3.Organization? parent,
+    List<_i3.Organization>? children,
+    List<_i4.OrganizationUserLink>? users,
   }) = _OrganizationImpl;
 
   factory Organization.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -45,12 +52,23 @@ abstract class Organization implements _i1.SerializableModel {
       managerId: jsonSerialization['managerId'] as int?,
       manager: jsonSerialization['manager'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.AppUser>(
+          : _i5.Protocol().deserialize<_i2.AppUser>(
               jsonSerialization['manager'],
+            ),
+      parentId: jsonSerialization['parentId'] as int?,
+      parent: jsonSerialization['parent'] == null
+          ? null
+          : _i5.Protocol().deserialize<_i3.Organization>(
+              jsonSerialization['parent'],
+            ),
+      children: jsonSerialization['children'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i3.Organization>>(
+              jsonSerialization['children'],
             ),
       users: jsonSerialization['users'] == null
           ? null
-          : _i4.Protocol().deserialize<List<_i3.OrganizationUserLink>>(
+          : _i5.Protocol().deserialize<List<_i4.OrganizationUserLink>>(
               jsonSerialization['users'],
             ),
     );
@@ -71,7 +89,13 @@ abstract class Organization implements _i1.SerializableModel {
 
   _i2.AppUser? manager;
 
-  List<_i3.OrganizationUserLink>? users;
+  int? parentId;
+
+  _i3.Organization? parent;
+
+  List<_i3.Organization>? children;
+
+  List<_i4.OrganizationUserLink>? users;
 
   /// Returns a shallow copy of this [Organization]
   /// with some or all fields replaced by the given arguments.
@@ -83,7 +107,10 @@ abstract class Organization implements _i1.SerializableModel {
     int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
-    List<_i3.OrganizationUserLink>? users,
+    int? parentId,
+    _i3.Organization? parent,
+    List<_i3.Organization>? children,
+    List<_i4.OrganizationUserLink>? users,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -95,6 +122,10 @@ abstract class Organization implements _i1.SerializableModel {
       'contentVersion': contentVersion,
       if (managerId != null) 'managerId': managerId,
       if (manager != null) 'manager': manager?.toJson(),
+      if (parentId != null) 'parentId': parentId,
+      if (parent != null) 'parent': parent?.toJson(),
+      if (children != null)
+        'children': children?.toJson(valueToJson: (v) => v.toJson()),
       if (users != null) 'users': users?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
@@ -115,7 +146,10 @@ class _OrganizationImpl extends Organization {
     int? contentVersion,
     int? managerId,
     _i2.AppUser? manager,
-    List<_i3.OrganizationUserLink>? users,
+    int? parentId,
+    _i3.Organization? parent,
+    List<_i3.Organization>? children,
+    List<_i4.OrganizationUserLink>? users,
   }) : super._(
          id: id,
          name: name,
@@ -123,6 +157,9 @@ class _OrganizationImpl extends Organization {
          contentVersion: contentVersion,
          managerId: managerId,
          manager: manager,
+         parentId: parentId,
+         parent: parent,
+         children: children,
          users: users,
        );
 
@@ -137,6 +174,9 @@ class _OrganizationImpl extends Organization {
     int? contentVersion,
     Object? managerId = _Undefined,
     Object? manager = _Undefined,
+    Object? parentId = _Undefined,
+    Object? parent = _Undefined,
+    Object? children = _Undefined,
     Object? users = _Undefined,
   }) {
     return Organization(
@@ -146,7 +186,12 @@ class _OrganizationImpl extends Organization {
       contentVersion: contentVersion ?? this.contentVersion,
       managerId: managerId is int? ? managerId : this.managerId,
       manager: manager is _i2.AppUser? ? manager : this.manager?.copyWith(),
-      users: users is List<_i3.OrganizationUserLink>?
+      parentId: parentId is int? ? parentId : this.parentId,
+      parent: parent is _i3.Organization? ? parent : this.parent?.copyWith(),
+      children: children is List<_i3.Organization>?
+          ? children
+          : this.children?.map((e0) => e0.copyWith()).toList(),
+      users: users is List<_i4.OrganizationUserLink>?
           ? users
           : this.users?.map((e0) => e0.copyWith()).toList(),
     );

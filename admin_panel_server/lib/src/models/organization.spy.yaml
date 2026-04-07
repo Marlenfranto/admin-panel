@@ -5,4 +5,6 @@ fields:
   imageUrl: String?
   contentVersion: int, default=1, defaultPersist=1
   manager: AppUser?, relation(optional)
+  parent: Organization?, relation(optional, name=organization_parent)
+  children: List<Organization>?, relation(name=organization_parent)
   users: List<OrganizationUserLink>?, relation(name=organization_user_links)

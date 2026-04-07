@@ -196,10 +196,12 @@ class _NotificationPanelState extends ConsumerState<_NotificationPanel> {
         : const AsyncValue<List<ManagerNotificationDetail>>.data([]);
     final hasUnread      = notifAsync.value?.any((d) => !d.notification.isRead) ?? false;
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+
     return Material(
       color:        Colors.transparent,
       child: Container(
-        width: 400,
+        width: screenWidth < 440 ? screenWidth - 32 : 400,
         constraints: const BoxConstraints(maxHeight: 520),
         decoration: BoxDecoration(
           color:        AppColors.surface,

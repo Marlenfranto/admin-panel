@@ -1,0 +1,7 @@
+class: TrainingUserSummary
+fields:
+  user: AppUser
+  parentOrg: Organization?
+  team: Organization
+  latestResult: TrainingSessionResult?
+  totalSessions: int

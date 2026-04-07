@@ -1,0 +1,353 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "deleteTable",
+      "deleteTable": "team"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "manager_notification",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "teamId"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"teamId\" of table \"manager_notification\" will be dropped.",
+            "table": "manager_notification",
+            "columns": [
+              "teamId"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "organization",
+        "schema": "public",
+        "addColumns": [
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "parentId",
+            "columnType": 6,
+            "isNullable": true,
+            "dartType": "int?"
+          }
+        ],
+        "deleteColumns": [],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [
+          {
+            "__className__": "serverpod.ForeignKeyDefinition",
+            "constraintName": "organization_fk_1",
+            "columns": [
+              "parentId"
+            ],
+            "referenceTable": "organization",
+            "referenceTableSchema": "public",
+            "referenceColumns": [
+              "id"
+            ],
+            "onUpdate": 3,
+            "onDelete": 3
+          }
+        ],
+        "deleteForeignKeys": [],
+        "warnings": []
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "organization_user_link",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "teamId"
+        ],
+        "modifyColumns": [
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "organizationId",
+            "addNullable": false,
+            "removeNullable": true,
+            "changeDefault": false
+          },
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "appUserId",
+            "addNullable": false,
+            "removeNullable": true,
+            "changeDefault": false
+          }
+        ],
+        "addIndexes": [
+          {
+            "__className__": "serverpod.IndexDefinition",
+            "indexName": "organization_user_unique_idx",
+            "elements": [
+              {
+                "__className__": "serverpod.IndexElementDefinition",
+                "type": 0,
+                "definition": "organizationId"
+              },
+              {
+                "__className__": "serverpod.IndexElementDefinition",
+                "type": 0,
+                "definition": "appUserId"
+              }
+            ],
+            "type": "btree",
+            "isUnique": true,
+            "isPrimary": false
+          }
+        ],
+        "deleteIndexes": [
+          "organization_user_unique_idx"
+        ],
+        "addForeignKeys": [
+          {
+            "__className__": "serverpod.ForeignKeyDefinition",
+            "constraintName": "organization_user_link_fk_1",
+            "columns": [
+              "appUserId"
+            ],
+            "referenceTable": "app_user",
+            "referenceTableSchema": "public",
+            "referenceColumns": [
+              "id"
+            ],
+            "onUpdate": 3,
+            "onDelete": 4
+          }
+        ],
+        "deleteForeignKeys": [
+          "organization_user_link_fk_2",
+          "organization_user_link_fk_1"
+        ],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"teamId\" of table \"organization_user_link\" will be dropped.",
+            "table": "organization_user_link",
+            "columns": [
+              "teamId"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "notNullAdded",
+            "message": "Column \"organizationId\" of table \"organization_user_link\" is modified to be not null. If there are existing rows with null values, this migration will fail.",
+            "table": "organization_user_link",
+            "columns": [
+              "organizationId"
+            ],
+            "destrucive": false
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "notNullAdded",
+            "message": "Column \"appUserId\" of table \"organization_user_link\" is modified to be not null. If there are existing rows with null values, this migration will fail.",
+            "table": "organization_user_link",
+            "columns": [
+              "appUserId"
+            ],
+            "destrucive": false
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "uniqueIndexCreated",
+            "message": "Unique index \"organization_user_unique_idx\" is added to table \"organization_user_link\". If there are existing rows with duplicate values, this migration will fail.",
+            "table": "organization_user_link",
+            "columns": [
+              "organizationId",
+              "appUserId"
+            ],
+            "destrucive": false
+          }
+        ]
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "user_module_progress",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "teamId"
+        ],
+        "modifyColumns": [
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "appUserId",
+            "addNullable": false,
+            "removeNullable": true,
+            "changeDefault": false
+          },
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "organizationId",
+            "addNullable": false,
+            "removeNullable": true,
+            "changeDefault": false
+          }
+        ],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"teamId\" of table \"user_module_progress\" will be dropped.",
+            "table": "user_module_progress",
+            "columns": [
+              "teamId"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "notNullAdded",
+            "message": "Column \"appUserId\" of table \"user_module_progress\" is modified to be not null. If there are existing rows with null values, this migration will fail.",
+            "table": "user_module_progress",
+            "columns": [
+              "appUserId"
+            ],
+            "destrucive": false
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "notNullAdded",
+            "message": "Column \"organizationId\" of table \"user_module_progress\" is modified to be not null. If there are existing rows with null values, this migration will fail.",
+            "table": "user_module_progress",
+            "columns": [
+              "organizationId"
+            ],
+            "destrucive": false
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "tableDropped",
+      "message": "Table \"team\" will be dropped.",
+      "table": "team",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"teamId\" of table \"manager_notification\" will be dropped.",
+      "table": "manager_notification",
+      "columns": [
+        "teamId"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"teamId\" of table \"organization_user_link\" will be dropped.",
+      "table": "organization_user_link",
+      "columns": [
+        "teamId"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "notNullAdded",
+      "message": "Column \"organizationId\" of table \"organization_user_link\" is modified to be not null. If there are existing rows with null values, this migration will fail.",
+      "table": "organization_user_link",
+      "columns": [
+        "organizationId"
+      ],
+      "destrucive": false
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "notNullAdded",
+      "message": "Column \"appUserId\" of table \"organization_user_link\" is modified to be not null. If there are existing rows with null values, this migration will fail.",
+      "table": "organization_user_link",
+      "columns": [
+        "appUserId"
+      ],
+      "destrucive": false
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "uniqueIndexCreated",
+      "message": "Unique index \"organization_user_unique_idx\" is added to table \"organization_user_link\". If there are existing rows with duplicate values, this migration will fail.",
+      "table": "organization_user_link",
+      "columns": [
+        "organizationId",
+        "appUserId"
+      ],
+      "destrucive": false
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"teamId\" of table \"user_module_progress\" will be dropped.",
+      "table": "user_module_progress",
+      "columns": [
+        "teamId"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "notNullAdded",
+      "message": "Column \"appUserId\" of table \"user_module_progress\" is modified to be not null. If there are existing rows with null values, this migration will fail.",
+      "table": "user_module_progress",
+      "columns": [
+        "appUserId"
+      ],
+      "destrucive": false
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "notNullAdded",
+      "message": "Column \"organizationId\" of table \"user_module_progress\" is modified to be not null. If there are existing rows with null values, this migration will fail.",
+      "table": "user_module_progress",
+      "columns": [
+        "organizationId"
+      ],
+      "destrucive": false
+    }
+  ],
+  "migrationApiVersion": 1
+}

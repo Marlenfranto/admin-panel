@@ -38,17 +38,17 @@ class _AdminContentScreenState extends ConsumerState<AdminContentScreen>
 
   @override
   Widget build(BuildContext context) {
-    final orgsAsync = ref.watch(allOrganizationsProvider);
+    final orgsAsync = ref.watch(parentOrgsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── Header + org picker ─────────────────────────────────────────
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.pagePadding,
-            AppSpacing.pagePadding,
-            AppSpacing.pagePadding,
+          padding: EdgeInsets.fromLTRB(
+            context.responsivePagePadding,
+            context.responsivePagePadding,
+            context.responsivePagePadding,
             AppSpacing.md,
           ),
           child: Column(
@@ -61,8 +61,8 @@ class _AdminContentScreenState extends ConsumerState<AdminContentScreen>
                 style: AppTextStyles.bodySm,
               ),
               const SizedBox(height: AppSpacing.lg),
-              SizedBox(
-                width: 320,
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
                 child: orgsAsync.when(
                   data: (orgs) => DropdownButtonFormField<Organization>(
                     value:      _selectedOrg,
@@ -154,6 +154,14 @@ class _TheoryTab extends ConsumerWidget {
         isLoading:  chaptersAsync.isLoading,
         rows:       chaptersAsync.value ?? [],
         searchable: true,
+        mobileCardBuilder: (c) => _TheoryMobileCard(
+          chapter: c,
+          onEdit:  () => _showDialog(context, ref, c),
+          onDelete: () async {
+            await ref.read(clientProvider).admin.deleteTheoryChapter(c.id!);
+            ref.invalidate(adminTheoryProvider(org.id!));
+          },
+        ),
         columns: [
           AppTableColumn(
             label:       'Order',
@@ -601,6 +609,16 @@ class _TrainingTab extends ConsumerWidget {
         isLoading:  paramsAsync.isLoading,
         rows:       paramsAsync.value ?? [],
         searchable: true,
+        mobileCardBuilder: (p) => _ParamMobileCard(
+          name:     p.name,
+          subtitle: p.paramId,
+          maxScore: p.maxScore,
+          onEdit:   () => _showDialog(context, ref, p),
+          onDelete: () async {
+            await ref.read(clientProvider).admin.deleteTrainingParameter(p.id!);
+            ref.invalidate(adminTrainingProvider(org.id!));
+          },
+        ),
         columns: [
           AppTableColumn(
             label:       'Name',
@@ -697,6 +715,16 @@ class _AssessmentTab extends ConsumerWidget {
         isLoading:  paramsAsync.isLoading,
         rows:       paramsAsync.value ?? [],
         searchable: true,
+        mobileCardBuilder: (p) => _ParamMobileCard(
+          name:     p.name,
+          subtitle: p.description,
+          maxScore: p.maxScore,
+          onEdit:   () => _showDialog(context, ref, p),
+          onDelete: () async {
+            await ref.read(clientProvider).admin.deleteAssessmentParameter(p.id!);
+            ref.invalidate(adminAssessmentProvider(org.id!));
+          },
+        ),
         columns: [
           AppTableColumn(
             label:       'Name',
@@ -1121,6 +1149,14 @@ class _AssetsTab extends ConsumerWidget {
         isLoading:  assetsAsync.isLoading,
         rows:       assetsAsync.value ?? [],
         searchable: true,
+        mobileCardBuilder: (a) => _AssetMobileCard(
+          asset:   a,
+          onEdit:  () => _showSheet(context, ref, a),
+          onDelete: () async {
+            await ref.read(clientProvider).admin.deleteAsset(a.id!);
+            ref.invalidate(adminAssetsProvider(org.id!));
+          },
+        ),
         columns: [
           AppTableColumn(
             label:       'Name',
@@ -1427,6 +1463,157 @@ class _ActionBtn extends StatelessWidget {
           child: Icon(icon, size: 16,
               color: color ?? AppColors.onSurfaceMuted),
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile card builders for content tables
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TheoryMobileCard extends StatelessWidget {
+  const _TheoryMobileCard({
+    required this.chapter,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final TheoryChapter chapter;
+  final VoidCallback  onEdit;
+  final VoidCallback  onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return MobileDataCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _OrderBadge(order: chapter.chapterOrder),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(chapter.title, style: AppTextStyles.labelLg,
+                    overflow: TextOverflow.ellipsis, maxLines: 2),
+              ),
+              MobileCardActions(onEdit: onEdit, onDelete: onDelete),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              if (chapter.questions != null && chapter.questions!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: Text('${chapter.questions!.length} quiz question(s)',
+                      style: AppTextStyles.bodyXs),
+                ),
+              chapter.videoUrl != null
+                  ? const AppStatusChip(
+                      label: 'Has video', variant: AppChipVariant.success, small: true)
+                  : const AppStatusChip(
+                      label: 'No video', variant: AppChipVariant.neutral, small: true),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ParamMobileCard extends StatelessWidget {
+  const _ParamMobileCard({
+    required this.name,
+    required this.subtitle,
+    required this.maxScore,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final String      name;
+  final String      subtitle;
+  final int         maxScore;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return MobileDataCard(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: AppTextStyles.labelLg,
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(subtitle, style: AppTextStyles.bodyXs,
+                    overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            ),
+            child: Text('$maxScore',
+                style: AppTextStyles.labelSm.copyWith(color: AppColors.primary)),
+          ),
+          const SizedBox(width: 4),
+          MobileCardActions(onEdit: onEdit, onDelete: onDelete),
+        ],
+      ),
+    );
+  }
+}
+
+class _AssetMobileCard extends StatelessWidget {
+  const _AssetMobileCard({
+    required this.asset,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final Asset        asset;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return MobileDataCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(asset.name, style: AppTextStyles.labelLg,
+                        overflow: TextOverflow.ellipsis),
+                    if (asset.description != null)
+                      Text(asset.description!, style: AppTextStyles.bodyXs,
+                          overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              MobileCardActions(onEdit: onEdit, onDelete: onDelete),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Text('v${asset.version}', style: AppTextStyles.bodyXs),
+              const SizedBox(width: AppSpacing.sm),
+              _ModuleChip(module: asset.module),
+            ],
+          ),
+        ],
       ),
     );
   }

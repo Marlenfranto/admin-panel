@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/theme.dart';
 import 'app_skeleton_loader.dart';
+import 'responsive_helper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Column definition
@@ -64,6 +65,7 @@ class AppDataTable<T> extends StatefulWidget {
     this.onRowTap,
     this.rowKey,
     this.searchable    = false,
+    this.mobileCardBuilder,
   });
 
   final List<AppTableColumn<T>>  columns;
@@ -79,6 +81,11 @@ class AppDataTable<T> extends StatefulWidget {
   /// When true, a search bar appears above the table header.
   /// Columns must have [AppTableColumn.searchValue] set to participate.
   final bool searchable;
+
+  /// Optional card builder for mobile screens. When provided, the table
+  /// switches to a card-based list layout on screens < 600px instead of
+  /// rendering the full column-based table. Each card receives the row data.
+  final Widget Function(T row)? mobileCardBuilder;
 
   @override
   State<AppDataTable<T>> createState() => _AppDataTableState<T>();
@@ -157,6 +164,8 @@ class _AppDataTableState<T> extends State<AppDataTable<T>> {
   @override
   Widget build(BuildContext context) {
     final sorted = _sorted;
+    final useMobileCards =
+        context.isMobile && widget.mobileCardBuilder != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -189,33 +198,50 @@ class _AppDataTableState<T> extends State<AppDataTable<T>> {
           const Divider(height: 1),
         ],
 
-        // ── Header row ──────────────────────────────────────────────────────
-        _HeaderRow(
-          columns:  widget.columns,
-          sortKey:  _sortKey,
-          sortAsc:  _sortAsc,
-          onSort:   _toggleSort,
-        ),
-        const Divider(height: 1),
+        // ── Mobile card layout ──────────────────────────────────────────────
+        if (useMobileCards) ...[
+          if (widget.isLoading)
+            AppTableSkeleton(rows: widget.pageSize.clamp(3, 8))
+          else if (sorted.isEmpty)
+            _EmptyState(
+              message: _query.isNotEmpty
+                  ? 'No results for "$_query".'
+                  : widget.emptyMessage,
+            )
+          else
+            for (final row in _paged)
+              widget.mobileCardBuilder!(row),
+        ]
+        // ── Desktop table layout ────────────────────────────────────────────
+        else ...[
+          // Header row
+          _HeaderRow(
+            columns:  widget.columns,
+            sortKey:  _sortKey,
+            sortAsc:  _sortAsc,
+            onSort:   _toggleSort,
+          ),
+          const Divider(height: 1),
 
-        // ── Body ────────────────────────────────────────────────────────────
-        if (widget.isLoading)
-          AppTableSkeleton(rows: widget.pageSize.clamp(3, 8))
-        else if (sorted.isEmpty)
-          _EmptyState(
-            message: _query.isNotEmpty
-                ? 'No results for "$_query".'
-                : widget.emptyMessage,
-          )
-        else
-          for (final row in _paged)
-            _DataRow<T>(
-              row:      row,
-              columns:  widget.columns,
-              onTap:    widget.onRowTap != null
-                  ? () => widget.onRowTap!(row)
-                  : null,
-            ),
+          // Body
+          if (widget.isLoading)
+            AppTableSkeleton(rows: widget.pageSize.clamp(3, 8))
+          else if (sorted.isEmpty)
+            _EmptyState(
+              message: _query.isNotEmpty
+                  ? 'No results for "$_query".'
+                  : widget.emptyMessage,
+            )
+          else
+            for (final row in _paged)
+              _DataRow<T>(
+                row:      row,
+                columns:  widget.columns,
+                onTap:    widget.onRowTap != null
+                    ? () => widget.onRowTap!(row)
+                    : null,
+              ),
+        ],
 
         // ── Pagination ──────────────────────────────────────────────────────
         if (!widget.isLoading && sorted.length > widget.pageSize)

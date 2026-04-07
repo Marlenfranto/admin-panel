@@ -31,32 +31,39 @@ import 'scoring_rule.dart' as _i18;
 import 'subscription_modules.dart' as _i19;
 import 'supported_language.dart' as _i20;
 import 'theory_chapter.dart' as _i21;
-import 'theory_section_response.dart' as _i22;
-import 'tools.dart' as _i23;
-import 'training_criteria_score.dart' as _i24;
-import 'training_parameter.dart' as _i25;
-import 'training_session_result.dart' as _i26;
-import 'user_module_progress.dart' as _i27;
-import 'video_metadata.dart' as _i28;
-import 'package:admin_panel_client/src/protocol/organization.dart' as _i29;
-import 'package:admin_panel_client/src/protocol/app_user.dart' as _i30;
+import 'theory_chapter_with_progress.dart' as _i22;
+import 'theory_section_response.dart' as _i23;
+import 'tools.dart' as _i24;
+import 'training_criteria_score.dart' as _i25;
+import 'training_parameter.dart' as _i26;
+import 'training_session_result.dart' as _i27;
+import 'training_session_result_page.dart' as _i28;
+import 'training_user_summary.dart' as _i29;
+import 'training_user_summary_page.dart' as _i30;
+import 'user_module_progress.dart' as _i31;
+import 'user_theory_progress.dart' as _i32;
+import 'video_metadata.dart' as _i33;
+import 'package:admin_panel_client/src/protocol/organization.dart' as _i34;
+import 'package:admin_panel_client/src/protocol/app_user.dart' as _i35;
 import 'package:admin_panel_client/src/protocol/supported_language.dart'
-    as _i31;
-import 'package:admin_panel_client/src/protocol/theory_chapter.dart' as _i32;
-import 'package:admin_panel_client/src/protocol/training_parameter.dart'
-    as _i33;
-import 'package:admin_panel_client/src/protocol/assessment_parameter.dart'
-    as _i34;
-import 'package:admin_panel_client/src/protocol/asset.dart' as _i35;
-import 'package:admin_panel_client/src/protocol/user_module_progress.dart'
     as _i36;
-import 'package:admin_panel_client/src/protocol/training_session_result.dart'
-    as _i37;
-import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
+import 'package:admin_panel_client/src/protocol/theory_chapter.dart' as _i37;
+import 'package:admin_panel_client/src/protocol/training_parameter.dart'
     as _i38;
-import 'package:admin_panel_client/src/protocol/training_criteria_score.dart'
+import 'package:admin_panel_client/src/protocol/assessment_parameter.dart'
     as _i39;
-import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i40;
+import 'package:admin_panel_client/src/protocol/asset.dart' as _i40;
+import 'package:admin_panel_client/src/protocol/user_module_progress.dart'
+    as _i41;
+import 'package:admin_panel_client/src/protocol/training_session_result.dart'
+    as _i42;
+import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
+    as _i43;
+import 'package:admin_panel_client/src/protocol/training_criteria_score.dart'
+    as _i44;
+import 'package:admin_panel_client/src/protocol/theory_chapter_with_progress.dart'
+    as _i45;
+import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i46;
 export 'app_user.dart';
 export 'assessment_parameter.dart';
 export 'asset.dart';
@@ -77,12 +84,17 @@ export 'scoring_rule.dart';
 export 'subscription_modules.dart';
 export 'supported_language.dart';
 export 'theory_chapter.dart';
+export 'theory_chapter_with_progress.dart';
 export 'theory_section_response.dart';
 export 'tools.dart';
 export 'training_criteria_score.dart';
 export 'training_parameter.dart';
 export 'training_session_result.dart';
+export 'training_session_result_page.dart';
+export 'training_user_summary.dart';
+export 'training_user_summary_page.dart';
 export 'user_module_progress.dart';
+export 'user_theory_progress.dart';
 export 'video_metadata.dart';
 export 'client.dart';
 
@@ -180,26 +192,41 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i21.TheoryChapter) {
       return _i21.TheoryChapter.fromJson(data) as T;
     }
-    if (t == _i22.TheorySectionResponse) {
-      return _i22.TheorySectionResponse.fromJson(data) as T;
+    if (t == _i22.TheoryChapterWithProgress) {
+      return _i22.TheoryChapterWithProgress.fromJson(data) as T;
     }
-    if (t == _i23.Tools) {
-      return _i23.Tools.fromJson(data) as T;
+    if (t == _i23.TheorySectionResponse) {
+      return _i23.TheorySectionResponse.fromJson(data) as T;
     }
-    if (t == _i24.TrainingCriteriaScore) {
-      return _i24.TrainingCriteriaScore.fromJson(data) as T;
+    if (t == _i24.Tools) {
+      return _i24.Tools.fromJson(data) as T;
     }
-    if (t == _i25.TrainingParameter) {
-      return _i25.TrainingParameter.fromJson(data) as T;
+    if (t == _i25.TrainingCriteriaScore) {
+      return _i25.TrainingCriteriaScore.fromJson(data) as T;
     }
-    if (t == _i26.TrainingSessionResult) {
-      return _i26.TrainingSessionResult.fromJson(data) as T;
+    if (t == _i26.TrainingParameter) {
+      return _i26.TrainingParameter.fromJson(data) as T;
     }
-    if (t == _i27.UserModuleProgress) {
-      return _i27.UserModuleProgress.fromJson(data) as T;
+    if (t == _i27.TrainingSessionResult) {
+      return _i27.TrainingSessionResult.fromJson(data) as T;
     }
-    if (t == _i28.VideoMetadata) {
-      return _i28.VideoMetadata.fromJson(data) as T;
+    if (t == _i28.TrainingSessionResultPage) {
+      return _i28.TrainingSessionResultPage.fromJson(data) as T;
+    }
+    if (t == _i29.TrainingUserSummary) {
+      return _i29.TrainingUserSummary.fromJson(data) as T;
+    }
+    if (t == _i30.TrainingUserSummaryPage) {
+      return _i30.TrainingUserSummaryPage.fromJson(data) as T;
+    }
+    if (t == _i31.UserModuleProgress) {
+      return _i31.UserModuleProgress.fromJson(data) as T;
+    }
+    if (t == _i32.UserTheoryProgress) {
+      return _i32.UserTheoryProgress.fromJson(data) as T;
+    }
+    if (t == _i33.VideoMetadata) {
+      return _i33.VideoMetadata.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AppUser?>()) {
       return (data != null ? _i2.AppUser.fromJson(data) : null) as T;
@@ -271,30 +298,54 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i21.TheoryChapter?>()) {
       return (data != null ? _i21.TheoryChapter.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i22.TheorySectionResponse?>()) {
-      return (data != null ? _i22.TheorySectionResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i22.TheoryChapterWithProgress?>()) {
+      return (data != null
+              ? _i22.TheoryChapterWithProgress.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i23.Tools?>()) {
-      return (data != null ? _i23.Tools.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i24.TrainingCriteriaScore?>()) {
-      return (data != null ? _i24.TrainingCriteriaScore.fromJson(data) : null)
+    if (t == _i1.getType<_i23.TheorySectionResponse?>()) {
+      return (data != null ? _i23.TheorySectionResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i25.TrainingParameter?>()) {
-      return (data != null ? _i25.TrainingParameter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i24.Tools?>()) {
+      return (data != null ? _i24.Tools.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i26.TrainingSessionResult?>()) {
-      return (data != null ? _i26.TrainingSessionResult.fromJson(data) : null)
+    if (t == _i1.getType<_i25.TrainingCriteriaScore?>()) {
+      return (data != null ? _i25.TrainingCriteriaScore.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i27.UserModuleProgress?>()) {
-      return (data != null ? _i27.UserModuleProgress.fromJson(data) : null)
+    if (t == _i1.getType<_i26.TrainingParameter?>()) {
+      return (data != null ? _i26.TrainingParameter.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i27.TrainingSessionResult?>()) {
+      return (data != null ? _i27.TrainingSessionResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i28.VideoMetadata?>()) {
-      return (data != null ? _i28.VideoMetadata.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i28.TrainingSessionResultPage?>()) {
+      return (data != null
+              ? _i28.TrainingSessionResultPage.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _i1.getType<_i29.TrainingUserSummary?>()) {
+      return (data != null ? _i29.TrainingUserSummary.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i30.TrainingUserSummaryPage?>()) {
+      return (data != null ? _i30.TrainingUserSummaryPage.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i31.UserModuleProgress?>()) {
+      return (data != null ? _i31.UserModuleProgress.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i32.UserTheoryProgress?>()) {
+      return (data != null ? _i32.UserTheoryProgress.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i33.VideoMetadata?>()) {
+      return (data != null ? _i33.VideoMetadata.fromJson(data) : null) as T;
     }
     if (t == List<_i15.OrganizationUserLink>) {
       return (data as List)
@@ -316,9 +367,9 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i25.TrainingParameter>) {
+    if (t == List<_i26.TrainingParameter>) {
       return (data as List)
-              .map((e) => deserialize<_i25.TrainingParameter>(e))
+              .map((e) => deserialize<_i26.TrainingParameter>(e))
               .toList()
           as T;
     }
@@ -338,6 +389,20 @@ class Protocol extends _i1.SerializationManager {
       return (data != null
               ? (data as List)
                     .map((e) => deserialize<_i20.SupportedLanguage>(e))
+                    .toList()
+              : null)
+          as T;
+    }
+    if (t == List<_i14.Organization>) {
+      return (data as List)
+              .map((e) => deserialize<_i14.Organization>(e))
+              .toList()
+          as T;
+    }
+    if (t == _i1.getType<List<_i14.Organization>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_i14.Organization>(e))
                     .toList()
               : null)
           as T;
@@ -365,73 +430,85 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i24.TrainingCriteriaScore>) {
+    if (t == List<_i25.TrainingCriteriaScore>) {
       return (data as List)
-              .map((e) => deserialize<_i24.TrainingCriteriaScore>(e))
+              .map((e) => deserialize<_i25.TrainingCriteriaScore>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i24.TrainingCriteriaScore>?>()) {
+    if (t == _i1.getType<List<_i25.TrainingCriteriaScore>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i24.TrainingCriteriaScore>(e))
+                    .map((e) => deserialize<_i25.TrainingCriteriaScore>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i29.Organization>) {
+    if (t == List<_i27.TrainingSessionResult>) {
       return (data as List)
-              .map((e) => deserialize<_i29.Organization>(e))
+              .map((e) => deserialize<_i27.TrainingSessionResult>(e))
               .toList()
           as T;
     }
-    if (t == List<_i30.AppUser>) {
-      return (data as List).map((e) => deserialize<_i30.AppUser>(e)).toList()
-          as T;
-    }
-    if (t == List<_i31.SupportedLanguage>) {
+    if (t == List<_i29.TrainingUserSummary>) {
       return (data as List)
-              .map((e) => deserialize<_i31.SupportedLanguage>(e))
+              .map((e) => deserialize<_i29.TrainingUserSummary>(e))
               .toList()
           as T;
     }
-    if (t == List<_i32.TheoryChapter>) {
+    if (t == List<_i34.Organization>) {
       return (data as List)
-              .map((e) => deserialize<_i32.TheoryChapter>(e))
+              .map((e) => deserialize<_i34.Organization>(e))
               .toList()
           as T;
     }
-    if (t == List<_i33.TrainingParameter>) {
+    if (t == List<_i35.AppUser>) {
+      return (data as List).map((e) => deserialize<_i35.AppUser>(e)).toList()
+          as T;
+    }
+    if (t == List<_i36.SupportedLanguage>) {
       return (data as List)
-              .map((e) => deserialize<_i33.TrainingParameter>(e))
+              .map((e) => deserialize<_i36.SupportedLanguage>(e))
               .toList()
           as T;
     }
-    if (t == List<_i34.AssessmentParameter>) {
+    if (t == List<_i37.TheoryChapter>) {
       return (data as List)
-              .map((e) => deserialize<_i34.AssessmentParameter>(e))
+              .map((e) => deserialize<_i37.TheoryChapter>(e))
               .toList()
           as T;
     }
-    if (t == List<_i35.Asset>) {
-      return (data as List).map((e) => deserialize<_i35.Asset>(e)).toList()
-          as T;
-    }
-    if (t == List<_i36.UserModuleProgress>) {
+    if (t == List<_i38.TrainingParameter>) {
       return (data as List)
-              .map((e) => deserialize<_i36.UserModuleProgress>(e))
+              .map((e) => deserialize<_i38.TrainingParameter>(e))
               .toList()
           as T;
     }
-    if (t == List<_i37.TrainingSessionResult>) {
+    if (t == List<_i39.AssessmentParameter>) {
       return (data as List)
-              .map((e) => deserialize<_i37.TrainingSessionResult>(e))
+              .map((e) => deserialize<_i39.AssessmentParameter>(e))
               .toList()
           as T;
     }
-    if (t == List<_i38.ManagerNotificationDetail>) {
+    if (t == List<_i40.Asset>) {
+      return (data as List).map((e) => deserialize<_i40.Asset>(e)).toList()
+          as T;
+    }
+    if (t == List<_i41.UserModuleProgress>) {
       return (data as List)
-              .map((e) => deserialize<_i38.ManagerNotificationDetail>(e))
+              .map((e) => deserialize<_i41.UserModuleProgress>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i42.TrainingSessionResult>) {
+      return (data as List)
+              .map((e) => deserialize<_i42.TrainingSessionResult>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i43.ManagerNotificationDetail>) {
+      return (data as List)
+              .map((e) => deserialize<_i43.ManagerNotificationDetail>(e))
               .toList()
           as T;
     }
@@ -447,14 +524,20 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i39.TrainingCriteriaScore>) {
+    if (t == List<_i44.TrainingCriteriaScore>) {
       return (data as List)
-              .map((e) => deserialize<_i39.TrainingCriteriaScore>(e))
+              .map((e) => deserialize<_i44.TrainingCriteriaScore>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i45.TheoryChapterWithProgress>) {
+      return (data as List)
+              .map((e) => deserialize<_i45.TheoryChapterWithProgress>(e))
               .toList()
           as T;
     }
     try {
-      return _i40.Protocol().deserialize<T>(data, t);
+      return _i46.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -481,13 +564,18 @@ class Protocol extends _i1.SerializationManager {
       _i19.SubscriptionModules => 'SubscriptionModules',
       _i20.SupportedLanguage => 'SupportedLanguage',
       _i21.TheoryChapter => 'TheoryChapter',
-      _i22.TheorySectionResponse => 'TheorySectionResponse',
-      _i23.Tools => 'Tools',
-      _i24.TrainingCriteriaScore => 'TrainingCriteriaScore',
-      _i25.TrainingParameter => 'TrainingParameter',
-      _i26.TrainingSessionResult => 'TrainingSessionResult',
-      _i27.UserModuleProgress => 'UserModuleProgress',
-      _i28.VideoMetadata => 'VideoMetadata',
+      _i22.TheoryChapterWithProgress => 'TheoryChapterWithProgress',
+      _i23.TheorySectionResponse => 'TheorySectionResponse',
+      _i24.Tools => 'Tools',
+      _i25.TrainingCriteriaScore => 'TrainingCriteriaScore',
+      _i26.TrainingParameter => 'TrainingParameter',
+      _i27.TrainingSessionResult => 'TrainingSessionResult',
+      _i28.TrainingSessionResultPage => 'TrainingSessionResultPage',
+      _i29.TrainingUserSummary => 'TrainingUserSummary',
+      _i30.TrainingUserSummaryPage => 'TrainingUserSummaryPage',
+      _i31.UserModuleProgress => 'UserModuleProgress',
+      _i32.UserTheoryProgress => 'UserTheoryProgress',
+      _i33.VideoMetadata => 'VideoMetadata',
       _ => null,
     };
   }
@@ -542,22 +630,32 @@ class Protocol extends _i1.SerializationManager {
         return 'SupportedLanguage';
       case _i21.TheoryChapter():
         return 'TheoryChapter';
-      case _i22.TheorySectionResponse():
+      case _i22.TheoryChapterWithProgress():
+        return 'TheoryChapterWithProgress';
+      case _i23.TheorySectionResponse():
         return 'TheorySectionResponse';
-      case _i23.Tools():
+      case _i24.Tools():
         return 'Tools';
-      case _i24.TrainingCriteriaScore():
+      case _i25.TrainingCriteriaScore():
         return 'TrainingCriteriaScore';
-      case _i25.TrainingParameter():
+      case _i26.TrainingParameter():
         return 'TrainingParameter';
-      case _i26.TrainingSessionResult():
+      case _i27.TrainingSessionResult():
         return 'TrainingSessionResult';
-      case _i27.UserModuleProgress():
+      case _i28.TrainingSessionResultPage():
+        return 'TrainingSessionResultPage';
+      case _i29.TrainingUserSummary():
+        return 'TrainingUserSummary';
+      case _i30.TrainingUserSummaryPage():
+        return 'TrainingUserSummaryPage';
+      case _i31.UserModuleProgress():
         return 'UserModuleProgress';
-      case _i28.VideoMetadata():
+      case _i32.UserTheoryProgress():
+        return 'UserTheoryProgress';
+      case _i33.VideoMetadata():
         return 'VideoMetadata';
     }
-    className = _i40.Protocol().getClassNameForObject(data);
+    className = _i46.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth.$className';
     }
@@ -630,30 +728,45 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'TheoryChapter') {
       return deserialize<_i21.TheoryChapter>(data['data']);
     }
+    if (dataClassName == 'TheoryChapterWithProgress') {
+      return deserialize<_i22.TheoryChapterWithProgress>(data['data']);
+    }
     if (dataClassName == 'TheorySectionResponse') {
-      return deserialize<_i22.TheorySectionResponse>(data['data']);
+      return deserialize<_i23.TheorySectionResponse>(data['data']);
     }
     if (dataClassName == 'Tools') {
-      return deserialize<_i23.Tools>(data['data']);
+      return deserialize<_i24.Tools>(data['data']);
     }
     if (dataClassName == 'TrainingCriteriaScore') {
-      return deserialize<_i24.TrainingCriteriaScore>(data['data']);
+      return deserialize<_i25.TrainingCriteriaScore>(data['data']);
     }
     if (dataClassName == 'TrainingParameter') {
-      return deserialize<_i25.TrainingParameter>(data['data']);
+      return deserialize<_i26.TrainingParameter>(data['data']);
     }
     if (dataClassName == 'TrainingSessionResult') {
-      return deserialize<_i26.TrainingSessionResult>(data['data']);
+      return deserialize<_i27.TrainingSessionResult>(data['data']);
+    }
+    if (dataClassName == 'TrainingSessionResultPage') {
+      return deserialize<_i28.TrainingSessionResultPage>(data['data']);
+    }
+    if (dataClassName == 'TrainingUserSummary') {
+      return deserialize<_i29.TrainingUserSummary>(data['data']);
+    }
+    if (dataClassName == 'TrainingUserSummaryPage') {
+      return deserialize<_i30.TrainingUserSummaryPage>(data['data']);
     }
     if (dataClassName == 'UserModuleProgress') {
-      return deserialize<_i27.UserModuleProgress>(data['data']);
+      return deserialize<_i31.UserModuleProgress>(data['data']);
+    }
+    if (dataClassName == 'UserTheoryProgress') {
+      return deserialize<_i32.UserTheoryProgress>(data['data']);
     }
     if (dataClassName == 'VideoMetadata') {
-      return deserialize<_i28.VideoMetadata>(data['data']);
+      return deserialize<_i33.VideoMetadata>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth.')) {
       data['className'] = dataClassName.substring(15);
-      return _i40.Protocol().deserializeByClassName(data);
+      return _i46.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -668,7 +781,7 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i40.Protocol().mapRecordToJson(record);
+      return _i46.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

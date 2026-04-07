@@ -8,7 +8,7 @@
 PRODUCT_NAME = admin_panel_flutter
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.adminPanelFlutter
+PRODUCT_BUNDLE_IDENTIFIER = com.mako.firesafex
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.

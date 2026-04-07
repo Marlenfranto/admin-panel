@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/theme.dart';
 import 'app_gradient_button.dart';
+import 'responsive_helper.dart';
 
 /// Shows a right-side sheet that slides in with a 280 ms ease-in-out
 /// transition. The background scrim is semi-transparent.
@@ -104,12 +105,18 @@ class _SideSheetScaffoldState extends State<_SideSheetScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    // Full-width on mobile, fixed 420px on wider screens.
+    final isMobile = context.isMobile;
+    final sheetWidth = isMobile
+        ? MediaQuery.sizeOf(context).width
+        : AppSpacing.sideSheetWidth;
+
     return Align(
       alignment: Alignment.centerRight,
       child: Material(
         color:     Colors.transparent,
         child: Container(
-          width:  AppSpacing.sideSheetWidth,
+          width:  sheetWidth,
           height: double.infinity,
           decoration: BoxDecoration(
             color: AppColors.surfaceVariant,
@@ -124,7 +131,8 @@ class _SideSheetScaffoldState extends State<_SideSheetScaffold> {
               ),
             ],
           ),
-          child: Column(
+          child: SafeArea(
+           child: Column(
             children: [
               // ── Header ──────────────────────────────────────────────────
               Padding(
@@ -210,6 +218,7 @@ class _SideSheetScaffoldState extends State<_SideSheetScaffold> {
                 ),
               ),
             ],
+           ),
           ),
         ),
       ),
@@ -233,6 +242,7 @@ class SheetField extends StatelessWidget {
     this.suffix,
     this.validator,
     this.enabled = true,
+    this.obscureText = false,
   });
 
   final String             label;
@@ -243,6 +253,7 @@ class SheetField extends StatelessWidget {
   final Widget?            suffix;
   final String? Function(String?)? validator;
   final bool               enabled;
+  final bool               obscureText;
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +267,7 @@ class SheetField extends StatelessWidget {
           keyboardType: keyboardType,
           maxLines:     maxLines,
           enabled:      enabled,
+          obscureText:  obscureText,
           decoration: InputDecoration(
             hintText:   hint,
             suffixIcon: suffix,

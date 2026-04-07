@@ -14,7 +14,7 @@ import 'package:serverpod/serverpod.dart' as _i1;
 
 enum Role implements _i1.SerializableModel {
   SuperAdmin,
-  Admin,
+  OrganizationAdmin,
   Manager,
   User;
 
@@ -22,8 +22,8 @@ enum Role implements _i1.SerializableModel {
     switch (name) {
       case 'SuperAdmin':
         return Role.SuperAdmin;
-      case 'Admin':
-        return Role.Admin;
+      case 'OrganizationAdmin':
+        return Role.OrganizationAdmin;
       case 'Manager':
         return Role.Manager;
       case 'User':

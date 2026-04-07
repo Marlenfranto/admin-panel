@@ -4,8 +4,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../src/providers.dart';
 
 // ── Organization ──────────────────────────────────────────────────────────────
+
+/// All organizations and teams from the server (unfiltered).
 final allOrganizationsProvider = FutureProvider<List<Organization>>((ref) async {
   return ref.watch(clientProvider).admin.getAllOrganizations();
+});
+
+/// Only top-level organizations (parentId == null).
+final parentOrgsProvider = FutureProvider<List<Organization>>((ref) async {
+  final orgs = await ref.watch(allOrganizationsProvider.future);
+  return orgs.where((o) => o.parentId == null).toList();
+});
+
+/// Teams for a specific organization.
+final teamsByParentProvider = FutureProvider.family<List<Organization>, int>((ref, parentId) async {
+  final orgs = await ref.watch(allOrganizationsProvider.future);
+  return orgs.where((o) => o.parentId == parentId).toList();
+});
+
+/// Only teams (child organizations where parentId != null).
+final allTeamsProvider = FutureProvider<List<Organization>>((ref) async {
+  final orgs = await ref.watch(allOrganizationsProvider.future);
+  return orgs.where((o) => o.parentId != null).toList();
 });
 
 // ── Users ─────────────────────────────────────────────────────────────────────

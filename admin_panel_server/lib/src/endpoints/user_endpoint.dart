@@ -30,7 +30,13 @@ class UserEndpoint extends Endpoint {
       session,
       where: (l) => l.appUserId.equals(appUser.id),
     );
-    return link?.organizationId;
+    if (link == null) return null;
+
+    // Users are linked to teams (child orgs). Module config and progress records
+    // are stored at the parent org level, so resolve up to the parent org ID.
+    final org = await Organization.db.findById(session, link.organizationId);
+    if (org == null) return null;
+    return org.parentId ?? org.id;
   }
 
   Future<ModuleConfig?> getMyOrgModuleConfig(Session session) async {
@@ -212,5 +218,115 @@ class UserEndpoint extends Endpoint {
       existing.completedAt = DateTime.now().toUtc();
     }
     return await UserModuleProgress.db.updateRow(session, existing);
+  }
+
+  // ── Theory Progress ──────────────────────────────────────────────────────────
+
+  /// Fetches all theory chapters for the authenticated user's organization,
+  /// including the user's specific progress/score for each.
+  Future<List<TheoryChapterWithProgress>> getTheoryChaptersWithProgress(
+      Session session) async {
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return [];
+
+    final authInfo = await session.authenticated;
+    if (authInfo == null) return [];
+
+    final appUser = await AppUser.db.findFirstRow(
+      session,
+      where: (u) => u.userInfoId.equals(authInfo.userId),
+    );
+    if (appUser == null) return [];
+
+    // 1. Fetch all chapters for the org
+    final chapters = await TheoryChapter.db.find(
+      session,
+      where: (c) => c.organizationId.equals(orgId),
+      orderBy: (c) => c.chapterOrder,
+    );
+
+    // 2. Fetch user performance record for these chapters
+    final progressList = await UserTheoryProgress.db.find(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUser.id) & p.organizationId.equals(orgId),
+    );
+
+    final progressMap = {
+      for (final p in progressList) p.chapterId: p,
+    };
+
+    return chapters.map((c) {
+      return TheoryChapterWithProgress(
+        chapter: c,
+        progress: progressMap[c.id],
+      );
+    }).toList();
+  }
+
+  /// Validates a quiz submission and saves the user's result.
+  /// Throws if authorization fails or chapter is not found.
+  Future<UserTheoryProgress?> submitTheoryQuiz(
+    Session session,
+    int chapterId,
+    int score,
+  ) async {
+    final authInfo = await session.authenticated;
+    if (authInfo == null) return null;
+
+    final appUser = await AppUser.db.findFirstRow(
+      session,
+      where: (u) => u.userInfoId.equals(authInfo.userId),
+    );
+    if (appUser == null) return null;
+
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return null;
+
+    // Validate chapter existence and ownership
+    final chapter = await TheoryChapter.db.findById(session, chapterId);
+    if (chapter == null || chapter.organizationId != orgId) {
+      throw Exception('Forbidden: Chapter not found or access denied.');
+    }
+
+    final now = DateTime.now().toUtc();
+
+    var existing = await UserTheoryProgress.db.findFirstRow(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUser.id) &
+          p.organizationId.equals(orgId) &
+          p.chapterId.equals(chapterId),
+    );
+
+    // Check if the score meets the organization's passing threshold
+    final config = await ModuleConfig.db.findFirstRow(
+      session,
+      where: (c) => c.organizationId.equals(orgId),
+    );
+    final passingPercentage = config?.passingPercentage ?? 60;
+
+    final status = score >= passingPercentage
+        ? ModuleProgressStatus.completed 
+        : ModuleProgressStatus.inProgress;
+
+    if (existing != null) {
+      existing.score = score;
+      existing.status = status;
+      existing.completedAt = now;
+      return await UserTheoryProgress.db.updateRow(session, existing);
+    } else {
+      return await UserTheoryProgress.db.insertRow(
+        session,
+        UserTheoryProgress(
+          appUserId: appUser.id!,
+          organizationId: orgId,
+          chapterId: chapterId,
+          score: score,
+          status: status,
+          completedAt: now,
+        ),
+      );
+    }
   }
 }

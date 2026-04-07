@@ -19,7 +19,7 @@ class AccountSettingsPage extends ConsumerWidget {
     final initial  = (userInfo?.userName ?? '?')[0].toUpperCase();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
+      padding: EdgeInsets.all(context.responsivePagePadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

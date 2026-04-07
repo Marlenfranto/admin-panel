@@ -20,7 +20,7 @@ class ManagerAssetsScreen extends ConsumerWidget {
     final assets      = assetsAsync.value ?? [];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
+      padding: EdgeInsets.all(context.responsivePagePadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -158,6 +158,11 @@ class ManagerAssetsScreen extends ConsumerWidget {
                   isLoading:  assetsAsync.isLoading,
                   rows:       assets,
                   searchable: true,
+                  mobileCardBuilder: (a) => _AssetMobileCard(
+                    asset:    a,
+                    onEdit:   () => _showAssetSheet(context, ref, a),
+                    onDelete: () => _deleteAsset(context, ref, a),
+                  ),
                   columns: [
                     AppTableColumn(
                       label:       'Name',
@@ -713,6 +718,62 @@ class _AssetFormBody extends StatelessWidget {
           hint:       'Brief description of this asset',
         ),
       ],
+    );
+  }
+}
+
+// ── Mobile card for assets ───────────────────────────────────────────────────
+
+class _AssetMobileCard extends StatelessWidget {
+  const _AssetMobileCard({
+    required this.asset,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final Asset        asset;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return MobileDataCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _AssetIcon(module: asset.module),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(asset.name, style: AppTextStyles.labelLg,
+                        overflow: TextOverflow.ellipsis),
+                    if (asset.description != null && asset.description!.isNotEmpty)
+                      Text(asset.description!, style: AppTextStyles.bodyXs,
+                          overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              MobileCardActions(onEdit: onEdit, onDelete: onDelete),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              _VersionBadge(version: asset.version),
+              const SizedBox(width: AppSpacing.sm),
+              AppStatusChip(
+                label:   ManagerAssetsScreen._moduleLabel(asset.module),
+                variant: ManagerAssetsScreen._moduleVariant(asset.module),
+                small:   true,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

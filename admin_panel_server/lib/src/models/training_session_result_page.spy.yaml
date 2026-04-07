@@ -1,0 +1,5 @@
+class: TrainingSessionResultPage
+fields:
+  results: List<TrainingSessionResult>
+  totalCount: int
+  hasMore: bool

@@ -176,10 +176,13 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orgsAsync = ref.watch(allOrganizationsProvider);
+    final orgsAsync    = ref.watch(parentOrgsProvider);
+    final allOrgsAsync = ref.watch(allOrganizationsProvider);
+
+    final isMobile = context.isMobile;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
+      padding: EdgeInsets.all(context.responsivePagePadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -308,39 +311,54 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
 
-                  // Default language row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Default Language',
-                                style: AppTextStyles.labelMd),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Used when no language is specified',
-                              style: AppTextStyles.bodyXs,
-                            ),
-                          ],
-                        ),
+                  // Default language row — stacks on mobile
+                  if (isMobile) ...[
+                    Text('Default Language',
+                        style: AppTextStyles.labelMd),
+                    const SizedBox(height: 4),
+                    Text('Used when no language is specified',
+                        style: AppTextStyles.bodyXs),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextField(
+                      controller: _defaultLangCtrl,
+                      decoration: const InputDecoration(
+                        hintText: 'en',
+                        prefixIcon: Icon(Icons.translate_rounded, size: 16),
                       ),
-                      const SizedBox(width: AppSpacing.lg),
-                      SizedBox(
-                        width: 160,
-                        child: TextField(
-                          controller: _defaultLangCtrl,
-                          decoration: const InputDecoration(
-                            hintText:  'en',
-                            prefixIcon: Icon(
-                                Icons.translate_rounded, size: 16),
+                    ),
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Default Language',
+                                  style: AppTextStyles.labelMd),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Used when no language is specified',
+                                style: AppTextStyles.bodyXs,
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: AppSpacing.lg),
+                        SizedBox(
+                          width: 160,
+                          child: TextField(
+                            controller: _defaultLangCtrl,
+                            decoration: const InputDecoration(
+                              hintText:  'en',
+                              prefixIcon: Icon(
+                                  Icons.translate_rounded, size: 16),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: AppSpacing.lg),
 
                   // Supported languages header
@@ -386,38 +404,97 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                       ),
                     )
                   else ...[
-                    // Column headers
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          bottom: AppSpacing.xs,
-                          left: 2,
-                          right: 40),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 80,
-                            child: Text('CODE',
-                                style: AppTextStyles.labelSm.copyWith(
-                                    letterSpacing: 0.6)),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          SizedBox(
-                            width: 160,
-                            child: Text('NAME',
-                                style: AppTextStyles.labelSm.copyWith(
-                                    letterSpacing: 0.6)),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text('CONTENT URL (OPTIONAL)',
-                                style: AppTextStyles.labelSm.copyWith(
-                                    letterSpacing: 0.6)),
-                          ),
-                        ],
+                    // Column headers (hidden on mobile — fields are labeled inline)
+                    if (!isMobile)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: AppSpacing.xs,
+                            left: 2,
+                            right: 40),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              child: Text('CODE',
+                                  style: AppTextStyles.labelSm.copyWith(
+                                      letterSpacing: 0.6)),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            SizedBox(
+                              width: 160,
+                              child: Text('NAME',
+                                  style: AppTextStyles.labelSm.copyWith(
+                                      letterSpacing: 0.6)),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text('CONTENT URL (OPTIONAL)',
+                                  style: AppTextStyles.labelSm.copyWith(
+                                      letterSpacing: 0.6)),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                     ...List.generate(_languages.length, (i) {
                       final entry = _languages[i];
+
+                      // Stacked layout on mobile
+                      if (isMobile) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          padding: const EdgeInsets.all(AppSpacing.sm),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceVariant,
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: TextField(
+                                      controller: entry.codeCtrl,
+                                      decoration: const InputDecoration(
+                                        hintText: 'en',
+                                        labelText: 'Code',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Expanded(
+                                    flex: 2,
+                                    child: TextField(
+                                      controller: entry.nameCtrl,
+                                      decoration: const InputDecoration(
+                                        hintText: 'English',
+                                        labelText: 'Name',
+                                      ),
+                                    ),
+                                  ),
+                                  _RemoveButton(
+                                    onTap: () => setState(() {
+                                      entry.dispose();
+                                      _languages.removeAt(i);
+                                    }),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              TextField(
+                                controller: entry.urlCtrl,
+                                decoration: const InputDecoration(
+                                  hintText: 'https://…/content.json',
+                                  labelText: 'Content URL (optional)',
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      // Desktop row layout
                       return Padding(
                         padding: const EdgeInsets.only(
                             bottom: AppSpacing.sm),
@@ -515,13 +592,36 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
             const SizedBox(height: AppSpacing.lg),
 
             // ── Per-user module configuration ─────────────────────────────
-            UserModuleConfigPanel(
-              orgUsers: _selectedOrg!.users
-                      ?.map((l) => l.appUser)
-                      .whereType<AppUser>()
-                      .where((u) => u.role == Role.User)
-                      .toList() ??
-                  [],
+            Builder(builder: (_) {
+              // Collect users from the selected org + all its teams,
+              // and build a teamLabels map for display.
+              final allOrgs   = allOrgsAsync.value ?? [];
+              final teams     = allOrgs
+                  .where((o) => o.parentId == _selectedOrg!.id)
+                  .toList();
+              final teamLabels = <int, String>{};
+              final seen       = <int>{};
+              final allUsers   = <AppUser>[];
+
+              for (final link in (_selectedOrg!.users ?? [])) {
+                final u = link.appUser;
+                if (u?.id != null && u!.role == Role.User && seen.add(u.id!)) {
+                  allUsers.add(u);
+                }
+              }
+              for (final team in teams) {
+                for (final link in (team.users ?? [])) {
+                  final u = link.appUser;
+                  if (u?.id != null && u!.role == Role.User && seen.add(u.id!)) {
+                    allUsers.add(u);
+                    teamLabels[u.id!] = team.name;
+                  }
+                }
+              }
+
+              return UserModuleConfigPanel(
+              orgUsers: allUsers,
+              teamLabels: teamLabels.isNotEmpty ? teamLabels : null,
               globalEnabled: {
                 'theory':        _theory,
                 'aiExpert':      _ai,
@@ -551,7 +651,8 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                       );
                 }
               },
-            ),
+            ); // UserModuleConfigPanel
+            }), // Builder
           ],
         ],
       ),

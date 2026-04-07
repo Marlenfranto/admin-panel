@@ -9,6 +9,7 @@ import '../../src/providers.dart';
 // Admin
 import '../../features/admin/screens/admin_shell.dart';
 import '../../features/admin/screens/organizations_screen.dart';
+import '../../features/admin/screens/admin_teams_screen.dart';
 import '../../features/admin/screens/users_screen.dart';
 import '../../features/admin/screens/admin_modules_screen.dart';
 import '../../features/admin/screens/admin_content_screen.dart';
@@ -22,6 +23,16 @@ import '../../features/manager/screens/manager_modules_screen.dart';
 import '../../features/manager/screens/manager_content_screen.dart';
 import '../../features/manager/screens/manager_assets_screen.dart';
 import '../../features/manager/screens/manager_settings_screen.dart';
+import '../../features/org_admin/screens/org_admin_shell.dart';
+import '../../features/org_admin/screens/org_dashboard_screen.dart';
+import '../../features/org_admin/screens/org_teams_screen.dart';
+import '../../features/org_admin/screens/org_users_screen.dart';
+import '../../features/org_admin/screens/org_modules_screen.dart';
+import '../../features/org_admin/screens/org_content_screen.dart';
+import '../../features/org_admin/screens/org_settings_screen.dart';
+
+// Training History
+import '../../features/training_history/screens/training_history_screen.dart';
 
 // User
 import '../../features/user/screens/user_shell.dart';
@@ -86,7 +97,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Guard wrong-role access
-      if (location.startsWith('/admin') && !_isAdmin(role)) {
+      if (location.startsWith('/admin') && !_isSuperAdmin(role)) {
+        return _homeForRole(role);
+      }
+      if (location.startsWith('/org-admin') && !_isOrgAdmin(role)) {
         return _homeForRole(role);
       }
       if (location.startsWith('/manager') && role != Role.Manager) {
@@ -122,6 +136,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 _fadePage(state, const OrganizationsScreen()),
           ),
           GoRoute(
+            path: AppRoutes.adminTeams,
+            name: 'admin-teams',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const AdminTeamsScreen()),
+          ),
+          GoRoute(
             path: AppRoutes.adminUsers,
             name: 'admin-users',
             pageBuilder: (context, state) =>
@@ -138,6 +158,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'admin-content',
             pageBuilder: (context, state) =>
                 _fadePage(state, const AdminContentScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.adminTrainingHistory,
+            name: 'admin-training-history',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const TrainingHistoryScreen()),
           ),
           GoRoute(
             path: AppRoutes.adminSettings,
@@ -183,10 +209,65 @@ final routerProvider = Provider<GoRouter>((ref) {
                 _fadePage(state, const ManagerAssetsScreen()),
           ),
           GoRoute(
+            path: AppRoutes.managerTrainingHistory,
+            name: 'manager-training-history',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const TrainingHistoryScreen()),
+          ),
+          GoRoute(
             path: AppRoutes.managerSettings,
             name: 'manager-settings',
             pageBuilder: (context, state) =>
                 _fadePage(state, const ManagerSettingsScreen()),
+          ),
+        ],
+      ),
+
+      // ── Organization Admin shell ───────────────────────────────────────────
+      ShellRoute(
+        builder: (context, state, child) => OrgAdminShell(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.orgAdminRoot,
+            name: 'org-admin-dashboard',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const OrgDashboardScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.orgAdminTeams,
+            name: 'org-admin-teams',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const OrgTeamsScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.orgAdminUsers,
+            name: 'org-admin-users',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const OrgUsersScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.orgAdminModules,
+            name: 'org-admin-modules',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const OrgModulesScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.orgAdminContent,
+            name: 'org-admin-content',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const OrgContentScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.orgAdminTrainingHistory,
+            name: 'org-admin-training-history',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const TrainingHistoryScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.orgAdminSettings,
+            name: 'org-admin-settings',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const OrgSettingsScreen()),
           ),
         ],
       ),
@@ -233,11 +314,12 @@ CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
   );
 }
 
-bool _isAdmin(Role role) =>
-    role == Role.SuperAdmin || role == Role.Admin;
+bool _isSuperAdmin(Role role) => role == Role.SuperAdmin;
+bool _isOrgAdmin(Role role) => role == Role.OrganizationAdmin;
 
 String _homeForRole(Role role) => switch (role) {
-  Role.SuperAdmin || Role.Admin => AppRoutes.adminOrganizations,
-  Role.Manager                  => AppRoutes.managerOverview,
-  Role.User                     => AppRoutes.userModules,
+  Role.SuperAdmin         => AppRoutes.adminOrganizations,
+  Role.OrganizationAdmin  => AppRoutes.orgAdminRoot,
+  Role.Manager            => AppRoutes.managerOverview,
+  Role.User               => AppRoutes.userModules,
 };

@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 class AppScopes {
   static const admin = Scope('admin');
+  static const organizationAdmin = Scope('organizationAdmin');
   static const manager = Scope('manager');
   static const user = Scope('user');
 }

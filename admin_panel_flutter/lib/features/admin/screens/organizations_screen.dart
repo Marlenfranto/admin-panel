@@ -8,6 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/services/cloudinary_uploader.dart';
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/widgets.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/router/app_routes.dart';
 import '../providers/admin_providers.dart';
 import '../../../src/providers.dart';
 
@@ -16,27 +19,32 @@ class OrganizationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orgsAsync  = ref.watch(allOrganizationsProvider);
+    final orgsAsync  = ref.watch(parentOrgsProvider);
+    final teamsAsync = ref.watch(allTeamsProvider);
     final usersAsync = ref.watch(allUsersProvider);
 
     final orgs    = orgsAsync.value ?? [];
     final managed = orgs.where((o) => o.manager != null).length;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Page header ───────────────────────────────────────────────────
-          _PageHeader(
-            title:    'Organizations',
-            subtitle: 'Manage your registered organizations.',
-            action: AppGradientButton(
-              label:     'Add Organization',
-              icon:      Icons.add_rounded,
-              onPressed: () => _showSheet(context, ref, null),
-            ),
-          ),
+    return ScreenWithFab(
+      icon: Icons.add_rounded,
+      label: 'Add',
+      onPressed: () => _showSheet(context, ref, null),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(context.responsivePagePadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Page header ───────────────────────────────────────────────────
+            ResponsivePageHeader(
+                title:    'Organizations',
+                subtitle: 'Manage your registered organizations.',
+                action: AppGradientButton(
+                  label:     'Add Organization',
+                  icon:      Icons.add_rounded,
+                  onPressed: () => _showSheet(context, ref, null),
+                ),
+              ),
           const SizedBox(height: AppSpacing.lg),
 
           // ── Stats row ─────────────────────────────────────────────────────
@@ -65,6 +73,14 @@ class OrganizationsScreen extends ConsumerWidget {
                 label:       'Managed',
                 isLoading:   orgsAsync.isLoading,
               ),
+              _StatCard(
+                icon:        Icons.groups_rounded,
+                accentColor: AppColors.warning,
+                value:       '${teamsAsync.value?.length ?? 0}',
+                label:       'Teams',
+                isLoading:   teamsAsync.isLoading,
+                onTap:       () => context.go(AppRoutes.adminTeams),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -76,6 +92,7 @@ class OrganizationsScreen extends ConsumerWidget {
             onDelete: (o) => _confirmDelete(context, ref, o),
           ),
         ],
+      ),
       ),
     );
   }
@@ -129,6 +146,7 @@ class OrganizationsScreen extends ConsumerWidget {
               .updateOrganization(existing.id!, nameCtrl.text.trim(), imageUrl);
         }
         ref.invalidate(allOrganizationsProvider);
+        ref.invalidate(parentOrgsProvider);
       },
     );
   }
@@ -166,6 +184,7 @@ class OrganizationsScreen extends ConsumerWidget {
     try {
       await ref.read(clientProvider).admin.deleteOrganization(org.id!);
       ref.invalidate(allOrganizationsProvider);
+      ref.invalidate(parentOrgsProvider);
       ref.invalidate(allUsersProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -183,6 +202,7 @@ class OrganizationsScreen extends ConsumerWidget {
       }
     }
   }
+
 }
 
 // ── Compact stat card ─────────────────────────────────────────────────────────
@@ -194,27 +214,39 @@ class _StatCard extends StatelessWidget {
     required this.value,
     required this.label,
     required this.isLoading,
+    this.onTap,
   });
 
-  final IconData icon;
-  final Color    accentColor;
-  final String   value;
-  final String   label;
-  final bool     isLoading;
+  final IconData       icon;
+  final Color          accentColor;
+  final String         value;
+  final String         label;
+  final bool           isLoading;
+  final VoidCallback?  onTap;
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return const AppSkeletonBox(width: 200, height: 72, radius: AppSpacing.radiusLg);
     }
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: onTap != null
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
+        child: Container(
       constraints: const BoxConstraints(minWidth: 180),
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.cardPadding, vertical: AppSpacing.md),
       decoration: BoxDecoration(
         color:        AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border:       Border.all(color: AppColors.divider),
+        border:       Border.all(
+          color: onTap != null
+              ? accentColor.withValues(alpha: 0.35)
+              : AppColors.divider,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -235,9 +267,18 @@ class _StatCard extends StatelessWidget {
             children: [
               Text(value, style: AppTextStyles.headingMd),
               Text(label,  style: AppTextStyles.bodyXs),
+              if (onTap != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'View →',
+                  style: AppTextStyles.bodyXs.copyWith(color: accentColor),
+                ),
+              ],
             ],
           ),
         ],
+      ),
+        ),
       ),
     );
   }
@@ -286,6 +327,11 @@ class _OrgsTable extends StatelessWidget {
             isLoading:  orgsAsync.isLoading,
             rows:       orgsAsync.value ?? [],
             searchable: true,
+            mobileCardBuilder: (o) => _OrgMobileCard(
+              org: o,
+              onEdit: () => onEdit(o),
+              onDelete: () => onDelete(o),
+            ),
             columns: [
               AppTableColumn(
                 label:       'Organization',
@@ -765,37 +811,93 @@ class _ImagePickerBoxState extends State<_ImagePickerBox> {
 
 // ── Page header ───────────────────────────────────────────────────────────────
 
-class _PageHeader extends StatelessWidget {
-  const _PageHeader({
-    required this.title,
-    required this.subtitle,
-    this.action,
+// ── Mobile card for organizations ─────────────────────────────────────────────
+
+class _OrgMobileCard extends StatelessWidget {
+  const _OrgMobileCard({
+    required this.org,
+    required this.onEdit,
+    required this.onDelete,
   });
 
-  final String  title;
-  final String  subtitle;
-  final Widget? action;
+  final Organization org;
+  final VoidCallback  onEdit;
+  final VoidCallback  onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      margin: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color:        AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        border:       Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Text(title,    style: AppTextStyles.headingLg),
-              const SizedBox(height: 4),
-              Text(subtitle, style: AppTextStyles.bodySm),
+              _OrgAvatar(name: org.name, imageUrl: org.imageUrl),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(org.name, style: AppTextStyles.labelLg,
+                        overflow: TextOverflow.ellipsis),
+                    Text('ID #${org.id}', style: AppTextStyles.bodyXs),
+                  ],
+                ),
+              ),
+              _MembersBadge(count: org.users?.length ?? 0),
             ],
           ),
-        ),
-        if (action != null) ...[
-          const SizedBox(width: AppSpacing.md),
-          action!,
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: org.manager != null
+                    ? Row(
+                        children: [
+                          Icon(Icons.person_rounded,
+                              size: 13, color: AppColors.onSurfaceMuted),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              org.manager!.userInfo?.userName ?? '—',
+                              style: AppTextStyles.bodyXs,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Text('Unassigned',
+                        style: AppTextStyles.bodyXs
+                            .copyWith(color: AppColors.onSurfaceSubtle)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 16),
+                tooltip: 'Edit',
+                color: AppColors.onSurfaceMuted,
+                onPressed: onEdit,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                padding: EdgeInsets.zero,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, size: 16),
+                tooltip: 'Delete',
+                color: AppColors.error,
+                onPressed: onDelete,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ),
         ],
-      ],
+      ),
     );
   }
 }

@@ -30,16 +30,10 @@ class ManagerShell extends StatelessWidget {
       route:      AppRoutes.managerModules,
     ),
     NavItem(
-      icon:       Icons.folder_outlined,
-      activeIcon: Icons.folder_rounded,
-      label:      'Content',
-      route:      AppRoutes.managerContent,
-    ),
-    NavItem(
-      icon:       Icons.perm_media_outlined,
-      activeIcon: Icons.perm_media_rounded,
-      label:      'Assets',
-      route:      AppRoutes.managerAssets,
+      icon:       Icons.history_edu_outlined,
+      activeIcon: Icons.history_edu_rounded,
+      label:      'Training History',
+      route:      AppRoutes.managerTrainingHistory,
     ),
     NavItem(
       icon:       Icons.settings_outlined,

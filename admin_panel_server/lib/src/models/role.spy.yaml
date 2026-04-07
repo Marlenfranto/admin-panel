@@ -2,6 +2,6 @@ enum: Role
 serialized: byName
 values:
   - SuperAdmin
-  - Admin
+  - OrganizationAdmin
   - Manager
   - User

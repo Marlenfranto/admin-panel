@@ -22,39 +22,31 @@ class ManagerTeamScreen extends ConsumerWidget {
             .toList() ??
         [];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.pagePadding),
-      child: Column(
+    return ScreenWithFab(
+      icon: Icons.person_add_rounded,
+      label: 'Add',
+      onPressed: activeOrg == null
+          ? null
+          : () => _showAddSheet(context, ref, activeOrg),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(context.responsivePagePadding),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ─────────────────────────────────────────────────────
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Team', style: AppTextStyles.headingLg),
-                    const SizedBox(height: 4),
-                    Text(
-                      activeOrg != null
-                          ? 'Manage members of ${activeOrg.name}.'
-                          : 'Manage your team members.',
-                      style: AppTextStyles.bodySm,
-                    ),
-                  ],
-                ),
-              ),
-              AppGradientButton(
+          ResponsivePageHeader(
+              title:    'Team',
+              subtitle: activeOrg != null
+                  ? 'Manage members of ${activeOrg.name}.'
+                  : 'Manage your team members.',
+              action: AppGradientButton(
                 label:     'Add Member',
                 icon:      Icons.person_add_rounded,
                 onPressed: activeOrg == null
                     ? null
                     : () => _showAddSheet(context, ref, activeOrg),
               ),
-            ],
-          ),
+            ),
           const SizedBox(height: AppSpacing.lg),
 
           // ── Org selector strip (multi-org managers) ────────────────────
@@ -110,19 +102,8 @@ class ManagerTeamScreen extends ConsumerWidget {
             orgId:      activeOrgId,
             onRemove:   (u) => _removeUser(context, ref, u, activeOrg!),
           ),
-          if (activeOrgId != null) ...[
-            const SizedBox(height: AppSpacing.lg),
-
-            // ── All users training history ────────────────────────────────
-            AllUsersTrainingHistoryPanel(
-              users: users,
-              historyLoader: (userId) => ref
-                  .read(clientProvider)
-                  .manager
-                  .getUserTrainingHistory(userId, activeOrgId),
-            ),
-          ],
         ],
+      ),
       ),
     );
   }
@@ -230,7 +211,7 @@ class ManagerTeamScreen extends ConsumerWidget {
 
 // ── Members table ──────────────────────────────────────────────────────────────
 
-class _MembersTable extends StatelessWidget {
+class _MembersTable extends ConsumerWidget {
   const _MembersTable({
     required this.users,
     required this.isLoading,
@@ -246,7 +227,9 @@ class _MembersTable extends StatelessWidget {
   final void Function(AppUser) onRemove;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserRole = ref.watch(authProvider).appUser?.role;
+
     return Container(
       decoration: BoxDecoration(
         color:        AppColors.surface,
@@ -275,6 +258,11 @@ class _MembersTable extends StatelessWidget {
             isLoading:  isLoading,
             rows:       users,
             searchable: true,
+            mobileCardBuilder: (u) => _MemberMobileCard(
+              user:     u,
+              showRemove: currentUserRole == null || currentUserRole != u.role,
+              onRemove: () => onRemove(u),
+            ),
             columns: [
               AppTableColumn(
                 label:       'Name',
@@ -325,7 +313,12 @@ class _MembersTable extends StatelessWidget {
                 label:     'Actions',
                 flex:      2,
                 alignment: Alignment.center,
-                cellBuilder: (u) => _RemoveButton(onTap: () => onRemove(u)),
+                cellBuilder: (u) {
+                  if (currentUserRole != null && currentUserRole == u.role) {
+                    return const SizedBox.shrink();
+                  }
+                  return _RemoveButton(onTap: () => onRemove(u));
+                },
               ),
             ],
           ),
@@ -591,6 +584,64 @@ class _AddMemberBody extends StatelessWidget {
           hint:       '••••••••',
         ),
       ],
+    );
+  }
+}
+
+// ── Mobile card for team members ─────────────────────────────────────────────
+
+class _MemberMobileCard extends StatelessWidget {
+  const _MemberMobileCard({
+    required this.user,
+    required this.showRemove,
+    required this.onRemove,
+  });
+
+  final AppUser      user;
+  final bool         showRemove;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return MobileDataCard(
+      child: Row(
+        children: [
+          _Avatar(name: user.userInfo?.userName ?? '?'),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user.userInfo?.userName ?? '—',
+                    style: AppTextStyles.labelLg,
+                    overflow: TextOverflow.ellipsis),
+                Text(user.userInfo?.email ?? '',
+                    style: AppTextStyles.bodyXs,
+                    overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          AppStatusChip(
+            label: user.role.name,
+            variant: user.role == Role.Manager
+                ? AppChipVariant.info
+                : AppChipVariant.success,
+            small: true,
+          ),
+          if (showRemove) ...[
+            const SizedBox(width: AppSpacing.xs),
+            IconButton(
+              icon: Icon(Icons.person_remove_rounded,
+                  size: 16, color: AppColors.error),
+              tooltip: 'Remove',
+              onPressed: onRemove,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

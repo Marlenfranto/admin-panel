@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/theme.dart';
 import 'app_gradient_button.dart';
 import 'app_status_chip.dart';
+import 'responsive_helper.dart';
 
 // ── Public state class (callers receive this on save) ─────────────────────────
 
@@ -60,6 +61,7 @@ class UserModuleConfigPanel extends ConsumerStatefulWidget {
     required this.globalEnabled,
     required this.onLoadProgress,
     required this.onSaveProgress,
+    this.teamLabels,
   });
 
   /// All AppUser objects belonging to the target organization.
@@ -73,6 +75,9 @@ class UserModuleConfigPanel extends ConsumerStatefulWidget {
 
   /// Persists all four module states for [userId].
   final ProgressSaver onSaveProgress;
+
+  /// Optional map of userId → team name, shown below the email in the user list.
+  final Map<int, String>? teamLabels;
 
   @override
   ConsumerState<UserModuleConfigPanel> createState() =>
@@ -349,9 +354,12 @@ class _UserModuleConfigPanelState
                     final user     = _filtered[i];
                     final isActive = _selectedUser?.id == user.id;
                     return _UserTile(
-                      user:     user,
-                      isActive: isActive,
+                      user:      user,
+                      isActive:  isActive,
                       globalEnabled: widget.globalEnabled,
+                      teamLabel: user.id != null
+                          ? (widget.teamLabels?[user.id!])
+                          : null,
                       onTap:    () => _selectUser(user),
                     );
                   },
@@ -373,6 +381,9 @@ class _UserModuleConfigPanelState
         child: Center(child: CircularProgressIndicator()),
       );
     }
+
+    final compact = context.isMobile;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -401,53 +412,78 @@ class _UserModuleConfigPanelState
         ),
         const SizedBox(height: AppSpacing.md),
 
-        // Table header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            children: [
-              const SizedBox(width: 34 + 10), // icon col
-              Expanded(
-                child: Text('MODULE',
-                    style: AppTextStyles.labelSm
-                        .copyWith(letterSpacing: 0.5,
-                            color: AppColors.onSurfaceSubtle)),
-              ),
-              SizedBox(
-                width: _kSwitchColW,
-                child: Text('ENABLED',
-                    style: AppTextStyles.labelSm
-                        .copyWith(letterSpacing: 0.5,
-                            color: AppColors.onSurfaceSubtle),
-                    textAlign: TextAlign.center),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: _kDeadlineColW,
-                child: Text('DEADLINE',
-                    style: AppTextStyles.labelSm
-                        .copyWith(letterSpacing: 0.5,
-                            color: AppColors.onSurfaceSubtle)),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: _kStatusColW,
-                child: Text('STATUS',
-                    style: AppTextStyles.labelSm
-                        .copyWith(letterSpacing: 0.5,
-                            color: AppColors.onSurfaceSubtle)),
-              ),
-            ],
+        // Table header — hidden on mobile (cards are self-labelled)
+        if (!compact) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: [
+                const SizedBox(width: 34 + 10), // icon col
+                Expanded(
+                  child: Text('MODULE',
+                      style: AppTextStyles.labelSm
+                          .copyWith(letterSpacing: 0.5,
+                              color: AppColors.onSurfaceSubtle)),
+                ),
+                SizedBox(
+                  width: _kSwitchColW,
+                  child: Text('ENABLED',
+                      style: AppTextStyles.labelSm
+                          .copyWith(letterSpacing: 0.5,
+                              color: AppColors.onSurfaceSubtle),
+                      textAlign: TextAlign.center),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: _kDeadlineColW,
+                  child: Text('DEADLINE',
+                      style: AppTextStyles.labelSm
+                          .copyWith(letterSpacing: 0.5,
+                              color: AppColors.onSurfaceSubtle)),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: _kStatusColW,
+                  child: Text('STATUS',
+                      style: AppTextStyles.labelSm
+                          .copyWith(letterSpacing: 0.5,
+                              color: AppColors.onSurfaceSubtle)),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        const Divider(height: 1),
+          const SizedBox(height: 6),
+          const Divider(height: 1),
+        ],
 
         // Module rows
         ..._moduleMeta.map((meta) {
           final state       = _stateFor(meta.id);
           final globalVal   = widget.globalEnabled[meta.id] ?? false;
           final isOverride  = state.isEnabled != globalVal;
+          if (compact) {
+            return _ModuleCardMobile(
+              meta:        meta,
+              state:       state,
+              isOverride:  isOverride,
+              onToggle:    (v) => setState(() => state.isEnabled = v),
+              onDeadline:  () => _pickDeadline(state),
+              onClearDeadline: () => setState(() => state.deadline = null),
+              onStatus:    (s) => setState(() {
+                state.status = s;
+                if (s == ModuleProgressStatus.inProgress &&
+                    state.startedAt == null) {
+                  state.startedAt = DateTime.now().toUtc();
+                } else if (s == ModuleProgressStatus.completed &&
+                    state.completedAt == null) {
+                  state.completedAt = DateTime.now().toUtc();
+                } else if (s == ModuleProgressStatus.notStarted) {
+                  state.startedAt   = null;
+                  state.completedAt = null;
+                }
+              }),
+            );
+          }
           return _ModuleRow(
             meta:        meta,
             state:       state,
@@ -472,17 +508,26 @@ class _UserModuleConfigPanelState
         }),
 
         const SizedBox(height: AppSpacing.md),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            AppGradientButton(
-              label:     'Save User Config',
-              icon:      Icons.save_rounded,
-              isLoading: _saving,
-              onPressed: _save,
-            ),
-          ],
-        ),
+        if (compact)
+          AppGradientButton(
+            label:     'Save User Config',
+            icon:      Icons.save_rounded,
+            isLoading: _saving,
+            onPressed: _save,
+            width:     double.infinity,
+          )
+        else
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              AppGradientButton(
+                label:     'Save User Config',
+                icon:      Icons.save_rounded,
+                isLoading: _saving,
+                onPressed: _save,
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -553,12 +598,14 @@ class _UserTile extends StatefulWidget {
     required this.isActive,
     required this.globalEnabled,
     required this.onTap,
+    this.teamLabel,
   });
 
   final AppUser          user;
   final bool             isActive;
   final Map<String, bool> globalEnabled;
   final VoidCallback     onTap;
+  final String?          teamLabel;
 
   @override
   State<_UserTile> createState() => _UserTileState();
@@ -627,6 +674,28 @@ class _UserTileState extends State<_UserTile> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (widget.teamLabel != null) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(Icons.group_outlined,
+                              size: 10,
+                              color: AppColors.onSurfaceSubtle),
+                          const SizedBox(width: 3),
+                          Flexible(
+                            child: Text(
+                              widget.teamLabel!,
+                              style: AppTextStyles.bodyXs.copyWith(
+                                color: AppColors.onSurfaceSubtle,
+                                fontSize: 10,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -841,6 +910,169 @@ class _ModuleRow extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Mobile module card (stacked layout) ───────────────────────────────────────
+
+class _ModuleCardMobile extends StatelessWidget {
+  const _ModuleCardMobile({
+    required this.meta,
+    required this.state,
+    required this.isOverride,
+    required this.onToggle,
+    required this.onDeadline,
+    required this.onClearDeadline,
+    required this.onStatus,
+  });
+
+  final ({String id, IconData icon, Color color, String label}) meta;
+  final UserModuleState                    state;
+  final bool                               isOverride;
+  final ValueChanged<bool>                 onToggle;
+  final VoidCallback                       onDeadline;
+  final VoidCallback                       onClearDeadline;
+  final ValueChanged<ModuleProgressStatus> onStatus;
+
+  static final _dateFmt = DateFormat('MMM d, y');
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = state.isEnabled;
+    final color   = enabled ? meta.color : AppColors.onSurfaceSubtle;
+    final dim     = !enabled;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: enabled
+            ? meta.color.withValues(alpha: 0.04)
+            : AppColors.surfaceVariant.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        border: Border.all(
+          color: enabled
+              ? meta.color.withValues(alpha: 0.2)
+              : AppColors.divider,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Row 1: Icon + name + override badge + switch
+          Row(
+            children: [
+              Container(
+                width:  30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: enabled
+                      ? meta.color.withValues(alpha: 0.12)
+                      : AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Icon(meta.icon, size: 14, color: color),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      meta.label,
+                      style: AppTextStyles.labelMd.copyWith(
+                        color: enabled
+                            ? AppColors.onSurface
+                            : AppColors.onSurfaceMuted,
+                      ),
+                    ),
+                    if (isOverride) ...[
+                      const SizedBox(width: 6),
+                      AppStatusChip(
+                        label:   'Override',
+                        variant: AppChipVariant.primary,
+                        small:   true,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Transform.scale(
+                scale: 0.8,
+                child: Switch(
+                  value:            enabled,
+                  onChanged:        onToggle,
+                  activeThumbColor: meta.color,
+                  activeTrackColor: meta.color.withValues(alpha: 0.3),
+                ),
+              ),
+            ],
+          ),
+
+          // Row 2: Deadline + Status (only when enabled)
+          if (!dim) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                // Deadline
+                Expanded(
+                  child: GestureDetector(
+                    onTap: onDeadline,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
+                        border: Border.all(color: AppColors.divider),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.event_rounded,
+                              size: 13, color: AppColors.onSurfaceMuted),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              state.deadline != null
+                                  ? _dateFmt
+                                      .format(state.deadline!.toLocal())
+                                  : 'No deadline',
+                              style: AppTextStyles.bodyXs.copyWith(
+                                color: state.deadline != null
+                                    ? AppColors.onSurface
+                                    : AppColors.onSurfaceSubtle,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (state.deadline != null)
+                            GestureDetector(
+                              onTap: onClearDeadline,
+                              child: const Icon(Icons.close_rounded,
+                                  size: 12,
+                                  color: AppColors.onSurfaceSubtle),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                // Status
+                SizedBox(
+                  width: 130,
+                  child: _StatusDropdown(
+                    value:     state.status,
+                    enabled:   true,
+                    onChanged: onStatus,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

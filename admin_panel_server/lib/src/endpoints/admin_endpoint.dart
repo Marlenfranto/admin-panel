@@ -33,9 +33,10 @@ class AdminEndpoint extends Endpoint {
     if (existingUser != null) throw Exception('User with this email already exists.');
 
     var userInfo = (await Emails.createUser(session, userName, email, password))!;
-    if (userInfo == null) return null;
-
-    if (role == Role.Manager) {
+    
+    if (role == Role.OrganizationAdmin) {
+      await Users.updateUserScopes(session, userInfo.id!, {AppScopes.organizationAdmin});
+    } else if (role == Role.Manager) {
       await Users.updateUserScopes(session, userInfo.id!, {AppScopes.manager});
     } else {
       await Users.updateUserScopes(session, userInfo.id!, {AppScopes.user});
@@ -50,6 +51,12 @@ class AdminEndpoint extends Endpoint {
     var link = OrganizationUserLink(organizationId: organization.id!, appUserId: appUser.id!);
     await OrganizationUserLink.db.insertRow(session, link);
 
+    // Org Admins are the designated manager of their organization.
+    if (role == Role.OrganizationAdmin && organization.managerId == null) {
+      organization.managerId = appUser.id;
+      await Organization.db.updateRow(session, organization);
+    }
+
     return appUser;
   }
 
@@ -57,7 +64,10 @@ class AdminEndpoint extends Endpoint {
     var org = await Organization.db.findById(session, organizationId);
     var manager = await AppUser.db.findById(session, managerAppUserId);
 
-    if (org == null || manager == null || manager.role != Role.Manager) return false;
+    if (org == null || manager == null ||
+        (manager.role != Role.Manager && manager.role != Role.OrganizationAdmin)) {
+      return false;
+    }
 
     org.managerId = manager.id;
     await Organization.db.updateRow(session, org);
@@ -118,13 +128,13 @@ class AdminEndpoint extends Endpoint {
     String userName,
     Role   role,
   ) async {
-    if (role == Role.SuperAdmin || role == Role.Admin) {
-      throw Exception('Cannot assign SuperAdmin or Admin role via this endpoint.');
+    if (role == Role.SuperAdmin || role == Role.OrganizationAdmin) {
+      throw Exception('Cannot assign SuperAdmin or OrganizationAdmin role via this endpoint.');
     }
     final appUser = await AppUser.db.findById(session, appUserId);
     if (appUser == null) return false;
-    if (appUser.role == Role.SuperAdmin || appUser.role == Role.Admin) {
-      throw Exception('Cannot modify SuperAdmin or Admin users.');
+    if (appUser.role == Role.SuperAdmin || appUser.role == Role.OrganizationAdmin) {
+      throw Exception('Cannot modify SuperAdmin or OrganizationAdmin users.');
     }
 
     if (appUser.role != role) {
@@ -140,6 +150,63 @@ class AdminEndpoint extends Endpoint {
       await UserInfo.db.updateRow(session, userInfo);
     }
 
+    return true;
+  }
+
+  Future<bool> updateOrgAdminUser(
+    Session session,
+    int    appUserId,
+    String userName,
+    Role   role,
+  ) async {
+    if (role == Role.SuperAdmin) {
+      throw Exception('Cannot assign SuperAdmin role.');
+    }
+    final appUser = await AppUser.db.findById(session, appUserId);
+    if (appUser == null) return false;
+    if (appUser.role != Role.OrganizationAdmin) {
+      throw Exception('Use updateUser for Manager/User accounts.');
+    }
+
+    if (appUser.role != role) {
+      appUser.role = role;
+      await AppUser.db.updateRow(session, appUser);
+      final scope = switch (role) {
+        Role.OrganizationAdmin => AppScopes.organizationAdmin,
+        Role.Manager           => AppScopes.manager,
+        _                      => AppScopes.user,
+      };
+      await Users.updateUserScopes(session, appUser.userInfoId, {scope});
+    }
+
+    final userInfo = await UserInfo.db.findById(session, appUser.userInfoId);
+    if (userInfo != null && userInfo.userName != userName) {
+      userInfo.userName = userName;
+      await UserInfo.db.updateRow(session, userInfo);
+    }
+
+    return true;
+  }
+
+  Future<bool> adminResetUserPassword(
+    Session session,
+    int    appUserId,
+    String newPassword,
+  ) async {
+    if (newPassword.trim().isEmpty) {
+      throw Exception('New password cannot be empty.');
+    }
+    final appUser = await AppUser.db.findById(session, appUserId);
+    if (appUser == null) return false;
+
+    final emailAuth = await EmailAuth.db.findFirstRow(
+      session,
+      where: (e) => e.userId.equals(appUser.userInfoId),
+    );
+    if (emailAuth == null) return false;
+
+    emailAuth.hash = await Emails.generatePasswordHash(newPassword);
+    await EmailAuth.db.updateRow(session, emailAuth);
     return true;
   }
 
@@ -401,6 +468,256 @@ class AdminEndpoint extends Endpoint {
   }
 
   // ── Training session results ───────────────────────────────────────────────
+
+  /// Returns paginated and filtered Smart Training results for Super Admins.
+  Future<TrainingSessionResultPage> getTrainingHistory(
+    Session session, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+    int? organizationId,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    final offset = (page - 1) * limit;
+
+    // Use Expression type for complex query building.
+    Expression where = (TrainingSessionResult.t.id.notEquals(null));
+
+    if (teamId != null) {
+      where = where & TrainingSessionResult.t.organizationId.equals(teamId);
+    } else if (organizationId != null) {
+      // Find all sub-orgs (teams) for this organization.
+      final teams = await Organization.db.find(
+        session,
+        where: (o) => o.parentId.equals(organizationId),
+      );
+      final orgIds = {organizationId, ...teams.map((t) => t.id!)};
+      where = where & TrainingSessionResult.t.organizationId.inSet(orgIds);
+    }
+
+    if (start != null) {
+      where = where & (TrainingSessionResult.t.completedAt >= start);
+    }
+    if (end != null) {
+      where = where & (TrainingSessionResult.t.completedAt <= end);
+    }
+    if (passed != null) {
+      final passingPercentage = 60; // Default or fetch from config
+      if (passed) {
+        where = where & (TrainingSessionResult.t.overallPercentage >= passingPercentage);
+      } else {
+        where = where & (TrainingSessionResult.t.overallPercentage < passingPercentage);
+      }
+    }
+
+    if (search != null && search.trim().isNotEmpty) {
+      final query = search.trim().toLowerCase();
+      where = where & (TrainingSessionResult.t.appUser.userInfo.userName.ilike('%$query%') | 
+               TrainingSessionResult.t.appUser.userInfo.email.ilike('%$query%'));
+    }
+
+    final results = await TrainingSessionResult.db.find(
+      session,
+      where: (_) => where,
+      limit: limit,
+      offset: offset,
+      orderBy: (r) => r.completedAt,
+      orderDescending: true,
+      include: TrainingSessionResult.include(
+        appUser: AppUser.include(userInfo: UserInfo.include()),
+        organization: Organization.include(),
+      ),
+    );
+
+    final totalCount = await TrainingSessionResult.db.count(
+      session,
+      where: (_) => where,
+    );
+
+    return TrainingSessionResultPage(
+      results: results,
+      totalCount: totalCount,
+      hasMore: offset + results.length < totalCount,
+    );
+  }
+
+  /// Returns paginated unique users who have smart training results, grouped by user.
+  Future<TrainingUserSummaryPage> getTrainingUserSummaries(
+    Session session, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+    int? organizationId,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) async {
+    final offset = (page - 1) * limit;
+
+    // Build the filtering expression similar to getTrainingHistory.
+    Expression where = (TrainingSessionResult.t.appUserId.notEquals(null));
+
+    // 1. Resolve Organization/Team filter to a set of AppUser IDs.
+    Set<int>? targetUserIds;
+    if (organizationId != null || teamId != null) {
+      Set<int> orgIds;
+      if (teamId != null) {
+        orgIds = {teamId};
+      } else {
+        final teams = await Organization.db.find(
+          session,
+          where: (o) => o.parentId.equals(organizationId),
+          limit: 1000,
+        );
+        orgIds = {organizationId!, ...teams.map((t) => t.id!)};
+      }
+
+      final links = await OrganizationUserLink.db.find(
+        session,
+        where: (l) => l.organizationId.inSet(orgIds),
+      );
+      targetUserIds = links.map((l) => l.appUserId).toSet();
+      
+      if (targetUserIds.isEmpty) {
+        return TrainingUserSummaryPage(summaries: [], totalCount: 0, hasMore: false);
+      }
+      where = where & TrainingSessionResult.t.appUserId.inSet(targetUserIds);
+    }
+
+    if (start != null) {
+      where = where & (TrainingSessionResult.t.completedAt >= start);
+    }
+    if (end != null) {
+      where = where & (TrainingSessionResult.t.completedAt <= end);
+    }
+    if (passed != null) {
+      const passingPercentage = 60;
+      if (passed) {
+        where = where & (TrainingSessionResult.t.overallPercentage >= passingPercentage);
+      } else {
+        where = where & (TrainingSessionResult.t.overallPercentage < passingPercentage);
+      }
+    }
+
+    if (search != null && search.trim().isNotEmpty) {
+      final query = search.trim().toLowerCase();
+      where = where & (TrainingSessionResult.t.appUser.userInfo.userName.ilike('%$query%') | 
+               TrainingSessionResult.t.appUser.userInfo.email.ilike('%$query%'));
+    }
+
+    // Step 1: Find unique User IDs who have training results matching the filter.
+    // Order by completedAt to ensure we can pick the latest for each user.
+    // We fetch a larger batch of results to ensure we have enough to group and paginate,
+    // but with a hard cap to avoid memory issues.
+    final results = await TrainingSessionResult.db.find(
+      session,
+      where: (_) => where,
+      orderBy: (r) => r.completedAt,
+      orderDescending: true,
+      limit: 5000, // Hard cap for safety
+      include: TrainingSessionResult.include(
+        appUser: AppUser.include(userInfo: UserInfo.include()),
+        organization: Organization.include(),
+      ),
+    );
+
+    // Grouping by User ID
+    final List<TrainingSessionResult> uniqueUserResults = [];
+    final seenUids = <int>{};
+    for (final res in results) {
+      if (seenUids.add(res.appUserId!)) {
+        uniqueUserResults.add(res);
+      }
+    }
+
+    // Step 2: Fetch all OrganizationUserLink for these users to get their official Org/Team.
+    final uids = uniqueUserResults.map((r) => r.appUserId!).toSet();
+    final allLinks = await OrganizationUserLink.db.find(
+      session,
+      where: (l) => l.appUserId.inSet(uids),
+      include: OrganizationUserLink.include(organization: Organization.include()),
+    );
+    
+    // Group links by User ID
+    final userLinksMap = <int, List<OrganizationUserLink>>{};
+    for (final link in allLinks) {
+       (userLinksMap[link.appUserId] ??= []).add(link);
+    }
+
+    // Step 3: Identify parent organizations for hierarchy resolution.
+    final parentIds = allLinks
+        .map((l) => l.organization?.parentId)
+        .where((id) => id != null)
+        .cast<int>()
+        .toSet();
+    
+    final Map<int, Organization> parentMap = {};
+    if (parentIds.isNotEmpty) {
+      final parents = await Organization.db.find(
+        session,
+        where: (o) => o.id.inSet(parentIds),
+      );
+      for (final p in parents) {
+        if (p.id != null) parentMap[p.id!] = p;
+      }
+    }
+
+    // Step 4: Create summaries with resolved parents and teams.
+    final allSummaries = uniqueUserResults.map((res) {
+      final uid = res.appUserId!;
+      final userLinks = userLinksMap[uid] ?? [];
+      
+      // Resolve Team (membership with a parent) and Parent Org
+      Organization? userTeam;
+      Organization? userParent;
+      
+      for (final link in userLinks) {
+        final org = link.organization;
+        if (org == null) continue;
+        
+        if (org.parentId != null) {
+          // This is a sub-team
+          userTeam = org;
+          userParent = parentMap[org.parentId];
+          break; // Found primary team
+        }
+      }
+      
+      // Fallback: If no sub-team, just use the first available organization
+      if (userTeam == null && userLinks.isNotEmpty) {
+        userTeam = userLinks.first.organization;
+      }
+      
+      // Final Fallback: Use the result's organization if memberships are missing
+      userTeam ??= res.organization;
+
+      // Count total sessions for this user (within the filter)
+      final userTotal = results.where((r) => r.appUserId == uid).length;
+
+      return TrainingUserSummary(
+        user: res.appUser!,
+        parentOrg: userParent,
+        team: userTeam!,
+        latestResult: res,
+        totalSessions: userTotal,
+      );
+    }).toList();
+    
+    // Pagination (Client-side grouping means we have to paginate the resulting list)
+    final pagedSummaries = allSummaries.length > offset 
+        ? allSummaries.sublist(offset, (offset + limit).clamp(0, allSummaries.length))
+        : <TrainingUserSummary>[];
+
+    return TrainingUserSummaryPage(
+      summaries: pagedSummaries,
+      totalCount: allSummaries.length,
+      hasMore: offset + pagedSummaries.length < allSummaries.length,
+    );
+  }
 
   /// Returns all Smart Training results for [appUserId] across all orgs.
   Future<List<TrainingSessionResult>> getUserTrainingHistory(

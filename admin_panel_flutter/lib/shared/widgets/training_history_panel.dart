@@ -1,9 +1,12 @@
 import 'package:admin_panel_client/admin_panel_client.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/theme.dart';
+import '../../src/providers.dart';
+import 'certificate_preview_dialog.dart';
 
 /// Displays a graphical visualization of Smart Training session results.
 ///
@@ -14,10 +17,12 @@ class TrainingHistoryPanel extends StatefulWidget {
     super.key,
     required this.results,
     this.passingPercentage = 60,
+    this.recipientName,
   });
 
   final List<TrainingSessionResult> results;
   final int passingPercentage;
+  final String? recipientName;
 
   @override
   State<TrainingHistoryPanel> createState() => _TrainingHistoryPanelState();
@@ -103,7 +108,8 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
                   Text('Criteria Breakdown', style: AppTextStyles.labelLg),
                   Text(
                     'Session on ${DateFormat('MMM d, h:mm a').format(selectedResult.completedAt.toLocal())}',
-                    style: AppTextStyles.bodyXs.copyWith(color: AppColors.onSurfaceMuted),
+                    style: AppTextStyles.bodyXs
+                        .copyWith(color: AppColors.onSurfaceMuted),
                   ),
                 ],
               ),
@@ -111,7 +117,8 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: (selectedResult.overallPercentage >= widget.passingPercentage
+                color: (selectedResult.overallPercentage >=
+                            widget.passingPercentage
                         ? AppColors.success
                         : AppColors.error)
                     .withValues(alpha: 0.1),
@@ -120,7 +127,8 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
               child: Text(
                 'Score: ${selectedResult.overallPercentage}%',
                 style: AppTextStyles.labelSm.copyWith(
-                  color: selectedResult.overallPercentage >= widget.passingPercentage
+                  color: selectedResult.overallPercentage >=
+                          widget.passingPercentage
                       ? AppColors.success
                       : AppColors.error,
                 ),
@@ -129,7 +137,7 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        _CriteriaBarChart(result: selectedResult),
+        TrainingCriteriaBarChart(result: selectedResult),
 
         const SizedBox(height: AppSpacing.xl),
 
@@ -140,6 +148,7 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
               result: r,
               isSelected: r.id == _selectedResultId,
               passingPercentage: widget.passingPercentage,
+              recipientName: widget.recipientName,
               onTap: () => setState(() => _selectedResultId = r.id),
             )),
       ],
@@ -187,8 +196,10 @@ class _PerformanceTrendChart extends StatelessWidget {
             ),
           ),
           titlesData: FlTitlesData(
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -196,7 +207,8 @@ class _PerformanceTrendChart extends StatelessWidget {
                 reservedSize: 35,
                 getTitlesWidget: (value, meta) => Text(
                   '${value.toInt()}%',
-                  style: AppTextStyles.labelXs.copyWith(color: AppColors.onSurfaceSubtle),
+                  style: AppTextStyles.labelXs
+                      .copyWith(color: AppColors.onSurfaceSubtle),
                 ),
               ),
             ),
@@ -206,15 +218,18 @@ class _PerformanceTrendChart extends StatelessWidget {
                 interval: 1,
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
-                  if (index < 0 || index >= chronological.length) return const SizedBox();
-                  if (chronological.length > 5 && index % (chronological.length ~/ 3) != 0) {
+                  if (index < 0 || index >= chronological.length)
+                    return const SizedBox();
+                  if (chronological.length > 5 &&
+                      index % (chronological.length ~/ 3) != 0) {
                     return const SizedBox();
                   }
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       '#${results.length - (chronological.length - 1 - index)}',
-                      style: AppTextStyles.labelXs.copyWith(color: AppColors.onSurfaceSubtle),
+                      style: AppTextStyles.labelXs
+                          .copyWith(color: AppColors.onSurfaceSubtle),
                     ),
                   );
                 },
@@ -231,7 +246,8 @@ class _PerformanceTrendChart extends StatelessWidget {
             LineChartBarData(
               spots: [
                 FlSpot(0, passingPercentage.toDouble()),
-                FlSpot((chronological.length - 1).toDouble(), passingPercentage.toDouble()),
+                FlSpot((chronological.length - 1).toDouble(),
+                    passingPercentage.toDouble()),
               ],
               isCurved: false,
               color: AppColors.error.withValues(alpha: 0.3),
@@ -242,7 +258,8 @@ class _PerformanceTrendChart extends StatelessWidget {
             // Performance Line
             LineChartBarData(
               spots: chronological.asMap().entries.map((e) {
-                return FlSpot(e.key.toDouble(), e.value.overallPercentage.toDouble());
+                return FlSpot(
+                    e.key.toDouble(), e.value.overallPercentage.toDouble());
               }).toList(),
               isCurved: true,
               curveSmoothness: 0.3,
@@ -276,7 +293,9 @@ class _PerformanceTrendChart extends StatelessWidget {
           ],
           lineTouchData: LineTouchData(
             touchCallback: (event, response) {
-              if (response != null && response.lineBarSpots != null && event is FlTapUpEvent) {
+              if (response != null &&
+                  response.lineBarSpots != null &&
+                  event is FlTapUpEvent) {
                 final index = response.lineBarSpots!.first.spotIndex;
                 onSelected(chronological[index].id);
               }
@@ -302,8 +321,8 @@ class _PerformanceTrendChart extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _CriteriaBarChart extends StatelessWidget {
-  const _CriteriaBarChart({required this.result});
+class TrainingCriteriaBarChart extends StatelessWidget {
+  const TrainingCriteriaBarChart({required this.result});
   final TrainingSessionResult result;
 
   @override
@@ -341,13 +360,15 @@ class _CriteriaBarChart extends StatelessWidget {
                 reservedSize: 30,
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
-                  if (index < 0 || index >= criteria.length) return const SizedBox();
+                  if (index < 0 || index >= criteria.length)
+                    return const SizedBox();
                   final label = criteria[index].parameter;
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       label.length > 8 ? '${label.substring(0, 6)}..' : label,
-                      style: AppTextStyles.labelXs.copyWith(color: AppColors.onSurfaceMuted),
+                      style: AppTextStyles.labelXs
+                          .copyWith(color: AppColors.onSurfaceMuted),
                     ),
                   );
                 },
@@ -360,12 +381,15 @@ class _CriteriaBarChart extends StatelessWidget {
                 interval: 1,
                 getTitlesWidget: (value, meta) => Text(
                   value.toInt().toString(),
-                  style: AppTextStyles.labelXs.copyWith(color: AppColors.onSurfaceSubtle),
+                  style: AppTextStyles.labelXs
+                      .copyWith(color: AppColors.onSurfaceSubtle),
                 ),
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
@@ -384,7 +408,8 @@ class _CriteriaBarChart extends StatelessWidget {
                   toY: score,
                   color: color,
                   width: 16,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(4)),
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
                     toY: 5,
@@ -407,12 +432,14 @@ class _HistoryRow extends StatelessWidget {
     required this.result,
     required this.isSelected,
     required this.passingPercentage,
+    this.recipientName,
     required this.onTap,
   });
 
   final TrainingSessionResult result;
   final bool isSelected;
   final int passingPercentage;
+  final String? recipientName;
   final VoidCallback onTap;
 
   @override
@@ -426,7 +453,8 @@ class _HistoryRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: 10),
           decoration: BoxDecoration(
             border: Border(
               left: BorderSide(
@@ -442,7 +470,8 @@ class _HistoryRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      DateFormat('MMM d, y • h:mm a').format(result.completedAt.toLocal()),
+                      DateFormat('MMM d, y • h:mm a')
+                          .format(result.completedAt.toLocal()),
                       style: AppTextStyles.bodyXs.copyWith(
                         fontWeight: isSelected ? FontWeight.bold : null,
                       ),
@@ -460,6 +489,13 @@ class _HistoryRow extends StatelessWidget {
                 size: 14,
                 color: color.withValues(alpha: 0.5),
               ),
+              if (passed) ...[
+                const SizedBox(width: AppSpacing.md),
+                _CertificateButton(
+                  result: result,
+                  recipientName: recipientName,
+                ),
+              ],
             ],
           ),
         ),
@@ -468,3 +504,39 @@ class _HistoryRow extends StatelessWidget {
   }
 }
 
+class _CertificateButton extends ConsumerWidget {
+  const _CertificateButton({
+    required this.result,
+    this.recipientName,
+  });
+
+  final TrainingSessionResult result;
+  final String? recipientName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final name =
+        recipientName ?? ref.watch(authProvider).userInfo?.userName ?? '';
+
+    return Tooltip(
+      message: 'View Certificate',
+      child: IconButton(
+        icon: const Icon(Icons.workspace_premium_rounded, size: 20),
+        color: const Color(0xFFD4AF37).withValues(alpha: 0.8), // Gold accent
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (ctx) => CertificatePreviewDialog(
+              recipientName: name,
+              courseTitle: 'FireSafeX Training Completion',
+              organizationName: 'Mako',
+              date: result.completedAt,
+              logoImage: 'assets/images/logo.png',
+              overallPercentage: result.overallPercentage,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

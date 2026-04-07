@@ -24,17 +24,25 @@ import 'package:admin_panel_client/src/protocol/assessment_parameter.dart'
 import 'package:admin_panel_client/src/protocol/asset.dart' as _i11;
 import 'package:admin_panel_client/src/protocol/user_module_progress.dart'
     as _i12;
-import 'package:admin_panel_client/src/protocol/training_session_result.dart'
+import 'package:admin_panel_client/src/protocol/training_session_result_page.dart'
     as _i13;
-import 'package:admin_panel_client/src/protocol/module_progress_status.dart'
+import 'package:admin_panel_client/src/protocol/training_user_summary_page.dart'
     as _i14;
-import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
+import 'package:admin_panel_client/src/protocol/training_session_result.dart'
     as _i15;
-import 'package:admin_panel_client/src/protocol/login_response.dart' as _i16;
-import 'package:admin_panel_client/src/protocol/training_criteria_score.dart'
+import 'package:admin_panel_client/src/protocol/module_progress_status.dart'
+    as _i16;
+import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
     as _i17;
-import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i18;
-import 'protocol.dart' as _i19;
+import 'package:admin_panel_client/src/protocol/login_response.dart' as _i18;
+import 'package:admin_panel_client/src/protocol/training_criteria_score.dart'
+    as _i19;
+import 'package:admin_panel_client/src/protocol/theory_chapter_with_progress.dart'
+    as _i20;
+import 'package:admin_panel_client/src/protocol/user_theory_progress.dart'
+    as _i21;
+import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i22;
+import 'protocol.dart' as _i23;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -124,6 +132,32 @@ class EndpointAdmin extends _i1.EndpointRef {
       'appUserId': appUserId,
       'userName': userName,
       'role': role,
+    },
+  );
+
+  _i2.Future<bool> updateOrgAdminUser(
+    int appUserId,
+    String userName,
+    _i5.Role role,
+  ) => caller.callServerEndpoint<bool>(
+    'admin',
+    'updateOrgAdminUser',
+    {
+      'appUserId': appUserId,
+      'userName': userName,
+      'role': role,
+    },
+  );
+
+  _i2.Future<bool> adminResetUserPassword(
+    int appUserId,
+    String newPassword,
+  ) => caller.callServerEndpoint<bool>(
+    'admin',
+    'adminResetUserPassword',
+    {
+      'appUserId': appUserId,
+      'newPassword': newPassword,
     },
   );
 
@@ -291,10 +325,60 @@ class EndpointAdmin extends _i1.EndpointRef {
     },
   );
 
+  /// Returns paginated and filtered Smart Training results for Super Admins.
+  _i2.Future<_i13.TrainingSessionResultPage> getTrainingHistory({
+    required int page,
+    required int limit,
+    String? search,
+    int? organizationId,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) => caller.callServerEndpoint<_i13.TrainingSessionResultPage>(
+    'admin',
+    'getTrainingHistory',
+    {
+      'page': page,
+      'limit': limit,
+      'search': search,
+      'organizationId': organizationId,
+      'teamId': teamId,
+      'start': start,
+      'end': end,
+      'passed': passed,
+    },
+  );
+
+  /// Returns paginated unique users who have smart training results, grouped by user.
+  _i2.Future<_i14.TrainingUserSummaryPage> getTrainingUserSummaries({
+    required int page,
+    required int limit,
+    String? search,
+    int? organizationId,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) => caller.callServerEndpoint<_i14.TrainingUserSummaryPage>(
+    'admin',
+    'getTrainingUserSummaries',
+    {
+      'page': page,
+      'limit': limit,
+      'search': search,
+      'organizationId': organizationId,
+      'teamId': teamId,
+      'start': start,
+      'end': end,
+      'passed': passed,
+    },
+  );
+
   /// Returns all Smart Training results for [appUserId] across all orgs.
-  _i2.Future<List<_i13.TrainingSessionResult>> getUserTrainingHistory(
+  _i2.Future<List<_i15.TrainingSessionResult>> getUserTrainingHistory(
     int appUserId,
-  ) => caller.callServerEndpoint<List<_i13.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
     'admin',
     'getUserTrainingHistory',
     {'appUserId': appUserId},
@@ -304,7 +388,7 @@ class EndpointAdmin extends _i1.EndpointRef {
     int appUserId,
     int organizationId,
     String moduleId,
-    _i14.ModuleProgressStatus status,
+    _i16.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
   ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
@@ -359,6 +443,15 @@ class EndpointManager extends _i1.EndpointRef {
       'organizationId': organizationId,
     },
   );
+
+  /// Returns all teams (child organizations) for a managed parent organization,
+  /// including each team's users with their info.
+  _i2.Future<List<_i3.Organization>> getTeams(int organizationId) =>
+      caller.callServerEndpoint<List<_i3.Organization>>(
+        'manager',
+        'getTeams',
+        {'organizationId': organizationId},
+      );
 
   _i2.Future<bool> removeUserFromOrganization(
     int appUserId,
@@ -540,7 +633,7 @@ class EndpointManager extends _i1.EndpointRef {
     int appUserId,
     int organizationId,
     String moduleId,
-    _i14.ModuleProgressStatus status,
+    _i16.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
   ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
@@ -556,11 +649,35 @@ class EndpointManager extends _i1.EndpointRef {
     },
   );
 
+  /// Returns paginated and filtered Smart Training results for Managers.
+  /// Returns paginated and filtered Smart Training results for Managers.
+  _i2.Future<_i13.TrainingSessionResultPage> getTrainingHistory({
+    required int page,
+    required int limit,
+    String? search,
+    int? organizationId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) => caller.callServerEndpoint<_i13.TrainingSessionResultPage>(
+    'manager',
+    'getTrainingHistory',
+    {
+      'page': page,
+      'limit': limit,
+      'search': search,
+      'organizationId': organizationId,
+      'start': start,
+      'end': end,
+      'passed': passed,
+    },
+  );
+
   /// Returns all Smart Training results for [appUserId] within this manager's org.
-  _i2.Future<List<_i13.TrainingSessionResult>> getUserTrainingHistory(
+  _i2.Future<List<_i15.TrainingSessionResult>> getUserTrainingHistory(
     int appUserId,
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i13.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
     'manager',
     'getUserTrainingHistory',
     {
@@ -569,11 +686,33 @@ class EndpointManager extends _i1.EndpointRef {
     },
   );
 
+  /// Returns paginated unique users who have smart training results, grouped by user,
+  /// scoped to the teams managed by this manager.
+  _i2.Future<_i14.TrainingUserSummaryPage> getTrainingUserSummaries({
+    required int page,
+    required int limit,
+    String? search,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) => caller.callServerEndpoint<_i14.TrainingUserSummaryPage>(
+    'manager',
+    'getTrainingUserSummaries',
+    {
+      'page': page,
+      'limit': limit,
+      'search': search,
+      'start': start,
+      'end': end,
+      'passed': passed,
+    },
+  );
+
   /// Returns notification details for [organizationId], auto-creating records
   /// for any overdue (deadline passed, not completed) progress entries.
-  _i2.Future<List<_i15.ManagerNotificationDetail>> getNotifications(
+  _i2.Future<List<_i17.ManagerNotificationDetail>> getNotifications(
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i15.ManagerNotificationDetail>>(
+  ) => caller.callServerEndpoint<List<_i17.ManagerNotificationDetail>>(
     'manager',
     'getNotifications',
     {'organizationId': organizationId},
@@ -610,16 +749,366 @@ class EndpointManager extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointOrganizationAdmin extends _i1.EndpointRef {
+  EndpointOrganizationAdmin(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'organizationAdmin';
+
+  /// Returns the top-level organization managed by the caller.
+  _i2.Future<_i3.Organization?> getMyOrganization() =>
+      caller.callServerEndpoint<_i3.Organization?>(
+        'organizationAdmin',
+        'getMyOrganization',
+        {},
+      );
+
+  /// Creates a new Team (child organization) within the specified parent organization.
+  _i2.Future<_i3.Organization?> createTeam(
+    String name,
+    int parentOrgId,
+    String? imageUrl,
+  ) => caller.callServerEndpoint<_i3.Organization?>(
+    'organizationAdmin',
+    'createTeam',
+    {
+      'name': name,
+      'parentOrgId': parentOrgId,
+      'imageUrl': imageUrl,
+    },
+  );
+
+  /// Returns all teams (child organizations) for a given parent organization.
+  _i2.Future<List<_i3.Organization>> getTeams(int parentOrgId) =>
+      caller.callServerEndpoint<List<_i3.Organization>>(
+        'organizationAdmin',
+        'getTeams',
+        {'parentOrgId': parentOrgId},
+      );
+
+  /// Assigns a manager to a team.
+  _i2.Future<bool> assignManagerToTeam(
+    int managerAppUserId,
+    int teamId,
+  ) => caller.callServerEndpoint<bool>(
+    'organizationAdmin',
+    'assignManagerToTeam',
+    {
+      'managerAppUserId': managerAppUserId,
+      'teamId': teamId,
+    },
+  );
+
+  /// Deletes a team and all its user links.
+  _i2.Future<bool> deleteTeam(int teamId) => caller.callServerEndpoint<bool>(
+    'organizationAdmin',
+    'deleteTeam',
+    {'teamId': teamId},
+  );
+
+  /// Updates the name of a team.
+  _i2.Future<bool> updateTeam(
+    int teamId,
+    String name,
+  ) => caller.callServerEndpoint<bool>(
+    'organizationAdmin',
+    'updateTeam',
+    {
+      'teamId': teamId,
+      'name': name,
+    },
+  );
+
+  /// Creates a new user (Manager or User) and assigns them to a team.
+  _i2.Future<_i4.AppUser?> createUserInTeam(
+    String userName,
+    String email,
+    String password,
+    _i5.Role role,
+    int teamId,
+  ) => caller.callServerEndpoint<_i4.AppUser?>(
+    'organizationAdmin',
+    'createUserInTeam',
+    {
+      'userName': userName,
+      'email': email,
+      'password': password,
+      'role': role,
+      'teamId': teamId,
+    },
+  );
+
+  /// Updates the name and role of a Manager/User within the caller's org.
+  _i2.Future<bool> updateOrgUser(
+    int appUserId,
+    String userName,
+    _i5.Role role,
+  ) => caller.callServerEndpoint<bool>(
+    'organizationAdmin',
+    'updateOrgUser',
+    {
+      'appUserId': appUserId,
+      'userName': userName,
+      'role': role,
+    },
+  );
+
+  /// Deletes a Manager/User from the caller's org entirely.
+  _i2.Future<bool> deleteOrgUser(int appUserId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteOrgUser',
+        {'appUserId': appUserId},
+      );
+
+  /// Resets the password of a user within the caller's org.
+  _i2.Future<bool> resetOrgUserPassword(
+    int appUserId,
+    String newPassword,
+  ) => caller.callServerEndpoint<bool>(
+    'organizationAdmin',
+    'resetOrgUserPassword',
+    {
+      'appUserId': appUserId,
+      'newPassword': newPassword,
+    },
+  );
+
+  _i2.Future<_i6.ModuleConfig?> getModuleConfig() =>
+      caller.callServerEndpoint<_i6.ModuleConfig?>(
+        'organizationAdmin',
+        'getModuleConfig',
+        {},
+      );
+
+  _i2.Future<_i6.ModuleConfig?> setModuleConfig(
+    bool theoryModule,
+    bool aiExpertModule,
+    bool smartTrainingModule,
+    bool assessmentModule,
+    String defaultLanguage,
+    List<_i7.SupportedLanguage> supportedLanguages,
+    String? aiChatPrompt,
+    int passingPercentage,
+  ) => caller.callServerEndpoint<_i6.ModuleConfig?>(
+    'organizationAdmin',
+    'setModuleConfig',
+    {
+      'theoryModule': theoryModule,
+      'aiExpertModule': aiExpertModule,
+      'smartTrainingModule': smartTrainingModule,
+      'assessmentModule': assessmentModule,
+      'defaultLanguage': defaultLanguage,
+      'supportedLanguages': supportedLanguages,
+      'aiChatPrompt': aiChatPrompt,
+      'passingPercentage': passingPercentage,
+    },
+  );
+
+  _i2.Future<List<_i12.UserModuleProgress>> getOrgUserModuleProgress(
+    int userId,
+  ) => caller.callServerEndpoint<List<_i12.UserModuleProgress>>(
+    'organizationAdmin',
+    'getOrgUserModuleProgress',
+    {'userId': userId},
+  );
+
+  _i2.Future<_i12.UserModuleProgress?> setOrgUserModuleProgress(
+    int userId,
+    String moduleId,
+    bool isEnabled,
+    DateTime? deadline,
+  ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
+    'organizationAdmin',
+    'setOrgUserModuleProgress',
+    {
+      'userId': userId,
+      'moduleId': moduleId,
+      'isEnabled': isEnabled,
+      'deadline': deadline,
+    },
+  );
+
+  _i2.Future<_i12.UserModuleProgress?> updateOrgUserModuleStatus(
+    int userId,
+    String moduleId,
+    _i16.ModuleProgressStatus status,
+    DateTime? startedAt,
+    DateTime? completedAt,
+  ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
+    'organizationAdmin',
+    'updateOrgUserModuleStatus',
+    {
+      'userId': userId,
+      'moduleId': moduleId,
+      'status': status,
+      'startedAt': startedAt,
+      'completedAt': completedAt,
+    },
+  );
+
+  _i2.Future<List<_i8.TheoryChapter>> getOrgTheoryChapters() =>
+      caller.callServerEndpoint<List<_i8.TheoryChapter>>(
+        'organizationAdmin',
+        'getOrgTheoryChapters',
+        {},
+      );
+
+  _i2.Future<_i8.TheoryChapter> upsertOrgTheoryChapter(
+    _i8.TheoryChapter chapter,
+  ) => caller.callServerEndpoint<_i8.TheoryChapter>(
+    'organizationAdmin',
+    'upsertOrgTheoryChapter',
+    {'chapter': chapter},
+  );
+
+  _i2.Future<bool> deleteOrgTheoryChapter(int chapterId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteOrgTheoryChapter',
+        {'chapterId': chapterId},
+      );
+
+  _i2.Future<List<_i9.TrainingParameter>> getOrgTrainingParameters() =>
+      caller.callServerEndpoint<List<_i9.TrainingParameter>>(
+        'organizationAdmin',
+        'getOrgTrainingParameters',
+        {},
+      );
+
+  _i2.Future<_i9.TrainingParameter> upsertOrgTrainingParameter(
+    _i9.TrainingParameter param,
+  ) => caller.callServerEndpoint<_i9.TrainingParameter>(
+    'organizationAdmin',
+    'upsertOrgTrainingParameter',
+    {'param': param},
+  );
+
+  _i2.Future<bool> deleteOrgTrainingParameter(int paramId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteOrgTrainingParameter',
+        {'paramId': paramId},
+      );
+
+  _i2.Future<List<_i10.AssessmentParameter>> getOrgAssessmentParameters() =>
+      caller.callServerEndpoint<List<_i10.AssessmentParameter>>(
+        'organizationAdmin',
+        'getOrgAssessmentParameters',
+        {},
+      );
+
+  _i2.Future<_i10.AssessmentParameter> upsertOrgAssessmentParameter(
+    _i10.AssessmentParameter param,
+  ) => caller.callServerEndpoint<_i10.AssessmentParameter>(
+    'organizationAdmin',
+    'upsertOrgAssessmentParameter',
+    {'param': param},
+  );
+
+  _i2.Future<bool> deleteOrgAssessmentParameter(int paramId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteOrgAssessmentParameter',
+        {'paramId': paramId},
+      );
+
+  _i2.Future<List<_i11.Asset>> getOrgAssets() =>
+      caller.callServerEndpoint<List<_i11.Asset>>(
+        'organizationAdmin',
+        'getOrgAssets',
+        {},
+      );
+
+  _i2.Future<_i11.Asset> upsertOrgAsset(_i11.Asset asset) =>
+      caller.callServerEndpoint<_i11.Asset>(
+        'organizationAdmin',
+        'upsertOrgAsset',
+        {'asset': asset},
+      );
+
+  _i2.Future<bool> deleteOrgAsset(int assetId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteOrgAsset',
+        {'assetId': assetId},
+      );
+
+  /// Returns paginated and filtered Smart Training results for Org Admins.
+  _i2.Future<_i13.TrainingSessionResultPage> getTrainingHistory({
+    required int page,
+    required int limit,
+    String? search,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) => caller.callServerEndpoint<_i13.TrainingSessionResultPage>(
+    'organizationAdmin',
+    'getTrainingHistory',
+    {
+      'page': page,
+      'limit': limit,
+      'search': search,
+      'teamId': teamId,
+      'start': start,
+      'end': end,
+      'passed': passed,
+    },
+  );
+
+  _i2.Future<List<_i15.TrainingSessionResult>> getOrgUserTrainingHistory(
+    int userId,
+  ) => caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
+    'organizationAdmin',
+    'getOrgUserTrainingHistory',
+    {'userId': userId},
+  );
+
+  /// Returns a grouped overview of training results per user, scoped to the caller's organization.
+  _i2.Future<_i14.TrainingUserSummaryPage> getTrainingUserSummaries({
+    required int page,
+    required int limit,
+    String? search,
+    int? teamId,
+    DateTime? start,
+    DateTime? end,
+    bool? passed,
+  }) => caller.callServerEndpoint<_i14.TrainingUserSummaryPage>(
+    'organizationAdmin',
+    'getTrainingUserSummaries',
+    {
+      'page': page,
+      'limit': limit,
+      'search': search,
+      'teamId': teamId,
+      'start': start,
+      'end': end,
+      'passed': passed,
+    },
+  );
+
+  /// Returns all Smart Training results for [appUserId] scoped to the caller's organization.
+  _i2.Future<List<_i15.TrainingSessionResult>> getUserTrainingHistory(
+    int appUserId,
+  ) => caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
+    'organizationAdmin',
+    'getUserTrainingHistory',
+    {'appUserId': appUserId},
+  );
+}
+
+/// {@category Endpoint}
 class EndpointPublicApi extends _i1.EndpointRef {
   EndpointPublicApi(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'publicApi';
 
-  _i2.Future<_i16.LoginResponse> login(
+  _i2.Future<_i18.LoginResponse> login(
     String email,
     String password,
-  ) => caller.callServerEndpoint<_i16.LoginResponse>(
+  ) => caller.callServerEndpoint<_i18.LoginResponse>(
     'publicApi',
     'login',
     {
@@ -721,7 +1210,7 @@ class EndpointPublicApi extends _i1.EndpointRef {
     String apiKey,
     String userId,
     String moduleId,
-    _i14.ModuleProgressStatus status,
+    _i16.ModuleProgressStatus status,
   ) => caller.callServerEndpoint<bool>(
     'publicApi',
     'updateModuleStatus',
@@ -739,7 +1228,7 @@ class EndpointPublicApi extends _i1.EndpointRef {
     String apiKey,
     String userId,
     int overallPercentage,
-    List<_i17.TrainingCriteriaScore> criteriaValidation,
+    List<_i19.TrainingCriteriaScore> criteriaValidation,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'submitTrainingCertificate',
@@ -817,11 +1306,11 @@ class EndpointUser extends _i1.EndpointRef {
       );
 
   /// Records a completed Smart Training attempt for the authenticated user.
-  _i2.Future<_i13.TrainingSessionResult?> submitTrainingResult(
+  _i2.Future<_i15.TrainingSessionResult?> submitTrainingResult(
     String externalUserId,
     int overallPercentage,
-    List<_i17.TrainingCriteriaScore> criteriaScores,
-  ) => caller.callServerEndpoint<_i13.TrainingSessionResult?>(
+    List<_i19.TrainingCriteriaScore> criteriaScores,
+  ) => caller.callServerEndpoint<_i15.TrainingSessionResult?>(
     'user',
     'submitTrainingResult',
     {
@@ -832,8 +1321,8 @@ class EndpointUser extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training attempts for the authenticated user, newest first.
-  _i2.Future<List<_i13.TrainingSessionResult>> getMyTrainingHistory() =>
-      caller.callServerEndpoint<List<_i13.TrainingSessionResult>>(
+  _i2.Future<List<_i15.TrainingSessionResult>> getMyTrainingHistory() =>
+      caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
         'user',
         'getMyTrainingHistory',
         {},
@@ -843,7 +1332,7 @@ class EndpointUser extends _i1.EndpointRef {
   /// [startedAt] on first inProgress transition, [completedAt] on completion.
   _i2.Future<_i12.UserModuleProgress?> updateMyModuleStatus(
     String moduleId,
-    _i14.ModuleProgressStatus status,
+    _i16.ModuleProgressStatus status,
   ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
     'user',
     'updateMyModuleStatus',
@@ -852,14 +1341,38 @@ class EndpointUser extends _i1.EndpointRef {
       'status': status,
     },
   );
+
+  /// Fetches all theory chapters for the authenticated user's organization,
+  /// including the user's specific progress/score for each.
+  _i2.Future<List<_i20.TheoryChapterWithProgress>>
+  getTheoryChaptersWithProgress() =>
+      caller.callServerEndpoint<List<_i20.TheoryChapterWithProgress>>(
+        'user',
+        'getTheoryChaptersWithProgress',
+        {},
+      );
+
+  /// Validates a quiz submission and saves the user's result.
+  /// Throws if authorization fails or chapter is not found.
+  _i2.Future<_i21.UserTheoryProgress?> submitTheoryQuiz(
+    int chapterId,
+    int score,
+  ) => caller.callServerEndpoint<_i21.UserTheoryProgress?>(
+    'user',
+    'submitTheoryQuiz',
+    {
+      'chapterId': chapterId,
+      'score': score,
+    },
+  );
 }
 
 class Modules {
   Modules(Client client) {
-    auth = _i18.Caller(client);
+    auth = _i22.Caller(client);
   }
 
-  late final _i18.Caller auth;
+  late final _i22.Caller auth;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -882,7 +1395,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i19.Protocol(),
+         _i23.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -893,6 +1406,7 @@ class Client extends _i1.ServerpodClientShared {
        ) {
     admin = EndpointAdmin(this);
     manager = EndpointManager(this);
+    organizationAdmin = EndpointOrganizationAdmin(this);
     publicApi = EndpointPublicApi(this);
     user = EndpointUser(this);
     modules = Modules(this);
@@ -901,6 +1415,8 @@ class Client extends _i1.ServerpodClientShared {
   late final EndpointAdmin admin;
 
   late final EndpointManager manager;
+
+  late final EndpointOrganizationAdmin organizationAdmin;
 
   late final EndpointPublicApi publicApi;
 
@@ -912,6 +1428,7 @@ class Client extends _i1.ServerpodClientShared {
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'admin': admin,
     'manager': manager,
+    'organizationAdmin': organizationAdmin,
     'publicApi': publicApi,
     'user': user,
   };
