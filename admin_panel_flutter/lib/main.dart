@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:serverpod_auth_shared_flutter/serverpod_auth_shared_flutter.dart';
 
 import 'core/router/router.dart';
 import 'core/theme/theme.dart';
+import 'src/providers.dart';
 
-void main() {
-  runApp(const ProviderScope(child: App()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Pre-create the container so we can initialize the session manager
+  // before the first frame. This loads any stored session from disk
+  // so the router's redirect can immediately check isSignedIn instead
+  // of briefly showing the login screen.
+  final container = ProviderContainer();
+  final sessionManager = container.read(sessionManagerProvider);
+  await sessionManager.initialize();
+
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const App(),
+    ),
+  );
 }
 
 class App extends ConsumerWidget {
@@ -13,7 +30,18 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final auth   = ref.watch(authProvider);
     final router = ref.watch(routerProvider);
+
+    // While AuthNotifier is fetching AppUser after a restored session,
+    // show a branded splash instead of briefly flashing the login screen.
+    if (auth.isLoading) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        home: const _SplashScreen(),
+      );
+    }
 
     return MaterialApp.router(
       title: 'FireSafeX Admin',
@@ -21,6 +49,21 @@ class App extends ConsumerWidget {
       theme: AppTheme.light,
       themeMode: ThemeMode.light,
       routerConfig: router,
+    );
+  }
+}
+
+/// Minimal branded splash shown while the stored session is validated.
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }

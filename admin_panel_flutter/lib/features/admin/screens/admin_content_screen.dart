@@ -240,23 +240,58 @@ class _TheoryTab extends ConsumerWidget {
 // Theory Chapter Dialog
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _QuizEntry {
-  _QuizEntry({String question = '', List<String>? answers, int correct = 0})
+class _LocalizedContent {
+  _LocalizedContent({String question = '', List<String>? answers})
       : questionCtrl = TextEditingController(text: question),
         answerCtrls  = List.generate(
           4,
           (i) => TextEditingController(
               text: answers != null && i < answers.length ? answers[i] : ''),
-        ),
-        correctIndex = correct;
+        );
 
-  final TextEditingController        questionCtrl;
-  final List<TextEditingController>  answerCtrls;
-  int                                correctIndex;
+  final TextEditingController       questionCtrl;
+  final List<TextEditingController> answerCtrls;
 
   void dispose() {
     questionCtrl.dispose();
     for (final c in answerCtrls) { c.dispose(); }
+  }
+}
+
+class _QuizEntry {
+  _QuizEntry({
+    String question = '',
+    List<String>? answers,
+    int correct = 0,
+    List<LocalizedQuizContent>? translations,
+  })  : questionCtrl = TextEditingController(text: question),
+        answerCtrls  = List.generate(
+          4,
+          (i) => TextEditingController(
+              text: answers != null && i < answers.length ? answers[i] : ''),
+        ),
+        correctIndex = correct,
+        translationMap = {
+          for (final t in translations ?? [])
+            t.languageCode: _LocalizedContent(
+              question: t.question,
+              answers:  t.answers,
+            ),
+        };
+
+  final TextEditingController           questionCtrl;
+  final List<TextEditingController>     answerCtrls;
+  int                                    correctIndex;
+  final Map<String, _LocalizedContent>  translationMap;
+
+  _LocalizedContent getTranslation(String langCode) {
+    return translationMap.putIfAbsent(langCode, () => _LocalizedContent());
+  }
+
+  void dispose() {
+    questionCtrl.dispose();
+    for (final c in answerCtrls) { c.dispose(); }
+    for (final t in translationMap.values) { t.dispose(); }
   }
 }
 
@@ -278,6 +313,7 @@ class _ChapterDialogState extends ConsumerState<_ChapterDialog> {
   late final TextEditingController _videoDescCtrl;
   late List<_QuizEntry>            _questions;
   bool                             _saving = false;
+  String                           _selectedLang = '';
 
   @override
   void initState() {
@@ -293,9 +329,10 @@ class _ChapterDialogState extends ConsumerState<_ChapterDialog> {
         text: e?.videoMetadata?.description ?? '');
     _questions = (e?.questions ?? [])
         .map((q) => _QuizEntry(
-              question: q.question,
-              answers:  q.answers,
-              correct:  q.correctAnswer,
+              question:     q.question,
+              answers:      q.answers,
+              correct:      q.correctAnswer,
+              translations: q.translations,
             ))
         .toList();
   }
@@ -338,6 +375,16 @@ class _ChapterDialogState extends ConsumerState<_ChapterDialog> {
                     question:      q.questionCtrl.text.trim(),
                     answers:       q.answerCtrls.map((c) => c.text.trim()).toList(),
                     correctAnswer: q.correctIndex,
+                    translations:  q.translationMap.entries
+                        .where((e) => e.value.questionCtrl.text.trim().isNotEmpty)
+                        .map((e) => LocalizedQuizContent(
+                              languageCode: e.key,
+                              question:     e.value.questionCtrl.text.trim(),
+                              answers:      e.value.answerCtrls
+                                  .map((c) => c.text.trim())
+                                  .toList(),
+                            ))
+                        .toList(),
                   ))
               .toList(),
     );
@@ -457,6 +504,40 @@ class _ChapterDialogState extends ConsumerState<_ChapterDialog> {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
+                    Builder(builder: (_) {
+                      final config = ref.watch(moduleConfigProvider(widget.org.id!)).value;
+                      final defaultLang = config?.defaultLanguage ?? 'en';
+                      final orgLangs = config?.supportedLanguages ?? [];
+                      final hasMultipleLangs = orgLangs.where((l) => l.code != defaultLang).isNotEmpty;
+                      if (hasMultipleLangs && _questions.isNotEmpty)
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                ChoiceChip(
+                                  label: Text(defaultLang.toUpperCase()),
+                                  selected: _selectedLang == '',
+                                  onSelected: (_) => setState(() => _selectedLang = ''),
+                                ),
+                                const SizedBox(width: 8),
+                                for (final lang in orgLangs)
+                                  if (lang.code != defaultLang)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: ChoiceChip(
+                                        label: Text(lang.name.isNotEmpty ? lang.name : lang.code.toUpperCase()),
+                                        selected: _selectedLang == lang.code,
+                                        onSelected: (_) => setState(() => _selectedLang = lang.code),
+                                      ),
+                                    ),
+                              ],
+                            ),
+                          ),
+                        );
+                      return const SizedBox.shrink();
+                    }),
                     if (_questions.isEmpty)
                       Text('No quiz questions added yet.',
                           style: AppTextStyles.bodyXs)
@@ -464,8 +545,9 @@ class _ChapterDialogState extends ConsumerState<_ChapterDialog> {
                       ...List.generate(_questions.length, (i) {
                         final q = _questions[i];
                         return _QuestionCard(
-                          index:   i,
-                          entry:   q,
+                          index:          i,
+                          entry:          q,
+                          activeLangCode: _selectedLang,
                           onDelete: () {
                             q.dispose();
                             setState(() => _questions.removeAt(i));
@@ -507,17 +589,31 @@ class _QuestionCard extends StatelessWidget {
   const _QuestionCard({
     required this.index,
     required this.entry,
+    this.activeLangCode = '',
     required this.onDelete,
     required this.onChanged,
   });
 
   final int          index;
   final _QuizEntry   entry;
+  final String       activeLangCode;
   final VoidCallback onDelete;
   final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final isDefault = activeLangCode.isEmpty;
+    final TextEditingController questionCtrl;
+    final List<TextEditingController> answerCtrls;
+    if (isDefault) {
+      questionCtrl = entry.questionCtrl;
+      answerCtrls  = entry.answerCtrls;
+    } else {
+      final t = entry.getTranslation(activeLangCode);
+      questionCtrl = t.questionCtrl;
+      answerCtrls  = t.answerCtrls;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -533,6 +629,11 @@ class _QuestionCard extends StatelessWidget {
             children: [
               Text('Q${index + 1}',
                   style: AppTextStyles.labelMd.copyWith(color: AppColors.primary)),
+              if (!isDefault) ...[
+                const SizedBox(width: 8),
+                Text(activeLangCode.toUpperCase(),
+                    style: AppTextStyles.bodyXs.copyWith(color: AppColors.onSurfaceMuted)),
+              ],
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded,
@@ -545,9 +646,12 @@ class _QuestionCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           TextField(
-            controller: entry.questionCtrl,
+            controller: questionCtrl,
             maxLines:   2,
-            decoration: const InputDecoration(labelText: 'Question *', isDense: true),
+            decoration: InputDecoration(
+              labelText: isDefault ? 'Question *' : 'Question (${activeLangCode.toUpperCase()})',
+              isDense: true,
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           Text('Answer Options', style: AppTextStyles.labelSm),
@@ -568,7 +672,7 @@ class _QuestionCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: TextField(
-                      controller: entry.answerCtrls[ai],
+                      controller: answerCtrls[ai],
                       decoration: InputDecoration(
                         labelText:  'Option ${ai + 1}${isCorrect ? ' ✓' : ''}',
                         isDense:    true,

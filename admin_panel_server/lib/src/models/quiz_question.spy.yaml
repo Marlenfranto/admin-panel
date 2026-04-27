@@ -3,3 +3,4 @@ fields:
   question: String
   answers: List<String>
   correctAnswer: int
+  translations: List<LocalizedQuizContent>?

@@ -299,47 +299,49 @@ class _TopBar extends ConsumerWidget implements PreferredSizeWidget {
     final role = auth.appUser?.role;
     final isMobile = context.isMobile;
 
-    return Container(
-      height: AppSpacing.topBarHeight,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.divider)),
+    // Use a real AppBar so Flutter automatically handles status bar insets
+    // (notch, Dynamic Island, Android status bar) on all platforms.
+    return AppBar(
+      toolbarHeight: AppSpacing.topBarHeight,
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      titleSpacing: isMobile ? AppSpacing.sm : AppSpacing.md,
+      shape: const Border(
+        bottom: BorderSide(color: AppColors.divider),
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? AppSpacing.sm : AppSpacing.md,
-        ),
-        child: Row(
-          children: [
-            // Hamburger (mobile) ──────────────────────────────────────────
-            if (showHamburger)
-              _TopBarIconButton(
-                icon: Icons.menu_rounded,
-                onTap: () => scaffoldKey.currentState?.openDrawer(),
-              )
-            else
-              const SizedBox(width: AppSpacing.xs),
+      title: Row(
+        children: [
+          // Hamburger (mobile) ──────────────────────────────────────────
+          if (showHamburger)
+            _TopBarIconButton(
+              icon: Icons.menu_rounded,
+              onTap: () => scaffoldKey.currentState?.openDrawer(),
+            )
+          else
+            const SizedBox(width: AppSpacing.xs),
 
-            // Breadcrumb ──────────────────────────────────────────────────
-            Expanded(child: AppBreadcrumb(items: breadcrumbs)),
+          // Breadcrumb ──────────────────────────────────────────────────
+          Expanded(child: AppBreadcrumb(items: breadcrumbs)),
 
-            // Top-bar actions (e.g. notification bell) ───────────────────
-            if (topBarActions != null) ...[
-              ...topBarActions!,
-              const SizedBox(width: AppSpacing.sm),
-              Container(width: 1, height: 20, color: AppColors.divider),
-              const SizedBox(width: AppSpacing.sm),
-            ],
-
-            // User chip — compact on mobile (avatar only) ────────────────
-            _UserChip(
-              userName: userName,
-              role: role,
-              compact: isMobile,
-              onLogout: () => ref.read(authProvider.notifier).logout(),
-            ),
+          // Top-bar actions (e.g. notification bell) ───────────────────
+          if (topBarActions != null) ...[
+            ...topBarActions!,
+            const SizedBox(width: AppSpacing.sm),
+            Container(width: 1, height: 20, color: AppColors.divider),
+            const SizedBox(width: AppSpacing.sm),
           ],
-        ),
+
+          // User chip — compact on mobile (avatar only) ────────────────
+          _UserChip(
+            userName: userName,
+            role: role,
+            compact: isMobile,
+            onLogout: () => ref.read(authProvider.notifier).logout(),
+          ),
+        ],
       ),
     );
   }

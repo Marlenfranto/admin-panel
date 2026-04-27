@@ -22,11 +22,12 @@ class TheoryPlayerScreen extends StatefulWidget {
 }
 
 class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
-  late VideoPlayerController _videoPlayerController;
+  VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
   bool _isThresholdReached = false;
   bool _showQuiz = false;
   bool _isVideoCompleted = false;
+  String? _error;
 
   @override
   void initState() {
@@ -36,22 +37,54 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
 
   Future<void> _initializePlayer() async {
     final url = widget.chapter.videoUrl;
-    if (url == null) return;
+    if (url == null) {
+      if (mounted) setState(() => _error = 'No video URL available.');
+      return;
+    }
 
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
+    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    _videoPlayerController = controller;
 
     try {
-      await _videoPlayerController.initialize();
-      _videoPlayerController.addListener(_videoListener);
+      await controller.initialize();
+
+      // Small delay to ensure the native layer has fully populated
+      // the asset tracks before we query the size/aspectRatio.
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+
+      controller.addListener(_videoListener);
+
+      // Access aspectRatio safely from the controller value.
+      // If it's invalid (0 or negative), default to 16/9.
+      double aspectRatio = controller.value.aspectRatio;
+      if (aspectRatio <= 0) {
+        aspectRatio = 16 / 9;
+      }
 
       _chewieController = ChewieController(
-        videoPlayerController: _videoPlayerController,
-        autoPlay: true,
+        videoPlayerController: controller,
+        aspectRatio: aspectRatio,
+        autoPlay: false,
         looping: false,
         allowFullScreen: true,
         allowMuting: true,
         showControls: true,
         placeholder: Container(color: Colors.black),
+        errorBuilder: (context, errorMessage) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Text(
+              errorMessage,
+              style: AppTextStyles.bodySm.copyWith(color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
       );
 
       _chewieController!.addListener(() {
@@ -65,40 +98,37 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
       setState(() {});
     } catch (e) {
       debugPrint('Error initializing video player: $e');
+      if (mounted) setState(() => _error = 'Failed to load video: $e');
     }
   }
 
   void _videoListener() {
     if (!mounted) return;
+    final controller = _videoPlayerController;
+    if (controller == null) return;
 
-    final position = _videoPlayerController.value.position;
-    final duration = _videoPlayerController.value.duration;
+    final position = controller.value.position;
+    final duration = controller.value.duration;
 
     if (duration.inSeconds > 0) {
       final progress = position.inMilliseconds / duration.inMilliseconds;
 
-      // Threshold reached logic (90%)
+      // Threshold reached at 90%
       if (progress >= 0.9 && !_isThresholdReached) {
-        setState(() {
-          _isThresholdReached = true;
-        });
+        setState(() => _isThresholdReached = true);
       }
 
-      // Completion logic
       if (position >= duration && !_isVideoCompleted) {
-        setState(() {
-          _isVideoCompleted = true;
-          // Prompt quiz if not already shown
-        });
+        setState(() => _isVideoCompleted = true);
       }
     }
   }
 
   @override
   void dispose() {
-    _videoPlayerController.removeListener(_videoListener);
-    _videoPlayerController.dispose();
+    _videoPlayerController?.removeListener(_videoListener);
     _chewieController?.dispose();
+    _videoPlayerController?.dispose();
     super.dispose();
   }
 
@@ -106,7 +136,7 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
     setState(() {
       _showQuiz = true;
     });
-    _videoPlayerController.pause();
+    _videoPlayerController?.pause();
   }
 
   @override
@@ -118,87 +148,115 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
       );
     }
 
-    final safePad = MediaQuery.of(context).padding;
-
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          widget.chapter.title,
+          style: AppTextStyles.labelLg.copyWith(color: Colors.white),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      body: Column(
         children: [
-          // Video Player
-          Center(
-            child: _chewieController != null &&
-                    _chewieController!.videoPlayerController.value.isInitialized
-                ? Chewie(controller: _chewieController!)
-                : const CircularProgressIndicator(color: Colors.white),
-          ),
-
-          // Top Bar — respects safe area (notch / status bar)
-          Positioned(
-            top: safePad.top + 8,
-            left: AppSpacing.sm,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
+          // Video Player Section
+          Expanded(
+            child: Center(
+              child: _error != null
+                  ? _buildErrorWidget()
+                  : _chewieController != null
+                      ? Chewie(controller: _chewieController!)
+                      : const CircularProgressIndicator(color: Colors.white),
             ),
           ),
 
-          // Bottom Action Bar (Enabled after threshold)
-          if (_isThresholdReached && !_showQuiz)
-            Positioned(
-              bottom: safePad.bottom + 24,
-              left: AppSpacing.md,
-              right: AppSpacing.md,
-              child: AnimatedOpacity(
-                opacity: 1.0,
-                duration: const Duration(milliseconds: 500),
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: _onTakeQuiz,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
-                      textStyle: AppTextStyles.labelMd
-                          .copyWith(fontWeight: FontWeight.bold),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30)),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.quiz_rounded, size: 20),
-                        SizedBox(width: 10),
-                        Text('Take Quiz'),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+          // Bottom Bar Section
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+              child:
+                  _isThresholdReached ? _buildQuizButton() : _buildLockedBar(),
             ),
+          ),
+        ],
+      ),
+    );
+  }
 
-          // Overlay message if not threshold yet
-          if (!_isThresholdReached)
-            Positioned(
-              bottom: safePad.bottom + 12,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Watch full video to unlock the quiz',
-                    style: AppTextStyles.bodyXs.copyWith(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
+  Widget _buildErrorWidget() {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline_rounded,
+              color: Colors.white54, size: 48),
+          const SizedBox(height: AppSpacing.md),
+          Text(_error!,
+              style: AppTextStyles.bodySm.copyWith(color: Colors.white70),
+              textAlign: TextAlign.center),
+          const SizedBox(height: AppSpacing.md),
+          TextButton(
+            onPressed: () {
+              setState(() => _error = null);
+              _initializePlayer();
+            },
+            child: const Text('Retry', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuizButton() {
+    return ElevatedButton(
+      onPressed: _onTakeQuiz,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        minimumSize: const Size(double.infinity, 48),
+        textStyle: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.quiz_rounded, size: 20),
+          SizedBox(width: 10),
+          Text('Take Quiz'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLockedBar() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.lock_outline_rounded,
+              size: 14, color: Colors.white.withValues(alpha: 0.6)),
+          const SizedBox(width: 8),
+          Text(
+            'Watch full video to unlock the quiz',
+            style: AppTextStyles.bodyXs
+                .copyWith(color: Colors.white.withValues(alpha: 0.7)),
+          ),
         ],
       ),
     );

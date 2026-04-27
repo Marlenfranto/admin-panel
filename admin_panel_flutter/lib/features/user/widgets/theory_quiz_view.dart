@@ -4,6 +4,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/responsive_helper.dart';
 import '../providers/theory_providers.dart';
+import '../providers/user_providers.dart';
+
+/// Resolves the question text and answers for the best matching language.
+/// Falls back to the default language fields on the QuizQuestion.
+({String question, List<String> answers}) _resolveQuizContent(
+  QuizQuestion q,
+  String preferredLangCode,
+  String defaultLangCode,
+) {
+  if (preferredLangCode == defaultLangCode ||
+      q.translations == null ||
+      q.translations!.isEmpty) {
+    return (question: q.question, answers: q.answers);
+  }
+  for (final t in q.translations!) {
+    if (t.languageCode == preferredLangCode && t.question.isNotEmpty) {
+      return (question: t.question, answers: t.answers);
+    }
+  }
+  return (question: q.question, answers: q.answers);
+}
 
 class TheoryQuizView extends ConsumerStatefulWidget {
   const TheoryQuizView({
@@ -69,6 +90,11 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
     final selectedAnswer = state.selectedAnswers[currentIndex];
     final progress = (currentIndex + 1) / questions.length;
 
+    final config = ref.watch(userModuleConfigProvider).value;
+    final defaultLang = config?.defaultLanguage ?? 'en';
+    final deviceLang = Localizations.localeOf(context).languageCode;
+    final content = _resolveQuizContent(currentQuestion, deviceLang, defaultLang);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -101,17 +127,17 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
               const SizedBox(height: AppSpacing.md),
 
               // Question text
-              Text(currentQuestion.question, style: AppTextStyles.headingMd),
+              Text(content.question, style: AppTextStyles.headingMd),
               const SizedBox(height: AppSpacing.lg),
 
               // Answers
               Expanded(
                 child: ListView.separated(
-                  itemCount: currentQuestion.answers.length,
+                  itemCount: content.answers.length,
                   separatorBuilder: (_, __) =>
                       const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (_, index) {
-                    final label = currentQuestion.answers[index];
+                    final label = content.answers[index];
                     final isSelected = selectedAnswer == index;
                     return _AnswerOption(
                       label: label,

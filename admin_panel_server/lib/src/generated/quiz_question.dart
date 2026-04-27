@@ -11,7 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:admin_panel_server/src/generated/protocol.dart' as _i2;
+import 'localized_quiz_content.dart' as _i2;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i3;
 
 abstract class QuizQuestion
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
@@ -19,21 +20,28 @@ abstract class QuizQuestion
     required this.question,
     required this.answers,
     required this.correctAnswer,
+    this.translations,
   });
 
   factory QuizQuestion({
     required String question,
     required List<String> answers,
     required int correctAnswer,
+    List<_i2.LocalizedQuizContent>? translations,
   }) = _QuizQuestionImpl;
 
   factory QuizQuestion.fromJson(Map<String, dynamic> jsonSerialization) {
     return QuizQuestion(
       question: jsonSerialization['question'] as String,
-      answers: _i2.Protocol().deserialize<List<String>>(
+      answers: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['answers'],
       ),
       correctAnswer: jsonSerialization['correctAnswer'] as int,
+      translations: jsonSerialization['translations'] == null
+          ? null
+          : _i3.Protocol().deserialize<List<_i2.LocalizedQuizContent>>(
+              jsonSerialization['translations'],
+            ),
     );
   }
 
@@ -43,6 +51,8 @@ abstract class QuizQuestion
 
   int correctAnswer;
 
+  List<_i2.LocalizedQuizContent>? translations;
+
   /// Returns a shallow copy of this [QuizQuestion]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -50,6 +60,7 @@ abstract class QuizQuestion
     String? question,
     List<String>? answers,
     int? correctAnswer,
+    List<_i2.LocalizedQuizContent>? translations,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -58,6 +69,8 @@ abstract class QuizQuestion
       'question': question,
       'answers': answers.toJson(),
       'correctAnswer': correctAnswer,
+      if (translations != null)
+        'translations': translations?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -68,6 +81,10 @@ abstract class QuizQuestion
       'question': question,
       'answers': answers.toJson(),
       'correctAnswer': correctAnswer,
+      if (translations != null)
+        'translations': translations?.toJson(
+          valueToJson: (v) => v.toJsonForProtocol(),
+        ),
     };
   }
 
@@ -77,15 +94,19 @@ abstract class QuizQuestion
   }
 }
 
+class _Undefined {}
+
 class _QuizQuestionImpl extends QuizQuestion {
   _QuizQuestionImpl({
     required String question,
     required List<String> answers,
     required int correctAnswer,
+    List<_i2.LocalizedQuizContent>? translations,
   }) : super._(
          question: question,
          answers: answers,
          correctAnswer: correctAnswer,
+         translations: translations,
        );
 
   /// Returns a shallow copy of this [QuizQuestion]
@@ -96,11 +117,15 @@ class _QuizQuestionImpl extends QuizQuestion {
     String? question,
     List<String>? answers,
     int? correctAnswer,
+    Object? translations = _Undefined,
   }) {
     return QuizQuestion(
       question: question ?? this.question,
       answers: answers ?? this.answers.map((e0) => e0).toList(),
       correctAnswer: correctAnswer ?? this.correctAnswer,
+      translations: translations is List<_i2.LocalizedQuizContent>?
+          ? translations
+          : this.translations?.map((e0) => e0.copyWith()).toList(),
     );
   }
 }

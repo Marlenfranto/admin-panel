@@ -59,14 +59,15 @@ dart pub get
 
 ### Authentication & Authorization
 - Auth is handled by Serverpod's built-in auth module
-- Four roles (hierarchy: SuperAdmin > Admin > Manager > User), defined in `role.spy.yaml`
-- Three scopes: `AppScopes.admin`, `AppScopes.manager`, `AppScopes.user` (defined in `admin_panel_server/lib/src/scopes.dart`)
+- Four roles (hierarchy: SuperAdmin > OrganizationAdmin > Manager > User), defined in `role.spy.yaml`
+- Four scopes: `AppScopes.admin`, `AppScopes.organizationAdmin`, `AppScopes.manager`, `AppScopes.user` (defined in `admin_panel_server/lib/src/scopes.dart`)
 - On server startup (`lib/server.dart`), a default admin is created: `admin@mako.com` / `Mako@123`
 
 ### API Endpoints
 Endpoints are in `admin_panel_server/lib/src/endpoints/` and grouped by access level:
 - `PublicApiEndpoint` — unauthenticated: login, theory retrieval, training/assessment params, module status & certificate submission from external training app (validated by API key), asset/language management
 - `AdminEndpoint` — requires `AppScopes.admin`: org CRUD, user creation, module config, theory/training/assessment content, all-user progress & training history
+- `OrganizationAdminEndpoint` — requires `AppScopes.organizationAdmin`: scoped to own organization, team CRUD, user creation, content/module config, training history
 - `ManagerEndpoint` — requires `AppScopes.manager`: scoped to managed org(s), user creation, content/module config, notifications, training history
 - `UserEndpoint` — requires login: own permissions, module config, progress updates, training history, password change
 
@@ -98,6 +99,7 @@ lib/
 │   └── services/                # Cloudinary uploader (image uploads via HTTP)
 ├── features/
 │   ├── admin/                   # AdminShell + 5 screens (orgs, users, modules, content, settings)
+│   ├── org_admin/               # OrgAdminShell + 5 screens (dashboard, teams, users, modules, content)
 │   ├── manager/                 # ManagerShell + 6 screens + notification bell widget
 │   └── user/                    # UserShell + 2 screens (modules, settings)
 └── shared/widgets/              # AppDataTable, AppKpiCard, DashboardShell, TrainingHistoryPanel,
@@ -107,6 +109,7 @@ lib/
 ### Frontend State Management (Flutter Riverpod)
 - `src/providers.dart` — core: `clientProvider`, `sessionManagerProvider`, `authProvider`
 - `features/admin/providers/admin_providers.dart` — organizations, all users, module configs, content
+- `features/org_admin/providers/org_admin_providers.dart` — own org, teams, users, content providers
 - `features/manager/providers/manager_providers.dart` — managed orgs, `selectedOrgIdProvider`, `activeOrgIdProvider`
 - `features/user/providers/user_providers.dart` — own progress, training history, module config
 
@@ -115,7 +118,8 @@ lib/
 ### Screen Routing (GoRouter)
 Role-based redirect in `core/router/app_router.dart`:
 - Unauthenticated → `LoginScreen`
-- `SuperAdmin`/`Admin` → `AdminShell` (organizations, users, modules, content, settings)
+- `SuperAdmin` → `AdminShell` (organizations, users, modules, content, settings)
+- `OrganizationAdmin` → `OrgAdminShell` (dashboard, teams, users, modules, content)
 - `Manager` → `ManagerShell` (overview, team, modules, content, assets, settings)
 - `User` → `UserShell` (modules, settings)
 
@@ -126,6 +130,11 @@ Role-based redirect in `core/router/app_router.dart`:
 - **External training integration**: `PublicApiEndpoint` accepts training results and certificate submissions from an external training app authenticated via API key (not user session)
 - **Authorization by query filtering**: Managers can only access their managed org's data — enforced server-side via `managerId.equals()` and `organizationId.equals()` filters, not just by scope
 - **Content versioning**: Every content mutation (module config, theory/training/assessment/assets) must call `bumpOrgContentVersion(session, organizationId)` from `lib/src/util/version_util.dart`. The `Organization.contentVersion` int is returned in the login response so clients can decide whether to re-fetch cached data.
+
+### Multilingual Quiz Content
+`QuizQuestion` is a **non-persistent** serializable model (no DB table) stored as JSON inside `TheoryChapter.questions`. It supports multilingual content via a nullable `translations: List<LocalizedQuizContent>?` field. The `correctAnswer` index is language-independent — same position across all translations. The root `question`/`answers` fields hold the default language content; `translations` holds additional languages keyed by `languageCode`. Old data without translations deserializes with `translations == null` (backward compatible).
+
+The user-facing quiz (`theory_quiz_view.dart`) resolves content by matching device locale against available translations, falling back to the default language.
 
 ### Critical Constraints & Gotchas
 
@@ -171,6 +180,11 @@ The `alignment` property on `AppTableColumn` is used to align cell content AND t
 - GCP (Cloud Run) and AWS terraform configs in `deploy/` directory
 - Firebase hosting config in `admin_panel_flutter/firebase.json`
 - Server Docker image: multi-stage build (dart:3.8.0 → Alpine), exposes ports 8080/8081/8082
+
+### Linting
+- Server: uses `package:lints/recommended.yaml`, excludes auto-generated files
+- Client: excludes `lib/src/protocol/**`
+- Flutter: uses `package:flutter_lints/flutter.yaml`
 
 ### Database Migrations
 Migrations are in `admin_panel_server/migrations/` and tracked in `migration_registry.txt`. Run `serverpod generate` to create new migrations after model changes.

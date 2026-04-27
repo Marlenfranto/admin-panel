@@ -17,10 +17,11 @@ final clientProvider = Provider<Client>((ref) {
 
 // 2. Provider for the SessionManager
 // Manages the user's session and authentication state.
+// initialize() is awaited in main.dart before runApp.
 final sessionManagerProvider = Provider<SessionManager>((ref) {
   return SessionManager(
     caller: ref.watch(clientProvider).modules.auth,
-  )..initialize();
+  );
 });
 
 // 3. StateNotifier for Authentication State
@@ -28,8 +29,9 @@ final sessionManagerProvider = Provider<SessionManager>((ref) {
 class AuthState {
   final UserInfo? userInfo;
   final AppUser? appUser;
+  final bool isLoading;
 
-  AuthState({this.userInfo, this.appUser});
+  AuthState({this.userInfo, this.appUser, this.isLoading = false});
 
   bool get isSignedIn => userInfo != null;
 }
@@ -37,7 +39,7 @@ class AuthState {
 // Notifier to manage changes in authentication state.
 class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;
-  AuthNotifier(this.ref) : super(AuthState()) {
+  AuthNotifier(this.ref) : super(AuthState(isLoading: true)) {
     _initialize();
   }
 
@@ -45,12 +47,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void _initialize() async {
     final sessionManager = ref.read(sessionManagerProvider);
 
-    // Set initial state
-    state = AuthState(
-      userInfo: sessionManager.signedInUser,
-      appUser:
-          sessionManager.signedInUser != null ? await _fetchAppUser() : null,
-    );
+    // Set initial state — mark loading while fetching AppUser.
+    final userInfo = sessionManager.signedInUser;
+    if (userInfo != null) {
+      state = AuthState(userInfo: userInfo, isLoading: true);
+      final appUser = await _fetchAppUser();
+      state = AuthState(userInfo: userInfo, appUser: appUser);
+    } else {
+      state = AuthState();
+    }
 
     // Listen for changes in session state and update accordingly.
     sessionManager.addListener(() {

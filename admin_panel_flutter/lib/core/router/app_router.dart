@@ -78,6 +78,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final location = state.matchedLocation;
       final isLogin  = location == AppRoutes.login;
 
+      // Still loading the stored session → don't redirect anywhere yet.
+      if (auth.isLoading) return null;
+
       // Not signed in → always send to login
       if (!auth.isSignedIn) {
         return isLogin ? null : AppRoutes.login;
