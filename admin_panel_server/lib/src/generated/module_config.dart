@@ -14,7 +14,8 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'organization.dart' as _i2;
 import 'supported_language.dart' as _i3;
-import 'package:admin_panel_server/src/generated/protocol.dart' as _i4;
+import 'localized_ai_prompt.dart' as _i4;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i5;
 
 abstract class ModuleConfig
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -29,6 +30,7 @@ abstract class ModuleConfig
     String? defaultLanguage,
     this.supportedLanguages,
     this.aiChatPrompt,
+    this.aiChatPromptTranslations,
     int? passingPercentage,
   }) : theoryModule = theoryModule ?? false,
        aiExpertModule = aiExpertModule ?? false,
@@ -48,6 +50,7 @@ abstract class ModuleConfig
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
     int? passingPercentage,
   }) = _ModuleConfigImpl;
 
@@ -57,7 +60,7 @@ abstract class ModuleConfig
       organizationId: jsonSerialization['organizationId'] as int?,
       organization: jsonSerialization['organization'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.Organization>(
+          : _i5.Protocol().deserialize<_i2.Organization>(
               jsonSerialization['organization'],
             ),
       theoryModule: jsonSerialization['theoryModule'] == null
@@ -79,10 +82,16 @@ abstract class ModuleConfig
       defaultLanguage: jsonSerialization['defaultLanguage'] as String?,
       supportedLanguages: jsonSerialization['supportedLanguages'] == null
           ? null
-          : _i4.Protocol().deserialize<List<_i3.SupportedLanguage>>(
+          : _i5.Protocol().deserialize<List<_i3.SupportedLanguage>>(
               jsonSerialization['supportedLanguages'],
             ),
       aiChatPrompt: jsonSerialization['aiChatPrompt'] as String?,
+      aiChatPromptTranslations:
+          jsonSerialization['aiChatPromptTranslations'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i4.LocalizedAiPrompt>>(
+              jsonSerialization['aiChatPromptTranslations'],
+            ),
       passingPercentage: jsonSerialization['passingPercentage'] as int?,
     );
   }
@@ -112,6 +121,8 @@ abstract class ModuleConfig
 
   String? aiChatPrompt;
 
+  List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations;
+
   int passingPercentage;
 
   @override
@@ -131,6 +142,7 @@ abstract class ModuleConfig
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
     int? passingPercentage,
   });
   @override
@@ -150,6 +162,10 @@ abstract class ModuleConfig
           valueToJson: (v) => v.toJson(),
         ),
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
+      if (aiChatPromptTranslations != null)
+        'aiChatPromptTranslations': aiChatPromptTranslations?.toJson(
+          valueToJson: (v) => v.toJson(),
+        ),
       'passingPercentage': passingPercentage,
     };
   }
@@ -172,6 +188,10 @@ abstract class ModuleConfig
           valueToJson: (v) => v.toJsonForProtocol(),
         ),
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
+      if (aiChatPromptTranslations != null)
+        'aiChatPromptTranslations': aiChatPromptTranslations?.toJson(
+          valueToJson: (v) => v.toJsonForProtocol(),
+        ),
       'passingPercentage': passingPercentage,
     };
   }
@@ -220,6 +240,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
     int? passingPercentage,
   }) : super._(
          id: id,
@@ -232,6 +253,7 @@ class _ModuleConfigImpl extends ModuleConfig {
          defaultLanguage: defaultLanguage,
          supportedLanguages: supportedLanguages,
          aiChatPrompt: aiChatPrompt,
+         aiChatPromptTranslations: aiChatPromptTranslations,
          passingPercentage: passingPercentage,
        );
 
@@ -250,6 +272,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     String? defaultLanguage,
     Object? supportedLanguages = _Undefined,
     Object? aiChatPrompt = _Undefined,
+    Object? aiChatPromptTranslations = _Undefined,
     int? passingPercentage,
   }) {
     return ModuleConfig(
@@ -269,6 +292,10 @@ class _ModuleConfigImpl extends ModuleConfig {
           ? supportedLanguages
           : this.supportedLanguages?.map((e0) => e0.copyWith()).toList(),
       aiChatPrompt: aiChatPrompt is String? ? aiChatPrompt : this.aiChatPrompt,
+      aiChatPromptTranslations:
+          aiChatPromptTranslations is List<_i4.LocalizedAiPrompt>?
+          ? aiChatPromptTranslations
+          : this.aiChatPromptTranslations?.map((e0) => e0.copyWith()).toList(),
       passingPercentage: passingPercentage ?? this.passingPercentage,
     );
   }
@@ -321,6 +348,13 @@ class ModuleConfigUpdateTable extends _i1.UpdateTable<ModuleConfigTable> {
         value,
       );
 
+  _i1.ColumnValue<List<_i4.LocalizedAiPrompt>, List<_i4.LocalizedAiPrompt>>
+  aiChatPromptTranslations(List<_i4.LocalizedAiPrompt>? value) =>
+      _i1.ColumnValue(
+        table.aiChatPromptTranslations,
+        value,
+      );
+
   _i1.ColumnValue<int, int> passingPercentage(int value) => _i1.ColumnValue(
     table.passingPercentage,
     value,
@@ -367,6 +401,11 @@ class ModuleConfigTable extends _i1.Table<int?> {
       'aiChatPrompt',
       this,
     );
+    aiChatPromptTranslations =
+        _i1.ColumnSerializable<List<_i4.LocalizedAiPrompt>>(
+          'aiChatPromptTranslations',
+          this,
+        );
     passingPercentage = _i1.ColumnInt(
       'passingPercentage',
       this,
@@ -395,6 +434,9 @@ class ModuleConfigTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString aiChatPrompt;
 
+  late final _i1.ColumnSerializable<List<_i4.LocalizedAiPrompt>>
+  aiChatPromptTranslations;
+
   late final _i1.ColumnInt passingPercentage;
 
   _i2.OrganizationTable get organization {
@@ -421,6 +463,7 @@ class ModuleConfigTable extends _i1.Table<int?> {
     defaultLanguage,
     supportedLanguages,
     aiChatPrompt,
+    aiChatPromptTranslations,
     passingPercentage,
   ];
 

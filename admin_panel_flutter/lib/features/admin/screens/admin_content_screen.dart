@@ -909,6 +909,20 @@ class _AssessmentTab extends ConsumerWidget {
 // Shared Parameter Dialog (Training + Assessment)
 // ─────────────────────────────────────────────────────────────────────────────
 
+class _LocalizedParamContent {
+  _LocalizedParamContent({String name = '', String description = ''})
+      : nameCtrl = TextEditingController(text: name),
+        descCtrl = TextEditingController(text: description);
+
+  final TextEditingController nameCtrl;
+  final TextEditingController descCtrl;
+
+  void dispose() {
+    nameCtrl.dispose();
+    descCtrl.dispose();
+  }
+}
+
 class _ParameterDialog<T> extends ConsumerStatefulWidget {
   const _ParameterDialog({
     required this.org,
@@ -936,11 +950,18 @@ class _ScoringRuleEntry {
   final TextEditingController thresholdCtrl;
   final TextEditingController scoreCtrl;
   final TextEditingController feedbackCtrl;
+  final Map<String, TextEditingController> feedbackTranslations = {};
+
+  TextEditingController getFeedbackTranslation(String langCode) {
+    return feedbackTranslations.putIfAbsent(
+        langCode, () => TextEditingController());
+  }
 
   void dispose() {
     thresholdCtrl.dispose();
     scoreCtrl.dispose();
     feedbackCtrl.dispose();
+    for (final c in feedbackTranslations.values) { c.dispose(); }
   }
 }
 
@@ -950,7 +971,9 @@ class _ParameterDialogState<T> extends ConsumerState<_ParameterDialog<T>> {
   late final TextEditingController _descCtrl;
   late final TextEditingController _maxCtrl;
   late List<_ScoringRuleEntry>     _rules;
-  bool _saving = false;
+  late Map<String, _LocalizedParamContent> _translationMap;
+  bool   _saving       = false;
+  String _selectedLang = '';
 
   @override
   void initState() {
@@ -971,13 +994,33 @@ class _ParameterDialogState<T> extends ConsumerState<_ParameterDialog<T>> {
               feedback:  r.feedback,
             ))
         .toList();
+
+    final existingTranslations = tp?.translations ?? ap?.translations ?? [];
+    _translationMap = {
+      for (final t in existingTranslations)
+        t.languageCode: _LocalizedParamContent(
+          name:        t.name,
+          description: t.description,
+        ),
+    };
+    for (final t in existingTranslations) {
+      for (int i = 0; i < _rules.length && i < (t.scoringFeedbacks?.length ?? 0); i++) {
+        _rules[i].getFeedbackTranslation(t.languageCode).text = t.scoringFeedbacks![i];
+      }
+    }
   }
 
   @override
   void dispose() {
     for (final c in [_idCtrl, _nameCtrl, _descCtrl, _maxCtrl]) { c.dispose(); }
     for (final r in _rules) { r.dispose(); }
+    for (final t in _translationMap.values) { t.dispose(); }
     super.dispose();
+  }
+
+  _LocalizedParamContent _getTranslation(String langCode) {
+    return _translationMap.putIfAbsent(
+        langCode, () => _LocalizedParamContent());
   }
 
   Future<void> _save() async {
@@ -987,6 +1030,21 @@ class _ParameterDialogState<T> extends ConsumerState<_ParameterDialog<T>> {
               threshold: int.tryParse(r.thresholdCtrl.text.trim()) ?? 0,
               score:     int.tryParse(r.scoreCtrl.text.trim()) ?? 0,
               feedback:  r.feedbackCtrl.text.trim(),
+            ))
+        .toList();
+
+    final translations = _translationMap.entries
+        .where((e) =>
+            e.value.nameCtrl.text.trim().isNotEmpty ||
+            e.value.descCtrl.text.trim().isNotEmpty)
+        .map((e) => LocalizedParameterContent(
+              languageCode:    e.key,
+              name:            e.value.nameCtrl.text.trim(),
+              description:     e.value.descCtrl.text.trim(),
+              scoringFeedbacks: _rules
+                  .map((r) =>
+                      r.feedbackTranslations[e.key]?.text.trim() ?? '')
+                  .toList(),
             ))
         .toList();
 
@@ -1001,6 +1059,7 @@ class _ParameterDialogState<T> extends ConsumerState<_ParameterDialog<T>> {
         description:    _descCtrl.text.trim(),
         maxScore:       int.tryParse(_maxCtrl.text.trim()) ?? 5,
         scoringRules:   rules,
+        translations:   translations.isEmpty ? null : translations,
       );
     } else {
       final ap = widget.existing as AssessmentParameter?;
@@ -1012,6 +1071,7 @@ class _ParameterDialogState<T> extends ConsumerState<_ParameterDialog<T>> {
         description:    _descCtrl.text.trim(),
         maxScore:       int.tryParse(_maxCtrl.text.trim()) ?? 5,
         scoringRules:   rules,
+        translations:   translations.isEmpty ? null : translations,
       );
     }
 
@@ -1032,9 +1092,21 @@ class _ParameterDialogState<T> extends ConsumerState<_ParameterDialog<T>> {
   @override
   Widget build(BuildContext context) {
     final isTraining = widget.isTraining;
+    final isDefault  = _selectedLang.isEmpty;
     final title = widget.existing == null
         ? 'Add ${isTraining ? 'Training' : 'Assessment'} Parameter'
         : 'Edit Parameter';
+
+    final TextEditingController nameCtrl;
+    final TextEditingController descCtrl;
+    if (isDefault) {
+      nameCtrl = _nameCtrl;
+      descCtrl = _descCtrl;
+    } else {
+      final t = _getTranslation(_selectedLang);
+      nameCtrl = t.nameCtrl;
+      descCtrl = t.descCtrl;
+    }
 
     return Dialog(
       backgroundColor: AppColors.surfaceVariant,
@@ -1065,50 +1137,96 @@ class _ParameterDialogState<T> extends ConsumerState<_ParameterDialog<T>> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ── Language selector ──────────────────────────────
+                    Builder(builder: (_) {
+                      final config = ref.watch(moduleConfigProvider(widget.org.id!)).value;
+                      final defaultLang = config?.defaultLanguage ?? 'en';
+                      final orgLangs = config?.supportedLanguages ?? [];
+                      final hasMultipleLangs = orgLangs.where((l) => l.code != defaultLang).isNotEmpty;
+                      if (hasMultipleLangs)
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                ChoiceChip(
+                                  label: Text(defaultLang.toUpperCase()),
+                                  selected: _selectedLang == '',
+                                  onSelected: (_) => setState(() => _selectedLang = ''),
+                                ),
+                                const SizedBox(width: 8),
+                                for (final lang in orgLangs)
+                                  if (lang.code != defaultLang)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: ChoiceChip(
+                                        label: Text(lang.name.isNotEmpty ? lang.name : lang.code.toUpperCase()),
+                                        selected: _selectedLang == lang.code,
+                                        onSelected: (_) => setState(() => _selectedLang = lang.code),
+                                      ),
+                                    ),
+                              ],
+                            ),
+                          ),
+                        );
+                      return const SizedBox.shrink();
+                    }),
                     const SheetSection(title: 'Parameter Details'),
                     const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _idCtrl,
-                            decoration: const InputDecoration(
-                                labelText: 'Parameter ID *'),
+                    if (isDefault) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _idCtrl,
+                              decoration: const InputDecoration(
+                                  labelText: 'Parameter ID *'),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        SizedBox(
-                          width: 100,
-                          child: TextField(
-                            controller:   _maxCtrl,
-                            keyboardType: TextInputType.number,
-                            decoration:   const InputDecoration(labelText: 'Max Score'),
+                          const SizedBox(width: AppSpacing.md),
+                          SizedBox(
+                            width: 100,
+                            child: TextField(
+                              controller:   _maxCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration:   const InputDecoration(labelText: 'Max Score'),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    TextField(
+                      controller: nameCtrl,
+                      decoration: InputDecoration(
+                        labelText: isDefault
+                            ? 'Name *'
+                            : 'Name (${_selectedLang.toUpperCase()})',
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextField(
-                      controller: _nameCtrl,
-                      decoration: const InputDecoration(labelText: 'Name *'),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _descCtrl,
+                      controller: descCtrl,
                       maxLines:   2,
-                      decoration: const InputDecoration(labelText: 'Description'),
+                      decoration: InputDecoration(
+                        labelText: isDefault
+                            ? 'Description'
+                            : 'Description (${_selectedLang.toUpperCase()})',
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Row(
                       children: [
                         const SheetSection(title: 'Scoring Rules'),
                         const Spacer(),
-                        TextButton.icon(
-                          icon:     const Icon(Icons.add_rounded, size: 16),
-                          label:    const Text('Add Rule'),
-                          onPressed: () =>
-                              setState(() => _rules.add(_ScoringRuleEntry())),
-                        ),
+                        if (isDefault)
+                          TextButton.icon(
+                            icon:     const Icon(Icons.add_rounded, size: 16),
+                            label:    const Text('Add Rule'),
+                            onPressed: () =>
+                                setState(() => _rules.add(_ScoringRuleEntry())),
+                          ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -1119,12 +1237,15 @@ class _ParameterDialogState<T> extends ConsumerState<_ParameterDialog<T>> {
                       ...List.generate(_rules.length, (i) {
                         final r = _rules[i];
                         return _ScoringRuleCard(
-                          index:   i,
-                          entry:   r,
-                          onDelete: () {
-                            r.dispose();
-                            setState(() => _rules.removeAt(i));
-                          },
+                          index:          i,
+                          entry:          r,
+                          activeLangCode: _selectedLang,
+                          onDelete: isDefault
+                              ? () {
+                                  r.dispose();
+                                  setState(() => _rules.removeAt(i));
+                                }
+                              : null,
                         );
                       }),
                   ],
@@ -1161,15 +1282,22 @@ class _ScoringRuleCard extends StatelessWidget {
   const _ScoringRuleCard({
     required this.index,
     required this.entry,
-    required this.onDelete,
+    this.activeLangCode = '',
+    this.onDelete,
   });
 
   final int               index;
   final _ScoringRuleEntry entry;
-  final VoidCallback      onDelete;
+  final String            activeLangCode;
+  final VoidCallback?     onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final isDefault = activeLangCode.isEmpty;
+    final feedbackCtrl = isDefault
+        ? entry.feedbackCtrl
+        : entry.getFeedbackTranslation(activeLangCode);
+
     return Container(
       margin:  const EdgeInsets.only(bottom: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -1185,46 +1313,58 @@ class _ScoringRuleCard extends StatelessWidget {
             children: [
               Text('Rule ${index + 1}',
                   style: AppTextStyles.labelMd.copyWith(color: AppColors.primary)),
+              if (!isDefault) ...[
+                const SizedBox(width: 8),
+                Text(activeLangCode.toUpperCase(),
+                    style: AppTextStyles.bodyXs.copyWith(color: AppColors.onSurfaceMuted)),
+              ],
               const Spacer(),
-              IconButton(
-                icon:        const Icon(Icons.delete_outline_rounded,
-                    size: 18, color: AppColors.error),
-                onPressed:   onDelete,
-                padding:     EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
+              if (onDelete != null)
+                IconButton(
+                  icon:        const Icon(Icons.delete_outline_rounded,
+                      size: 18, color: AppColors.error),
+                  onPressed:   onDelete,
+                  padding:     EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              SizedBox(
-                width: 120,
-                child: TextField(
-                  controller:   entry.thresholdCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration:   const InputDecoration(
-                      labelText: 'Threshold', isDense: true),
+          if (isDefault)
+            Row(
+              children: [
+                SizedBox(
+                  width: 120,
+                  child: TextField(
+                    controller:   entry.thresholdCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration:   const InputDecoration(
+                        labelText: 'Threshold', isDense: true),
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              SizedBox(
-                width: 80,
-                child: TextField(
-                  controller:   entry.scoreCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration:   const InputDecoration(
-                      labelText: 'Score', isDense: true),
+                const SizedBox(width: AppSpacing.md),
+                SizedBox(
+                  width: 80,
+                  child: TextField(
+                    controller:   entry.scoreCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration:   const InputDecoration(
+                        labelText: 'Score', isDense: true),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
+              ],
+            ),
+          if (isDefault)
+            const SizedBox(height: AppSpacing.sm),
           TextField(
-            controller: entry.feedbackCtrl,
+            controller: feedbackCtrl,
             maxLines:   3,
-            decoration: const InputDecoration(
-                labelText: 'Feedback', isDense: true),
+            decoration: InputDecoration(
+              labelText: isDefault
+                  ? 'Feedback'
+                  : 'Feedback (${activeLangCode.toUpperCase()})',
+              isDense: true,
+            ),
           ),
         ],
       ),

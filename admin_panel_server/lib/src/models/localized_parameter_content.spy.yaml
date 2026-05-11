@@ -1,0 +1,6 @@
+class: LocalizedParameterContent
+fields:
+  languageCode: String
+  name: String
+  description: String
+  scoringFeedbacks: List<String>?

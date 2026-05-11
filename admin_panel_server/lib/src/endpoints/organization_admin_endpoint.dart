@@ -453,6 +453,7 @@ class OrganizationAdminEndpoint extends Endpoint {
     String defaultLanguage,
     List<SupportedLanguage> supportedLanguages,
     String? aiChatPrompt,
+    List<LocalizedAiPrompt>? aiChatPromptTranslations,
     int passingPercentage,
   ) async {
     await _checkBasePermission(session);
@@ -474,6 +475,7 @@ class OrganizationAdminEndpoint extends Endpoint {
       existing.defaultLanguage     = defaultLanguage;
       existing.supportedLanguages  = supportedLanguages;
       existing.aiChatPrompt        = aiChatPrompt;
+      existing.aiChatPromptTranslations = aiChatPromptTranslations;
       existing.passingPercentage   = passingPercentage;
       result = await ModuleConfig.db.updateRow(session, existing);
     } else {
@@ -488,6 +490,7 @@ class OrganizationAdminEndpoint extends Endpoint {
           defaultLanguage:     defaultLanguage,
           supportedLanguages:  supportedLanguages,
           aiChatPrompt:        aiChatPrompt,
+          aiChatPromptTranslations: aiChatPromptTranslations,
           passingPercentage:   passingPercentage,
         ),
       );

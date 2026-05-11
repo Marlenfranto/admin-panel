@@ -13,7 +13,8 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'organization.dart' as _i2;
 import 'supported_language.dart' as _i3;
-import 'package:admin_panel_client/src/protocol/protocol.dart' as _i4;
+import 'localized_ai_prompt.dart' as _i4;
+import 'package:admin_panel_client/src/protocol/protocol.dart' as _i5;
 
 abstract class ModuleConfig implements _i1.SerializableModel {
   ModuleConfig._({
@@ -27,6 +28,7 @@ abstract class ModuleConfig implements _i1.SerializableModel {
     String? defaultLanguage,
     this.supportedLanguages,
     this.aiChatPrompt,
+    this.aiChatPromptTranslations,
     int? passingPercentage,
   }) : theoryModule = theoryModule ?? false,
        aiExpertModule = aiExpertModule ?? false,
@@ -46,6 +48,7 @@ abstract class ModuleConfig implements _i1.SerializableModel {
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
     int? passingPercentage,
   }) = _ModuleConfigImpl;
 
@@ -55,7 +58,7 @@ abstract class ModuleConfig implements _i1.SerializableModel {
       organizationId: jsonSerialization['organizationId'] as int?,
       organization: jsonSerialization['organization'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.Organization>(
+          : _i5.Protocol().deserialize<_i2.Organization>(
               jsonSerialization['organization'],
             ),
       theoryModule: jsonSerialization['theoryModule'] == null
@@ -77,10 +80,16 @@ abstract class ModuleConfig implements _i1.SerializableModel {
       defaultLanguage: jsonSerialization['defaultLanguage'] as String?,
       supportedLanguages: jsonSerialization['supportedLanguages'] == null
           ? null
-          : _i4.Protocol().deserialize<List<_i3.SupportedLanguage>>(
+          : _i5.Protocol().deserialize<List<_i3.SupportedLanguage>>(
               jsonSerialization['supportedLanguages'],
             ),
       aiChatPrompt: jsonSerialization['aiChatPrompt'] as String?,
+      aiChatPromptTranslations:
+          jsonSerialization['aiChatPromptTranslations'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i4.LocalizedAiPrompt>>(
+              jsonSerialization['aiChatPromptTranslations'],
+            ),
       passingPercentage: jsonSerialization['passingPercentage'] as int?,
     );
   }
@@ -108,6 +117,8 @@ abstract class ModuleConfig implements _i1.SerializableModel {
 
   String? aiChatPrompt;
 
+  List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations;
+
   int passingPercentage;
 
   /// Returns a shallow copy of this [ModuleConfig]
@@ -124,6 +135,7 @@ abstract class ModuleConfig implements _i1.SerializableModel {
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
     int? passingPercentage,
   });
   @override
@@ -143,6 +155,10 @@ abstract class ModuleConfig implements _i1.SerializableModel {
           valueToJson: (v) => v.toJson(),
         ),
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
+      if (aiChatPromptTranslations != null)
+        'aiChatPromptTranslations': aiChatPromptTranslations?.toJson(
+          valueToJson: (v) => v.toJson(),
+        ),
       'passingPercentage': passingPercentage,
     };
   }
@@ -167,6 +183,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
     int? passingPercentage,
   }) : super._(
          id: id,
@@ -179,6 +196,7 @@ class _ModuleConfigImpl extends ModuleConfig {
          defaultLanguage: defaultLanguage,
          supportedLanguages: supportedLanguages,
          aiChatPrompt: aiChatPrompt,
+         aiChatPromptTranslations: aiChatPromptTranslations,
          passingPercentage: passingPercentage,
        );
 
@@ -197,6 +215,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     String? defaultLanguage,
     Object? supportedLanguages = _Undefined,
     Object? aiChatPrompt = _Undefined,
+    Object? aiChatPromptTranslations = _Undefined,
     int? passingPercentage,
   }) {
     return ModuleConfig(
@@ -216,6 +235,10 @@ class _ModuleConfigImpl extends ModuleConfig {
           ? supportedLanguages
           : this.supportedLanguages?.map((e0) => e0.copyWith()).toList(),
       aiChatPrompt: aiChatPrompt is String? ? aiChatPrompt : this.aiChatPrompt,
+      aiChatPromptTranslations:
+          aiChatPromptTranslations is List<_i4.LocalizedAiPrompt>?
+          ? aiChatPromptTranslations
+          : this.aiChatPromptTranslations?.map((e0) => e0.copyWith()).toList(),
       passingPercentage: passingPercentage ?? this.passingPercentage,
     );
   }

@@ -7,3 +7,4 @@ fields:
   languages: LanguagesConfig
   passingPercentage: int
   aiChatPrompt: String?
+  aiChatPromptTranslations: List<LocalizedAiPrompt>?

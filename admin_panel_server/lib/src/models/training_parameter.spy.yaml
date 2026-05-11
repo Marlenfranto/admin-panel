@@ -7,3 +7,4 @@ fields:
   description: String
   maxScore: int
   scoringRules: List<ScoringRule>
+  translations: List<LocalizedParameterContent>?

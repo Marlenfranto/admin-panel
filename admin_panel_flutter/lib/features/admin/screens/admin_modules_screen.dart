@@ -93,6 +93,7 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
 
   final _defaultLangCtrl = TextEditingController(text: 'en');
   final _aiPromptCtrl    = TextEditingController();
+  final Map<String, TextEditingController> _aiPromptTranslations = {};
   List<_LangEntry> _languages = [];
   bool _saving = false;
 
@@ -100,6 +101,7 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
   void dispose() {
     _defaultLangCtrl.dispose();
     _aiPromptCtrl.dispose();
+    for (final c in _aiPromptTranslations.values) { c.dispose(); }
     for (final l in _languages) {
       l.dispose();
     }
@@ -110,6 +112,8 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
     for (final l in _languages) {
       l.dispose();
     }
+    for (final c in _aiPromptTranslations.values) { c.dispose(); }
+    _aiPromptTranslations.clear();
     setState(() {
       if (config != null) {
         _theory     = config.theoryModule;
@@ -126,6 +130,10 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                   url:  l.contentUrl ?? '',
                 ))
             .toList();
+        for (final t in config.aiChatPromptTranslations ?? []) {
+          _aiPromptTranslations[t.languageCode] =
+              TextEditingController(text: t.prompt);
+        }
       } else {
         _theory = _ai = _training = _assessment = false;
         _passing = 60;
@@ -141,6 +149,13 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
     setState(() => _saving = true);
     try {
       final prompt = _aiPromptCtrl.text.trim();
+      final promptTranslations = _aiPromptTranslations.entries
+          .where((e) => e.value.text.trim().isNotEmpty)
+          .map((e) => LocalizedAiPrompt(
+                languageCode: e.key,
+                prompt:       e.value.text.trim(),
+              ))
+          .toList();
       await ref.read(clientProvider).admin.setModuleConfig(
             _selectedOrg!.id!,
             _theory,
@@ -152,6 +167,7 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                 : _defaultLangCtrl.text.trim(),
             _languages.map((l) => l.toModel()).toList(),
             prompt.isEmpty ? null : prompt,
+            promptTranslations.isEmpty ? null : promptTranslations,
             _passing,
           );
       ref.invalidate(moduleConfigProvider(_selectedOrg!.id!));
@@ -559,6 +575,22 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                       subtitle: 'Sent as the system message for every AI chat session',
                     ),
                     const SizedBox(height: AppSpacing.md),
+                    Builder(builder: (_) {
+                      final defaultLang = _defaultLangCtrl.text.trim().isEmpty
+                          ? 'en'
+                          : _defaultLangCtrl.text.trim();
+                      final otherLangs = _languages
+                          .where((l) => l.codeCtrl.text.trim() != defaultLang)
+                          .toList();
+                      if (otherLangs.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: Text(
+                          'Default language ($defaultLang)',
+                          style: AppTextStyles.labelSm,
+                        ),
+                      );
+                    }),
                     TextField(
                       controller: _aiPromptCtrl,
                       maxLines:   6,
@@ -567,6 +599,42 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                         alignLabelWithHint: true,
                       ),
                     ),
+                    Builder(builder: (_) {
+                      final defaultLang = _defaultLangCtrl.text.trim().isEmpty
+                          ? 'en'
+                          : _defaultLangCtrl.text.trim();
+                      final otherLangs = _languages
+                          .where((l) => l.codeCtrl.text.trim() != defaultLang)
+                          .toList();
+                      if (otherLangs.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final lang in otherLangs) ...[
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              lang.nameCtrl.text.isNotEmpty
+                                  ? lang.nameCtrl.text
+                                  : lang.codeCtrl.text.toUpperCase(),
+                              style: AppTextStyles.labelSm,
+                            ),
+                            const SizedBox(height: 4),
+                            TextField(
+                              controller: _aiPromptTranslations.putIfAbsent(
+                                lang.codeCtrl.text.trim(),
+                                () => TextEditingController(),
+                              ),
+                              maxLines: 6,
+                              decoration: InputDecoration(
+                                hintText:
+                                    'System prompt in ${lang.nameCtrl.text.isNotEmpty ? lang.nameCtrl.text : lang.codeCtrl.text.toUpperCase()}…',
+                                alignLabelWithHint: true,
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    }),
                   ],
                 ),
               ),

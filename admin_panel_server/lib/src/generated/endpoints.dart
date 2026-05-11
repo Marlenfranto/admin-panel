@@ -19,17 +19,19 @@ import '../endpoints/user_endpoint.dart' as _i6;
 import 'package:admin_panel_server/src/generated/role.dart' as _i7;
 import 'package:admin_panel_server/src/generated/supported_language.dart'
     as _i8;
-import 'package:admin_panel_server/src/generated/theory_chapter.dart' as _i9;
+import 'package:admin_panel_server/src/generated/localized_ai_prompt.dart'
+    as _i9;
+import 'package:admin_panel_server/src/generated/theory_chapter.dart' as _i10;
 import 'package:admin_panel_server/src/generated/training_parameter.dart'
-    as _i10;
-import 'package:admin_panel_server/src/generated/assessment_parameter.dart'
     as _i11;
-import 'package:admin_panel_server/src/generated/asset.dart' as _i12;
+import 'package:admin_panel_server/src/generated/assessment_parameter.dart'
+    as _i12;
+import 'package:admin_panel_server/src/generated/asset.dart' as _i13;
 import 'package:admin_panel_server/src/generated/module_progress_status.dart'
-    as _i13;
-import 'package:admin_panel_server/src/generated/training_criteria_score.dart'
     as _i14;
-import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i15;
+import 'package:admin_panel_server/src/generated/training_criteria_score.dart'
+    as _i15;
+import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i16;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -388,6 +390,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'aiChatPromptTranslations': _i1.ParameterDescription(
+              name: 'aiChatPromptTranslations',
+              type: _i1.getType<List<_i9.LocalizedAiPrompt>?>(),
+              nullable: true,
+            ),
             'passingPercentage': _i1.ParameterDescription(
               name: 'passingPercentage',
               type: _i1.getType<int>(),
@@ -409,6 +416,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['defaultLanguage'],
                     params['supportedLanguages'],
                     params['aiChatPrompt'],
+                    params['aiChatPromptTranslations'],
                     params['passingPercentage'],
                   ),
         ),
@@ -455,7 +463,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'chapter': _i1.ParameterDescription(
               name: 'chapter',
-              type: _i1.getType<_i9.TheoryChapter>(),
+              type: _i1.getType<_i10.TheoryChapter>(),
               nullable: false,
             ),
           },
@@ -512,7 +520,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'param': _i1.ParameterDescription(
               name: 'param',
-              type: _i1.getType<_i10.TrainingParameter>(),
+              type: _i1.getType<_i11.TrainingParameter>(),
               nullable: false,
             ),
           },
@@ -569,7 +577,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'param': _i1.ParameterDescription(
               name: 'param',
-              type: _i1.getType<_i11.AssessmentParameter>(),
+              type: _i1.getType<_i12.AssessmentParameter>(),
               nullable: false,
             ),
           },
@@ -625,7 +633,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'asset': _i1.ParameterDescription(
               name: 'asset',
-              type: _i1.getType<_i12.Asset>(),
+              type: _i1.getType<_i13.Asset>(),
               nullable: false,
             ),
           },
@@ -885,7 +893,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i13.ModuleProgressStatus>(),
+              type: _i1.getType<_i14.ModuleProgressStatus>(),
               nullable: false,
             ),
             'startedAt': _i1.ParameterDescription(
@@ -1129,7 +1137,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'chapter': _i1.ParameterDescription(
               name: 'chapter',
-              type: _i1.getType<_i9.TheoryChapter>(),
+              type: _i1.getType<_i10.TheoryChapter>(),
               nullable: false,
             ),
           },
@@ -1192,7 +1200,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'param': _i1.ParameterDescription(
               name: 'param',
-              type: _i1.getType<_i10.TrainingParameter>(),
+              type: _i1.getType<_i11.TrainingParameter>(),
               nullable: false,
             ),
           },
@@ -1255,7 +1263,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'param': _i1.ParameterDescription(
               name: 'param',
-              type: _i1.getType<_i11.AssessmentParameter>(),
+              type: _i1.getType<_i12.AssessmentParameter>(),
               nullable: false,
             ),
           },
@@ -1318,7 +1326,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'asset': _i1.ParameterDescription(
               name: 'asset',
-              type: _i1.getType<_i12.Asset>(),
+              type: _i1.getType<_i13.Asset>(),
               nullable: false,
             ),
           },
@@ -1440,7 +1448,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i13.ModuleProgressStatus>(),
+              type: _i1.getType<_i14.ModuleProgressStatus>(),
               nullable: false,
             ),
             'startedAt': _i1.ParameterDescription(
@@ -2007,6 +2015,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'aiChatPromptTranslations': _i1.ParameterDescription(
+              name: 'aiChatPromptTranslations',
+              type: _i1.getType<List<_i9.LocalizedAiPrompt>?>(),
+              nullable: true,
+            ),
             'passingPercentage': _i1.ParameterDescription(
               name: 'passingPercentage',
               type: _i1.getType<int>(),
@@ -2029,6 +2042,7 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['defaultLanguage'],
                         params['supportedLanguages'],
                         params['aiChatPrompt'],
+                        params['aiChatPromptTranslations'],
                         params['passingPercentage'],
                       ),
         ),
@@ -2107,7 +2121,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i13.ModuleProgressStatus>(),
+              type: _i1.getType<_i14.ModuleProgressStatus>(),
               nullable: false,
             ),
             'startedAt': _i1.ParameterDescription(
@@ -2154,7 +2168,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'chapter': _i1.ParameterDescription(
               name: 'chapter',
-              type: _i1.getType<_i9.TheoryChapter>(),
+              type: _i1.getType<_i10.TheoryChapter>(),
               nullable: false,
             ),
           },
@@ -2208,7 +2222,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'param': _i1.ParameterDescription(
               name: 'param',
-              type: _i1.getType<_i10.TrainingParameter>(),
+              type: _i1.getType<_i11.TrainingParameter>(),
               nullable: false,
             ),
           },
@@ -2262,7 +2276,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'param': _i1.ParameterDescription(
               name: 'param',
-              type: _i1.getType<_i11.AssessmentParameter>(),
+              type: _i1.getType<_i12.AssessmentParameter>(),
               nullable: false,
             ),
           },
@@ -2316,7 +2330,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'asset': _i1.ParameterDescription(
               name: 'asset',
-              type: _i1.getType<_i12.Asset>(),
+              type: _i1.getType<_i13.Asset>(),
               nullable: false,
             ),
           },
@@ -2746,7 +2760,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i13.ModuleProgressStatus>(),
+              type: _i1.getType<_i14.ModuleProgressStatus>(),
               nullable: false,
             ),
           },
@@ -2789,7 +2803,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'criteriaValidation': _i1.ParameterDescription(
               name: 'criteriaValidation',
-              type: _i1.getType<List<_i14.TrainingCriteriaScore>>(),
+              type: _i1.getType<List<_i15.TrainingCriteriaScore>>(),
               nullable: false,
             ),
           },
@@ -2912,7 +2926,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'criteriaScores': _i1.ParameterDescription(
               name: 'criteriaScores',
-              type: _i1.getType<List<_i14.TrainingCriteriaScore>>(),
+              type: _i1.getType<List<_i15.TrainingCriteriaScore>>(),
               nullable: false,
             ),
           },
@@ -2948,7 +2962,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i13.ModuleProgressStatus>(),
+              type: _i1.getType<_i14.ModuleProgressStatus>(),
               nullable: false,
             ),
           },
@@ -3000,6 +3014,6 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth'] = _i15.Endpoints()..initializeEndpoints(server);
+    modules['serverpod_auth'] = _i16.Endpoints()..initializeEndpoints(server);
   }
 }

@@ -17,32 +17,35 @@ import 'package:admin_panel_client/src/protocol/app_user.dart' as _i4;
 import 'package:admin_panel_client/src/protocol/role.dart' as _i5;
 import 'package:admin_panel_client/src/protocol/module_config.dart' as _i6;
 import 'package:admin_panel_client/src/protocol/supported_language.dart' as _i7;
-import 'package:admin_panel_client/src/protocol/theory_chapter.dart' as _i8;
-import 'package:admin_panel_client/src/protocol/training_parameter.dart' as _i9;
-import 'package:admin_panel_client/src/protocol/assessment_parameter.dart'
+import 'package:admin_panel_client/src/protocol/localized_ai_prompt.dart'
+    as _i8;
+import 'package:admin_panel_client/src/protocol/theory_chapter.dart' as _i9;
+import 'package:admin_panel_client/src/protocol/training_parameter.dart'
     as _i10;
-import 'package:admin_panel_client/src/protocol/asset.dart' as _i11;
+import 'package:admin_panel_client/src/protocol/assessment_parameter.dart'
+    as _i11;
+import 'package:admin_panel_client/src/protocol/asset.dart' as _i12;
 import 'package:admin_panel_client/src/protocol/user_module_progress.dart'
-    as _i12;
-import 'package:admin_panel_client/src/protocol/training_session_result_page.dart'
     as _i13;
-import 'package:admin_panel_client/src/protocol/training_user_summary_page.dart'
+import 'package:admin_panel_client/src/protocol/training_session_result_page.dart'
     as _i14;
-import 'package:admin_panel_client/src/protocol/training_session_result.dart'
+import 'package:admin_panel_client/src/protocol/training_user_summary_page.dart'
     as _i15;
-import 'package:admin_panel_client/src/protocol/module_progress_status.dart'
+import 'package:admin_panel_client/src/protocol/training_session_result.dart'
     as _i16;
-import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
+import 'package:admin_panel_client/src/protocol/module_progress_status.dart'
     as _i17;
-import 'package:admin_panel_client/src/protocol/login_response.dart' as _i18;
+import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
+    as _i18;
+import 'package:admin_panel_client/src/protocol/login_response.dart' as _i19;
 import 'package:admin_panel_client/src/protocol/training_criteria_score.dart'
-    as _i19;
-import 'package:admin_panel_client/src/protocol/theory_chapter_with_progress.dart'
     as _i20;
-import 'package:admin_panel_client/src/protocol/user_theory_progress.dart'
+import 'package:admin_panel_client/src/protocol/theory_chapter_with_progress.dart'
     as _i21;
-import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i22;
-import 'protocol.dart' as _i23;
+import 'package:admin_panel_client/src/protocol/user_theory_progress.dart'
+    as _i22;
+import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i23;
+import 'protocol.dart' as _i24;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -183,6 +186,7 @@ class EndpointAdmin extends _i1.EndpointRef {
     String defaultLanguage,
     List<_i7.SupportedLanguage> supportedLanguages,
     String? aiChatPrompt,
+    List<_i8.LocalizedAiPrompt>? aiChatPromptTranslations,
     int passingPercentage,
   ) => caller.callServerEndpoint<_i6.ModuleConfig>(
     'admin',
@@ -196,6 +200,7 @@ class EndpointAdmin extends _i1.EndpointRef {
       'defaultLanguage': defaultLanguage,
       'supportedLanguages': supportedLanguages,
       'aiChatPrompt': aiChatPrompt,
+      'aiChatPromptTranslations': aiChatPromptTranslations,
       'passingPercentage': passingPercentage,
     },
   );
@@ -207,16 +212,16 @@ class EndpointAdmin extends _i1.EndpointRef {
         {'organizationId': organizationId},
       );
 
-  _i2.Future<List<_i8.TheoryChapter>> getTheoryChapters(int organizationId) =>
-      caller.callServerEndpoint<List<_i8.TheoryChapter>>(
+  _i2.Future<List<_i9.TheoryChapter>> getTheoryChapters(int organizationId) =>
+      caller.callServerEndpoint<List<_i9.TheoryChapter>>(
         'admin',
         'getTheoryChapters',
         {'organizationId': organizationId},
       );
 
-  _i2.Future<_i8.TheoryChapter> upsertTheoryChapter(
-    _i8.TheoryChapter chapter,
-  ) => caller.callServerEndpoint<_i8.TheoryChapter>(
+  _i2.Future<_i9.TheoryChapter> upsertTheoryChapter(
+    _i9.TheoryChapter chapter,
+  ) => caller.callServerEndpoint<_i9.TheoryChapter>(
     'admin',
     'upsertTheoryChapter',
     {'chapter': chapter},
@@ -229,17 +234,17 @@ class EndpointAdmin extends _i1.EndpointRef {
         {'chapterId': chapterId},
       );
 
-  _i2.Future<List<_i9.TrainingParameter>> getTrainingParameters(
+  _i2.Future<List<_i10.TrainingParameter>> getTrainingParameters(
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i9.TrainingParameter>>(
+  ) => caller.callServerEndpoint<List<_i10.TrainingParameter>>(
     'admin',
     'getTrainingParameters',
     {'organizationId': organizationId},
   );
 
-  _i2.Future<_i9.TrainingParameter> upsertTrainingParameter(
-    _i9.TrainingParameter param,
-  ) => caller.callServerEndpoint<_i9.TrainingParameter>(
+  _i2.Future<_i10.TrainingParameter> upsertTrainingParameter(
+    _i10.TrainingParameter param,
+  ) => caller.callServerEndpoint<_i10.TrainingParameter>(
     'admin',
     'upsertTrainingParameter',
     {'param': param},
@@ -252,17 +257,17 @@ class EndpointAdmin extends _i1.EndpointRef {
         {'paramId': paramId},
       );
 
-  _i2.Future<List<_i10.AssessmentParameter>> getAssessmentParameters(
+  _i2.Future<List<_i11.AssessmentParameter>> getAssessmentParameters(
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i10.AssessmentParameter>>(
+  ) => caller.callServerEndpoint<List<_i11.AssessmentParameter>>(
     'admin',
     'getAssessmentParameters',
     {'organizationId': organizationId},
   );
 
-  _i2.Future<_i10.AssessmentParameter> upsertAssessmentParameter(
-    _i10.AssessmentParameter param,
-  ) => caller.callServerEndpoint<_i10.AssessmentParameter>(
+  _i2.Future<_i11.AssessmentParameter> upsertAssessmentParameter(
+    _i11.AssessmentParameter param,
+  ) => caller.callServerEndpoint<_i11.AssessmentParameter>(
     'admin',
     'upsertAssessmentParameter',
     {'param': param},
@@ -275,15 +280,15 @@ class EndpointAdmin extends _i1.EndpointRef {
         {'paramId': paramId},
       );
 
-  _i2.Future<List<_i11.Asset>> getAssets(int organizationId) =>
-      caller.callServerEndpoint<List<_i11.Asset>>(
+  _i2.Future<List<_i12.Asset>> getAssets(int organizationId) =>
+      caller.callServerEndpoint<List<_i12.Asset>>(
         'admin',
         'getAssets',
         {'organizationId': organizationId},
       );
 
-  _i2.Future<_i11.Asset> upsertAsset(_i11.Asset asset) =>
-      caller.callServerEndpoint<_i11.Asset>(
+  _i2.Future<_i12.Asset> upsertAsset(_i12.Asset asset) =>
+      caller.callServerEndpoint<_i12.Asset>(
         'admin',
         'upsertAsset',
         {'asset': asset},
@@ -295,10 +300,10 @@ class EndpointAdmin extends _i1.EndpointRef {
     {'assetId': assetId},
   );
 
-  _i2.Future<List<_i12.UserModuleProgress>> getUserModuleProgress(
+  _i2.Future<List<_i13.UserModuleProgress>> getUserModuleProgress(
     int appUserId,
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i12.UserModuleProgress>>(
+  ) => caller.callServerEndpoint<List<_i13.UserModuleProgress>>(
     'admin',
     'getUserModuleProgress',
     {
@@ -307,13 +312,13 @@ class EndpointAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i12.UserModuleProgress> setUserModuleProgress(
+  _i2.Future<_i13.UserModuleProgress> setUserModuleProgress(
     int appUserId,
     int organizationId,
     String moduleId,
     bool isEnabled,
     DateTime? deadline,
-  ) => caller.callServerEndpoint<_i12.UserModuleProgress>(
+  ) => caller.callServerEndpoint<_i13.UserModuleProgress>(
     'admin',
     'setUserModuleProgress',
     {
@@ -326,7 +331,7 @@ class EndpointAdmin extends _i1.EndpointRef {
   );
 
   /// Returns paginated and filtered Smart Training results for Super Admins.
-  _i2.Future<_i13.TrainingSessionResultPage> getTrainingHistory({
+  _i2.Future<_i14.TrainingSessionResultPage> getTrainingHistory({
     required int page,
     required int limit,
     String? search,
@@ -335,7 +340,7 @@ class EndpointAdmin extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i13.TrainingSessionResultPage>(
+  }) => caller.callServerEndpoint<_i14.TrainingSessionResultPage>(
     'admin',
     'getTrainingHistory',
     {
@@ -351,7 +356,7 @@ class EndpointAdmin extends _i1.EndpointRef {
   );
 
   /// Returns paginated unique users who have smart training results, grouped by user.
-  _i2.Future<_i14.TrainingUserSummaryPage> getTrainingUserSummaries({
+  _i2.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries({
     required int page,
     required int limit,
     String? search,
@@ -360,7 +365,7 @@ class EndpointAdmin extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i14.TrainingUserSummaryPage>(
+  }) => caller.callServerEndpoint<_i15.TrainingUserSummaryPage>(
     'admin',
     'getTrainingUserSummaries',
     {
@@ -376,22 +381,22 @@ class EndpointAdmin extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training results for [appUserId] across all orgs.
-  _i2.Future<List<_i15.TrainingSessionResult>> getUserTrainingHistory(
+  _i2.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
     int appUserId,
-  ) => caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
     'admin',
     'getUserTrainingHistory',
     {'appUserId': appUserId},
   );
 
-  _i2.Future<_i12.UserModuleProgress?> updateUserModuleStatus(
+  _i2.Future<_i13.UserModuleProgress?> updateUserModuleStatus(
     int appUserId,
     int organizationId,
     String moduleId,
-    _i16.ModuleProgressStatus status,
+    _i17.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
-  ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
     'admin',
     'updateUserModuleStatus',
     {
@@ -494,17 +499,17 @@ class EndpointManager extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i8.TheoryChapter>> getTheoryChapters(int organizationId) =>
-      caller.callServerEndpoint<List<_i8.TheoryChapter>>(
+  _i2.Future<List<_i9.TheoryChapter>> getTheoryChapters(int organizationId) =>
+      caller.callServerEndpoint<List<_i9.TheoryChapter>>(
         'manager',
         'getTheoryChapters',
         {'organizationId': organizationId},
       );
 
-  _i2.Future<_i8.TheoryChapter> upsertTheoryChapter(
+  _i2.Future<_i9.TheoryChapter> upsertTheoryChapter(
     int organizationId,
-    _i8.TheoryChapter chapter,
-  ) => caller.callServerEndpoint<_i8.TheoryChapter>(
+    _i9.TheoryChapter chapter,
+  ) => caller.callServerEndpoint<_i9.TheoryChapter>(
     'manager',
     'upsertTheoryChapter',
     {
@@ -520,18 +525,18 @@ class EndpointManager extends _i1.EndpointRef {
         {'chapterId': chapterId},
       );
 
-  _i2.Future<List<_i9.TrainingParameter>> getTrainingParameters(
+  _i2.Future<List<_i10.TrainingParameter>> getTrainingParameters(
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i9.TrainingParameter>>(
+  ) => caller.callServerEndpoint<List<_i10.TrainingParameter>>(
     'manager',
     'getTrainingParameters',
     {'organizationId': organizationId},
   );
 
-  _i2.Future<_i9.TrainingParameter> upsertTrainingParameter(
+  _i2.Future<_i10.TrainingParameter> upsertTrainingParameter(
     int organizationId,
-    _i9.TrainingParameter param,
-  ) => caller.callServerEndpoint<_i9.TrainingParameter>(
+    _i10.TrainingParameter param,
+  ) => caller.callServerEndpoint<_i10.TrainingParameter>(
     'manager',
     'upsertTrainingParameter',
     {
@@ -547,18 +552,18 @@ class EndpointManager extends _i1.EndpointRef {
         {'paramId': paramId},
       );
 
-  _i2.Future<List<_i10.AssessmentParameter>> getAssessmentParameters(
+  _i2.Future<List<_i11.AssessmentParameter>> getAssessmentParameters(
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i10.AssessmentParameter>>(
+  ) => caller.callServerEndpoint<List<_i11.AssessmentParameter>>(
     'manager',
     'getAssessmentParameters',
     {'organizationId': organizationId},
   );
 
-  _i2.Future<_i10.AssessmentParameter> upsertAssessmentParameter(
+  _i2.Future<_i11.AssessmentParameter> upsertAssessmentParameter(
     int organizationId,
-    _i10.AssessmentParameter param,
-  ) => caller.callServerEndpoint<_i10.AssessmentParameter>(
+    _i11.AssessmentParameter param,
+  ) => caller.callServerEndpoint<_i11.AssessmentParameter>(
     'manager',
     'upsertAssessmentParameter',
     {
@@ -574,17 +579,17 @@ class EndpointManager extends _i1.EndpointRef {
         {'paramId': paramId},
       );
 
-  _i2.Future<List<_i11.Asset>> getAssets(int organizationId) =>
-      caller.callServerEndpoint<List<_i11.Asset>>(
+  _i2.Future<List<_i12.Asset>> getAssets(int organizationId) =>
+      caller.callServerEndpoint<List<_i12.Asset>>(
         'manager',
         'getAssets',
         {'organizationId': organizationId},
       );
 
-  _i2.Future<_i11.Asset> upsertAsset(
+  _i2.Future<_i12.Asset> upsertAsset(
     int organizationId,
-    _i11.Asset asset,
-  ) => caller.callServerEndpoint<_i11.Asset>(
+    _i12.Asset asset,
+  ) => caller.callServerEndpoint<_i12.Asset>(
     'manager',
     'upsertAsset',
     {
@@ -599,10 +604,10 @@ class EndpointManager extends _i1.EndpointRef {
     {'assetId': assetId},
   );
 
-  _i2.Future<List<_i12.UserModuleProgress>> getUserModuleProgress(
+  _i2.Future<List<_i13.UserModuleProgress>> getUserModuleProgress(
     int appUserId,
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i12.UserModuleProgress>>(
+  ) => caller.callServerEndpoint<List<_i13.UserModuleProgress>>(
     'manager',
     'getUserModuleProgress',
     {
@@ -611,13 +616,13 @@ class EndpointManager extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i12.UserModuleProgress?> setUserModuleProgress(
+  _i2.Future<_i13.UserModuleProgress?> setUserModuleProgress(
     int appUserId,
     int organizationId,
     String moduleId,
     bool isEnabled,
     DateTime? deadline,
-  ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
     'manager',
     'setUserModuleProgress',
     {
@@ -629,14 +634,14 @@ class EndpointManager extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i12.UserModuleProgress?> updateUserModuleStatus(
+  _i2.Future<_i13.UserModuleProgress?> updateUserModuleStatus(
     int appUserId,
     int organizationId,
     String moduleId,
-    _i16.ModuleProgressStatus status,
+    _i17.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
-  ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
     'manager',
     'updateUserModuleStatus',
     {
@@ -651,7 +656,7 @@ class EndpointManager extends _i1.EndpointRef {
 
   /// Returns paginated and filtered Smart Training results for Managers.
   /// Returns paginated and filtered Smart Training results for Managers.
-  _i2.Future<_i13.TrainingSessionResultPage> getTrainingHistory({
+  _i2.Future<_i14.TrainingSessionResultPage> getTrainingHistory({
     required int page,
     required int limit,
     String? search,
@@ -659,7 +664,7 @@ class EndpointManager extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i13.TrainingSessionResultPage>(
+  }) => caller.callServerEndpoint<_i14.TrainingSessionResultPage>(
     'manager',
     'getTrainingHistory',
     {
@@ -674,10 +679,10 @@ class EndpointManager extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training results for [appUserId] within this manager's org.
-  _i2.Future<List<_i15.TrainingSessionResult>> getUserTrainingHistory(
+  _i2.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
     int appUserId,
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
     'manager',
     'getUserTrainingHistory',
     {
@@ -688,14 +693,14 @@ class EndpointManager extends _i1.EndpointRef {
 
   /// Returns paginated unique users who have smart training results, grouped by user,
   /// scoped to the teams managed by this manager.
-  _i2.Future<_i14.TrainingUserSummaryPage> getTrainingUserSummaries({
+  _i2.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries({
     required int page,
     required int limit,
     String? search,
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i14.TrainingUserSummaryPage>(
+  }) => caller.callServerEndpoint<_i15.TrainingUserSummaryPage>(
     'manager',
     'getTrainingUserSummaries',
     {
@@ -710,9 +715,9 @@ class EndpointManager extends _i1.EndpointRef {
 
   /// Returns notification details for [organizationId], auto-creating records
   /// for any overdue (deadline passed, not completed) progress entries.
-  _i2.Future<List<_i17.ManagerNotificationDetail>> getNotifications(
+  _i2.Future<List<_i18.ManagerNotificationDetail>> getNotifications(
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i17.ManagerNotificationDetail>>(
+  ) => caller.callServerEndpoint<List<_i18.ManagerNotificationDetail>>(
     'manager',
     'getNotifications',
     {'organizationId': organizationId},
@@ -889,6 +894,7 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     String defaultLanguage,
     List<_i7.SupportedLanguage> supportedLanguages,
     String? aiChatPrompt,
+    List<_i8.LocalizedAiPrompt>? aiChatPromptTranslations,
     int passingPercentage,
   ) => caller.callServerEndpoint<_i6.ModuleConfig?>(
     'organizationAdmin',
@@ -901,24 +907,25 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
       'defaultLanguage': defaultLanguage,
       'supportedLanguages': supportedLanguages,
       'aiChatPrompt': aiChatPrompt,
+      'aiChatPromptTranslations': aiChatPromptTranslations,
       'passingPercentage': passingPercentage,
     },
   );
 
-  _i2.Future<List<_i12.UserModuleProgress>> getOrgUserModuleProgress(
+  _i2.Future<List<_i13.UserModuleProgress>> getOrgUserModuleProgress(
     int userId,
-  ) => caller.callServerEndpoint<List<_i12.UserModuleProgress>>(
+  ) => caller.callServerEndpoint<List<_i13.UserModuleProgress>>(
     'organizationAdmin',
     'getOrgUserModuleProgress',
     {'userId': userId},
   );
 
-  _i2.Future<_i12.UserModuleProgress?> setOrgUserModuleProgress(
+  _i2.Future<_i13.UserModuleProgress?> setOrgUserModuleProgress(
     int userId,
     String moduleId,
     bool isEnabled,
     DateTime? deadline,
-  ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
     'organizationAdmin',
     'setOrgUserModuleProgress',
     {
@@ -929,13 +936,13 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i12.UserModuleProgress?> updateOrgUserModuleStatus(
+  _i2.Future<_i13.UserModuleProgress?> updateOrgUserModuleStatus(
     int userId,
     String moduleId,
-    _i16.ModuleProgressStatus status,
+    _i17.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
-  ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
     'organizationAdmin',
     'updateOrgUserModuleStatus',
     {
@@ -947,16 +954,16 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i8.TheoryChapter>> getOrgTheoryChapters() =>
-      caller.callServerEndpoint<List<_i8.TheoryChapter>>(
+  _i2.Future<List<_i9.TheoryChapter>> getOrgTheoryChapters() =>
+      caller.callServerEndpoint<List<_i9.TheoryChapter>>(
         'organizationAdmin',
         'getOrgTheoryChapters',
         {},
       );
 
-  _i2.Future<_i8.TheoryChapter> upsertOrgTheoryChapter(
-    _i8.TheoryChapter chapter,
-  ) => caller.callServerEndpoint<_i8.TheoryChapter>(
+  _i2.Future<_i9.TheoryChapter> upsertOrgTheoryChapter(
+    _i9.TheoryChapter chapter,
+  ) => caller.callServerEndpoint<_i9.TheoryChapter>(
     'organizationAdmin',
     'upsertOrgTheoryChapter',
     {'chapter': chapter},
@@ -969,16 +976,16 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
         {'chapterId': chapterId},
       );
 
-  _i2.Future<List<_i9.TrainingParameter>> getOrgTrainingParameters() =>
-      caller.callServerEndpoint<List<_i9.TrainingParameter>>(
+  _i2.Future<List<_i10.TrainingParameter>> getOrgTrainingParameters() =>
+      caller.callServerEndpoint<List<_i10.TrainingParameter>>(
         'organizationAdmin',
         'getOrgTrainingParameters',
         {},
       );
 
-  _i2.Future<_i9.TrainingParameter> upsertOrgTrainingParameter(
-    _i9.TrainingParameter param,
-  ) => caller.callServerEndpoint<_i9.TrainingParameter>(
+  _i2.Future<_i10.TrainingParameter> upsertOrgTrainingParameter(
+    _i10.TrainingParameter param,
+  ) => caller.callServerEndpoint<_i10.TrainingParameter>(
     'organizationAdmin',
     'upsertOrgTrainingParameter',
     {'param': param},
@@ -991,16 +998,16 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
         {'paramId': paramId},
       );
 
-  _i2.Future<List<_i10.AssessmentParameter>> getOrgAssessmentParameters() =>
-      caller.callServerEndpoint<List<_i10.AssessmentParameter>>(
+  _i2.Future<List<_i11.AssessmentParameter>> getOrgAssessmentParameters() =>
+      caller.callServerEndpoint<List<_i11.AssessmentParameter>>(
         'organizationAdmin',
         'getOrgAssessmentParameters',
         {},
       );
 
-  _i2.Future<_i10.AssessmentParameter> upsertOrgAssessmentParameter(
-    _i10.AssessmentParameter param,
-  ) => caller.callServerEndpoint<_i10.AssessmentParameter>(
+  _i2.Future<_i11.AssessmentParameter> upsertOrgAssessmentParameter(
+    _i11.AssessmentParameter param,
+  ) => caller.callServerEndpoint<_i11.AssessmentParameter>(
     'organizationAdmin',
     'upsertOrgAssessmentParameter',
     {'param': param},
@@ -1013,15 +1020,15 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
         {'paramId': paramId},
       );
 
-  _i2.Future<List<_i11.Asset>> getOrgAssets() =>
-      caller.callServerEndpoint<List<_i11.Asset>>(
+  _i2.Future<List<_i12.Asset>> getOrgAssets() =>
+      caller.callServerEndpoint<List<_i12.Asset>>(
         'organizationAdmin',
         'getOrgAssets',
         {},
       );
 
-  _i2.Future<_i11.Asset> upsertOrgAsset(_i11.Asset asset) =>
-      caller.callServerEndpoint<_i11.Asset>(
+  _i2.Future<_i12.Asset> upsertOrgAsset(_i12.Asset asset) =>
+      caller.callServerEndpoint<_i12.Asset>(
         'organizationAdmin',
         'upsertOrgAsset',
         {'asset': asset},
@@ -1035,7 +1042,7 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
       );
 
   /// Returns paginated and filtered Smart Training results for Org Admins.
-  _i2.Future<_i13.TrainingSessionResultPage> getTrainingHistory({
+  _i2.Future<_i14.TrainingSessionResultPage> getTrainingHistory({
     required int page,
     required int limit,
     String? search,
@@ -1043,7 +1050,7 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i13.TrainingSessionResultPage>(
+  }) => caller.callServerEndpoint<_i14.TrainingSessionResultPage>(
     'organizationAdmin',
     'getTrainingHistory',
     {
@@ -1057,16 +1064,16 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i15.TrainingSessionResult>> getOrgUserTrainingHistory(
+  _i2.Future<List<_i16.TrainingSessionResult>> getOrgUserTrainingHistory(
     int userId,
-  ) => caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
     'organizationAdmin',
     'getOrgUserTrainingHistory',
     {'userId': userId},
   );
 
   /// Returns a grouped overview of training results per user, scoped to the caller's organization.
-  _i2.Future<_i14.TrainingUserSummaryPage> getTrainingUserSummaries({
+  _i2.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries({
     required int page,
     required int limit,
     String? search,
@@ -1074,7 +1081,7 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i14.TrainingUserSummaryPage>(
+  }) => caller.callServerEndpoint<_i15.TrainingUserSummaryPage>(
     'organizationAdmin',
     'getTrainingUserSummaries',
     {
@@ -1089,9 +1096,9 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training results for [appUserId] scoped to the caller's organization.
-  _i2.Future<List<_i15.TrainingSessionResult>> getUserTrainingHistory(
+  _i2.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
     int appUserId,
-  ) => caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
     'organizationAdmin',
     'getUserTrainingHistory',
     {'appUserId': appUserId},
@@ -1105,10 +1112,10 @@ class EndpointPublicApi extends _i1.EndpointRef {
   @override
   String get name => 'publicApi';
 
-  _i2.Future<_i18.LoginResponse> login(
+  _i2.Future<_i19.LoginResponse> login(
     String email,
     String password,
-  ) => caller.callServerEndpoint<_i18.LoginResponse>(
+  ) => caller.callServerEndpoint<_i19.LoginResponse>(
     'publicApi',
     'login',
     {
@@ -1210,7 +1217,7 @@ class EndpointPublicApi extends _i1.EndpointRef {
     String apiKey,
     String userId,
     String moduleId,
-    _i16.ModuleProgressStatus status,
+    _i17.ModuleProgressStatus status,
   ) => caller.callServerEndpoint<bool>(
     'publicApi',
     'updateModuleStatus',
@@ -1228,7 +1235,7 @@ class EndpointPublicApi extends _i1.EndpointRef {
     String apiKey,
     String userId,
     int overallPercentage,
-    List<_i19.TrainingCriteriaScore> criteriaValidation,
+    List<_i20.TrainingCriteriaScore> criteriaValidation,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'submitTrainingCertificate',
@@ -1263,22 +1270,22 @@ class EndpointUser extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Future<List<_i8.TheoryChapter>> getTheoryChapters() =>
-      caller.callServerEndpoint<List<_i8.TheoryChapter>>(
+  _i2.Future<List<_i9.TheoryChapter>> getTheoryChapters() =>
+      caller.callServerEndpoint<List<_i9.TheoryChapter>>(
         'user',
         'getTheoryChapters',
         {},
       );
 
-  _i2.Future<List<_i9.TrainingParameter>> getTrainingParameters() =>
-      caller.callServerEndpoint<List<_i9.TrainingParameter>>(
+  _i2.Future<List<_i10.TrainingParameter>> getTrainingParameters() =>
+      caller.callServerEndpoint<List<_i10.TrainingParameter>>(
         'user',
         'getTrainingParameters',
         {},
       );
 
-  _i2.Future<List<_i10.AssessmentParameter>> getAssessmentParameters() =>
-      caller.callServerEndpoint<List<_i10.AssessmentParameter>>(
+  _i2.Future<List<_i11.AssessmentParameter>> getAssessmentParameters() =>
+      caller.callServerEndpoint<List<_i11.AssessmentParameter>>(
         'user',
         'getAssessmentParameters',
         {},
@@ -1298,19 +1305,19 @@ class EndpointUser extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i12.UserModuleProgress>> getMyModuleProgress() =>
-      caller.callServerEndpoint<List<_i12.UserModuleProgress>>(
+  _i2.Future<List<_i13.UserModuleProgress>> getMyModuleProgress() =>
+      caller.callServerEndpoint<List<_i13.UserModuleProgress>>(
         'user',
         'getMyModuleProgress',
         {},
       );
 
   /// Records a completed Smart Training attempt for the authenticated user.
-  _i2.Future<_i15.TrainingSessionResult?> submitTrainingResult(
+  _i2.Future<_i16.TrainingSessionResult?> submitTrainingResult(
     String externalUserId,
     int overallPercentage,
-    List<_i19.TrainingCriteriaScore> criteriaScores,
-  ) => caller.callServerEndpoint<_i15.TrainingSessionResult?>(
+    List<_i20.TrainingCriteriaScore> criteriaScores,
+  ) => caller.callServerEndpoint<_i16.TrainingSessionResult?>(
     'user',
     'submitTrainingResult',
     {
@@ -1321,8 +1328,8 @@ class EndpointUser extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training attempts for the authenticated user, newest first.
-  _i2.Future<List<_i15.TrainingSessionResult>> getMyTrainingHistory() =>
-      caller.callServerEndpoint<List<_i15.TrainingSessionResult>>(
+  _i2.Future<List<_i16.TrainingSessionResult>> getMyTrainingHistory() =>
+      caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
         'user',
         'getMyTrainingHistory',
         {},
@@ -1330,10 +1337,10 @@ class EndpointUser extends _i1.EndpointRef {
 
   /// Allows a user to update their own module status. Automatically sets
   /// [startedAt] on first inProgress transition, [completedAt] on completion.
-  _i2.Future<_i12.UserModuleProgress?> updateMyModuleStatus(
+  _i2.Future<_i13.UserModuleProgress?> updateMyModuleStatus(
     String moduleId,
-    _i16.ModuleProgressStatus status,
-  ) => caller.callServerEndpoint<_i12.UserModuleProgress?>(
+    _i17.ModuleProgressStatus status,
+  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
     'user',
     'updateMyModuleStatus',
     {
@@ -1344,9 +1351,9 @@ class EndpointUser extends _i1.EndpointRef {
 
   /// Fetches all theory chapters for the authenticated user's organization,
   /// including the user's specific progress/score for each.
-  _i2.Future<List<_i20.TheoryChapterWithProgress>>
+  _i2.Future<List<_i21.TheoryChapterWithProgress>>
   getTheoryChaptersWithProgress() =>
-      caller.callServerEndpoint<List<_i20.TheoryChapterWithProgress>>(
+      caller.callServerEndpoint<List<_i21.TheoryChapterWithProgress>>(
         'user',
         'getTheoryChaptersWithProgress',
         {},
@@ -1354,10 +1361,10 @@ class EndpointUser extends _i1.EndpointRef {
 
   /// Validates a quiz submission and saves the user's result.
   /// Throws if authorization fails or chapter is not found.
-  _i2.Future<_i21.UserTheoryProgress?> submitTheoryQuiz(
+  _i2.Future<_i22.UserTheoryProgress?> submitTheoryQuiz(
     int chapterId,
     int score,
-  ) => caller.callServerEndpoint<_i21.UserTheoryProgress?>(
+  ) => caller.callServerEndpoint<_i22.UserTheoryProgress?>(
     'user',
     'submitTheoryQuiz',
     {
@@ -1369,10 +1376,10 @@ class EndpointUser extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    auth = _i22.Caller(client);
+    auth = _i23.Caller(client);
   }
 
-  late final _i22.Caller auth;
+  late final _i23.Caller auth;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -1395,7 +1402,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i23.Protocol(),
+         _i24.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

@@ -9,6 +9,7 @@ fields:
   defaultLanguage: String, default='en'
   supportedLanguages: List<SupportedLanguage>?
   aiChatPrompt: String?
+  aiChatPromptTranslations: List<LocalizedAiPrompt>?
   passingPercentage: int, default=60
 indexes:
   module_config_organization_idx:

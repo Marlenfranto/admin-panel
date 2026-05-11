@@ -1,0 +1,4 @@
+class: LocalizedAiPrompt
+fields:
+  languageCode: String
+  prompt: String

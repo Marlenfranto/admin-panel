@@ -86,6 +86,7 @@ class PublicApiEndpoint extends Endpoint {
       ),
       passingPercentage: config.passingPercentage,
       aiChatPrompt:      config.aiChatPrompt,
+      aiChatPromptTranslations: config.aiChatPromptTranslations,
     );
   }
 

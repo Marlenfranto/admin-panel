@@ -20,31 +20,33 @@ import 'package:admin_panel_server/src/generated/role.dart' as _i6;
 import 'package:admin_panel_server/src/generated/module_config.dart' as _i7;
 import 'package:admin_panel_server/src/generated/supported_language.dart'
     as _i8;
-import 'package:admin_panel_server/src/generated/theory_chapter.dart' as _i9;
+import 'package:admin_panel_server/src/generated/localized_ai_prompt.dart'
+    as _i9;
+import 'package:admin_panel_server/src/generated/theory_chapter.dart' as _i10;
 import 'package:admin_panel_server/src/generated/training_parameter.dart'
-    as _i10;
-import 'package:admin_panel_server/src/generated/assessment_parameter.dart'
     as _i11;
-import 'package:admin_panel_server/src/generated/asset.dart' as _i12;
+import 'package:admin_panel_server/src/generated/assessment_parameter.dart'
+    as _i12;
+import 'package:admin_panel_server/src/generated/asset.dart' as _i13;
 import 'package:admin_panel_server/src/generated/user_module_progress.dart'
-    as _i13;
-import 'package:admin_panel_server/src/generated/training_session_result_page.dart'
     as _i14;
-import 'package:admin_panel_server/src/generated/training_user_summary_page.dart'
+import 'package:admin_panel_server/src/generated/training_session_result_page.dart'
     as _i15;
-import 'package:admin_panel_server/src/generated/training_session_result.dart'
+import 'package:admin_panel_server/src/generated/training_user_summary_page.dart'
     as _i16;
-import 'package:admin_panel_server/src/generated/module_progress_status.dart'
+import 'package:admin_panel_server/src/generated/training_session_result.dart'
     as _i17;
-import 'package:admin_panel_server/src/generated/manager_notification_detail.dart'
+import 'package:admin_panel_server/src/generated/module_progress_status.dart'
     as _i18;
-import 'package:admin_panel_server/src/generated/login_response.dart' as _i19;
+import 'package:admin_panel_server/src/generated/manager_notification_detail.dart'
+    as _i19;
+import 'package:admin_panel_server/src/generated/login_response.dart' as _i20;
 import 'package:admin_panel_server/src/generated/training_criteria_score.dart'
-    as _i20;
-import 'package:admin_panel_server/src/generated/theory_chapter_with_progress.dart'
     as _i21;
-import 'package:admin_panel_server/src/generated/user_theory_progress.dart'
+import 'package:admin_panel_server/src/generated/theory_chapter_with_progress.dart'
     as _i22;
+import 'package:admin_panel_server/src/generated/user_theory_progress.dart'
+    as _i23;
 import 'package:admin_panel_server/src/generated/protocol.dart';
 import 'package:admin_panel_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -593,6 +595,7 @@ class _AdminEndpoint {
     String defaultLanguage,
     List<_i8.SupportedLanguage> supportedLanguages,
     String? aiChatPrompt,
+    List<_i9.LocalizedAiPrompt>? aiChatPromptTranslations,
     int passingPercentage,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -615,6 +618,7 @@ class _AdminEndpoint {
             'defaultLanguage': defaultLanguage,
             'supportedLanguages': supportedLanguages,
             'aiChatPrompt': aiChatPrompt,
+            'aiChatPromptTranslations': aiChatPromptTranslations,
             'passingPercentage': passingPercentage,
           }),
           serializationManager: _serializationManager,
@@ -663,7 +667,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i9.TheoryChapter>> getTheoryChapters(
+  _i3.Future<List<_i10.TheoryChapter>> getTheoryChapters(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -686,7 +690,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.TheoryChapter>>);
+                as _i3.Future<List<_i10.TheoryChapter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -694,9 +698,9 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i9.TheoryChapter> upsertTheoryChapter(
+  _i3.Future<_i10.TheoryChapter> upsertTheoryChapter(
     _i1.TestSessionBuilder sessionBuilder,
-    _i9.TheoryChapter chapter,
+    _i10.TheoryChapter chapter,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -717,7 +721,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.TheoryChapter>);
+                as _i3.Future<_i10.TheoryChapter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -756,7 +760,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i10.TrainingParameter>> getTrainingParameters(
+  _i3.Future<List<_i11.TrainingParameter>> getTrainingParameters(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -779,7 +783,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i10.TrainingParameter>>);
+                as _i3.Future<List<_i11.TrainingParameter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -787,9 +791,9 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i10.TrainingParameter> upsertTrainingParameter(
+  _i3.Future<_i11.TrainingParameter> upsertTrainingParameter(
     _i1.TestSessionBuilder sessionBuilder,
-    _i10.TrainingParameter param,
+    _i11.TrainingParameter param,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -810,7 +814,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.TrainingParameter>);
+                as _i3.Future<_i11.TrainingParameter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -849,7 +853,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i11.AssessmentParameter>> getAssessmentParameters(
+  _i3.Future<List<_i12.AssessmentParameter>> getAssessmentParameters(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -872,7 +876,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i11.AssessmentParameter>>);
+                as _i3.Future<List<_i12.AssessmentParameter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -880,9 +884,9 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i11.AssessmentParameter> upsertAssessmentParameter(
+  _i3.Future<_i12.AssessmentParameter> upsertAssessmentParameter(
     _i1.TestSessionBuilder sessionBuilder,
-    _i11.AssessmentParameter param,
+    _i12.AssessmentParameter param,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -903,7 +907,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.AssessmentParameter>);
+                as _i3.Future<_i12.AssessmentParameter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -942,7 +946,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i12.Asset>> getAssets(
+  _i3.Future<List<_i13.Asset>> getAssets(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -965,7 +969,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i12.Asset>>);
+                as _i3.Future<List<_i13.Asset>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -973,9 +977,9 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i12.Asset> upsertAsset(
+  _i3.Future<_i13.Asset> upsertAsset(
     _i1.TestSessionBuilder sessionBuilder,
-    _i12.Asset asset,
+    _i13.Asset asset,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -996,7 +1000,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.Asset>);
+                as _i3.Future<_i13.Asset>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1035,7 +1039,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i13.UserModuleProgress>> getUserModuleProgress(
+  _i3.Future<List<_i14.UserModuleProgress>> getUserModuleProgress(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
     int organizationId,
@@ -1062,7 +1066,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i13.UserModuleProgress>>);
+                as _i3.Future<List<_i14.UserModuleProgress>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1070,7 +1074,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i13.UserModuleProgress> setUserModuleProgress(
+  _i3.Future<_i14.UserModuleProgress> setUserModuleProgress(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
     int organizationId,
@@ -1103,7 +1107,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.UserModuleProgress>);
+                as _i3.Future<_i14.UserModuleProgress>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1111,7 +1115,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i14.TrainingSessionResultPage> getTrainingHistory(
+  _i3.Future<_i15.TrainingSessionResultPage> getTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder, {
     required int page,
     required int limit,
@@ -1150,7 +1154,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.TrainingSessionResultPage>);
+                as _i3.Future<_i15.TrainingSessionResultPage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1158,7 +1162,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries(
+  _i3.Future<_i16.TrainingUserSummaryPage> getTrainingUserSummaries(
     _i1.TestSessionBuilder sessionBuilder, {
     required int page,
     required int limit,
@@ -1197,7 +1201,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i15.TrainingUserSummaryPage>);
+                as _i3.Future<_i16.TrainingUserSummaryPage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1205,7 +1209,7 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
+  _i3.Future<List<_i17.TrainingSessionResult>> getUserTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
   ) async {
@@ -1228,7 +1232,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.TrainingSessionResult>>);
+                as _i3.Future<List<_i17.TrainingSessionResult>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1236,12 +1240,12 @@ class _AdminEndpoint {
     });
   }
 
-  _i3.Future<_i13.UserModuleProgress?> updateUserModuleStatus(
+  _i3.Future<_i14.UserModuleProgress?> updateUserModuleStatus(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
     int organizationId,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i18.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
   ) async {
@@ -1271,7 +1275,7 @@ class _AdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.UserModuleProgress?>);
+                as _i3.Future<_i14.UserModuleProgress?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1533,7 +1537,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i9.TheoryChapter>> getTheoryChapters(
+  _i3.Future<List<_i10.TheoryChapter>> getTheoryChapters(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -1556,7 +1560,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.TheoryChapter>>);
+                as _i3.Future<List<_i10.TheoryChapter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1564,10 +1568,10 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<_i9.TheoryChapter> upsertTheoryChapter(
+  _i3.Future<_i10.TheoryChapter> upsertTheoryChapter(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
-    _i9.TheoryChapter chapter,
+    _i10.TheoryChapter chapter,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1591,7 +1595,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.TheoryChapter>);
+                as _i3.Future<_i10.TheoryChapter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1630,7 +1634,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i10.TrainingParameter>> getTrainingParameters(
+  _i3.Future<List<_i11.TrainingParameter>> getTrainingParameters(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -1653,7 +1657,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i10.TrainingParameter>>);
+                as _i3.Future<List<_i11.TrainingParameter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1661,10 +1665,10 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<_i10.TrainingParameter> upsertTrainingParameter(
+  _i3.Future<_i11.TrainingParameter> upsertTrainingParameter(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
-    _i10.TrainingParameter param,
+    _i11.TrainingParameter param,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1688,7 +1692,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.TrainingParameter>);
+                as _i3.Future<_i11.TrainingParameter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1727,7 +1731,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i11.AssessmentParameter>> getAssessmentParameters(
+  _i3.Future<List<_i12.AssessmentParameter>> getAssessmentParameters(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -1750,7 +1754,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i11.AssessmentParameter>>);
+                as _i3.Future<List<_i12.AssessmentParameter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1758,10 +1762,10 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<_i11.AssessmentParameter> upsertAssessmentParameter(
+  _i3.Future<_i12.AssessmentParameter> upsertAssessmentParameter(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
-    _i11.AssessmentParameter param,
+    _i12.AssessmentParameter param,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1785,7 +1789,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.AssessmentParameter>);
+                as _i3.Future<_i12.AssessmentParameter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1824,7 +1828,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i12.Asset>> getAssets(
+  _i3.Future<List<_i13.Asset>> getAssets(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -1847,7 +1851,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i12.Asset>>);
+                as _i3.Future<List<_i13.Asset>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1855,10 +1859,10 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<_i12.Asset> upsertAsset(
+  _i3.Future<_i13.Asset> upsertAsset(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
-    _i12.Asset asset,
+    _i13.Asset asset,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1882,7 +1886,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.Asset>);
+                as _i3.Future<_i13.Asset>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1921,7 +1925,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i13.UserModuleProgress>> getUserModuleProgress(
+  _i3.Future<List<_i14.UserModuleProgress>> getUserModuleProgress(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
     int organizationId,
@@ -1948,7 +1952,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i13.UserModuleProgress>>);
+                as _i3.Future<List<_i14.UserModuleProgress>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1956,7 +1960,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<_i13.UserModuleProgress?> setUserModuleProgress(
+  _i3.Future<_i14.UserModuleProgress?> setUserModuleProgress(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
     int organizationId,
@@ -1989,7 +1993,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.UserModuleProgress?>);
+                as _i3.Future<_i14.UserModuleProgress?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1997,12 +2001,12 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<_i13.UserModuleProgress?> updateUserModuleStatus(
+  _i3.Future<_i14.UserModuleProgress?> updateUserModuleStatus(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
     int organizationId,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i18.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
   ) async {
@@ -2032,7 +2036,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.UserModuleProgress?>);
+                as _i3.Future<_i14.UserModuleProgress?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2040,7 +2044,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<_i14.TrainingSessionResultPage> getTrainingHistory(
+  _i3.Future<_i15.TrainingSessionResultPage> getTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder, {
     required int page,
     required int limit,
@@ -2077,7 +2081,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.TrainingSessionResultPage>);
+                as _i3.Future<_i15.TrainingSessionResultPage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2085,7 +2089,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
+  _i3.Future<List<_i17.TrainingSessionResult>> getUserTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
     int organizationId,
@@ -2112,7 +2116,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.TrainingSessionResult>>);
+                as _i3.Future<List<_i17.TrainingSessionResult>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2120,7 +2124,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries(
+  _i3.Future<_i16.TrainingUserSummaryPage> getTrainingUserSummaries(
     _i1.TestSessionBuilder sessionBuilder, {
     required int page,
     required int limit,
@@ -2155,7 +2159,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i15.TrainingUserSummaryPage>);
+                as _i3.Future<_i16.TrainingUserSummaryPage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2163,7 +2167,7 @@ class _ManagerEndpoint {
     });
   }
 
-  _i3.Future<List<_i18.ManagerNotificationDetail>> getNotifications(
+  _i3.Future<List<_i19.ManagerNotificationDetail>> getNotifications(
     _i1.TestSessionBuilder sessionBuilder,
     int organizationId,
   ) async {
@@ -2186,7 +2190,7 @@ class _ManagerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i18.ManagerNotificationDetail>>);
+                as _i3.Future<List<_i19.ManagerNotificationDetail>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2710,6 +2714,7 @@ class _OrganizationAdminEndpoint {
     String defaultLanguage,
     List<_i8.SupportedLanguage> supportedLanguages,
     String? aiChatPrompt,
+    List<_i9.LocalizedAiPrompt>? aiChatPromptTranslations,
     int passingPercentage,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2731,6 +2736,7 @@ class _OrganizationAdminEndpoint {
             'defaultLanguage': defaultLanguage,
             'supportedLanguages': supportedLanguages,
             'aiChatPrompt': aiChatPrompt,
+            'aiChatPromptTranslations': aiChatPromptTranslations,
             'passingPercentage': passingPercentage,
           }),
           serializationManager: _serializationManager,
@@ -2748,7 +2754,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i13.UserModuleProgress>> getOrgUserModuleProgress(
+  _i3.Future<List<_i14.UserModuleProgress>> getOrgUserModuleProgress(
     _i1.TestSessionBuilder sessionBuilder,
     int userId,
   ) async {
@@ -2771,7 +2777,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i13.UserModuleProgress>>);
+                as _i3.Future<List<_i14.UserModuleProgress>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2779,7 +2785,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<_i13.UserModuleProgress?> setOrgUserModuleProgress(
+  _i3.Future<_i14.UserModuleProgress?> setOrgUserModuleProgress(
     _i1.TestSessionBuilder sessionBuilder,
     int userId,
     String moduleId,
@@ -2810,7 +2816,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.UserModuleProgress?>);
+                as _i3.Future<_i14.UserModuleProgress?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2818,11 +2824,11 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<_i13.UserModuleProgress?> updateOrgUserModuleStatus(
+  _i3.Future<_i14.UserModuleProgress?> updateOrgUserModuleStatus(
     _i1.TestSessionBuilder sessionBuilder,
     int userId,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i18.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
   ) async {
@@ -2851,7 +2857,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.UserModuleProgress?>);
+                as _i3.Future<_i14.UserModuleProgress?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2859,7 +2865,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i9.TheoryChapter>> getOrgTheoryChapters(
+  _i3.Future<List<_i10.TheoryChapter>> getOrgTheoryChapters(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2881,7 +2887,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.TheoryChapter>>);
+                as _i3.Future<List<_i10.TheoryChapter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2889,9 +2895,9 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<_i9.TheoryChapter> upsertOrgTheoryChapter(
+  _i3.Future<_i10.TheoryChapter> upsertOrgTheoryChapter(
     _i1.TestSessionBuilder sessionBuilder,
-    _i9.TheoryChapter chapter,
+    _i10.TheoryChapter chapter,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2912,7 +2918,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.TheoryChapter>);
+                as _i3.Future<_i10.TheoryChapter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2951,7 +2957,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i10.TrainingParameter>> getOrgTrainingParameters(
+  _i3.Future<List<_i11.TrainingParameter>> getOrgTrainingParameters(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2973,7 +2979,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i10.TrainingParameter>>);
+                as _i3.Future<List<_i11.TrainingParameter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2981,9 +2987,9 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<_i10.TrainingParameter> upsertOrgTrainingParameter(
+  _i3.Future<_i11.TrainingParameter> upsertOrgTrainingParameter(
     _i1.TestSessionBuilder sessionBuilder,
-    _i10.TrainingParameter param,
+    _i11.TrainingParameter param,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3004,7 +3010,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.TrainingParameter>);
+                as _i3.Future<_i11.TrainingParameter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3043,7 +3049,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i11.AssessmentParameter>> getOrgAssessmentParameters(
+  _i3.Future<List<_i12.AssessmentParameter>> getOrgAssessmentParameters(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3065,7 +3071,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i11.AssessmentParameter>>);
+                as _i3.Future<List<_i12.AssessmentParameter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3073,9 +3079,9 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<_i11.AssessmentParameter> upsertOrgAssessmentParameter(
+  _i3.Future<_i12.AssessmentParameter> upsertOrgAssessmentParameter(
     _i1.TestSessionBuilder sessionBuilder,
-    _i11.AssessmentParameter param,
+    _i12.AssessmentParameter param,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3096,7 +3102,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.AssessmentParameter>);
+                as _i3.Future<_i12.AssessmentParameter>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3135,7 +3141,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i12.Asset>> getOrgAssets(
+  _i3.Future<List<_i13.Asset>> getOrgAssets(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3157,7 +3163,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i12.Asset>>);
+                as _i3.Future<List<_i13.Asset>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3165,9 +3171,9 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<_i12.Asset> upsertOrgAsset(
+  _i3.Future<_i13.Asset> upsertOrgAsset(
     _i1.TestSessionBuilder sessionBuilder,
-    _i12.Asset asset,
+    _i13.Asset asset,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3188,7 +3194,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.Asset>);
+                as _i3.Future<_i13.Asset>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3227,7 +3233,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<_i14.TrainingSessionResultPage> getTrainingHistory(
+  _i3.Future<_i15.TrainingSessionResultPage> getTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder, {
     required int page,
     required int limit,
@@ -3264,7 +3270,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.TrainingSessionResultPage>);
+                as _i3.Future<_i15.TrainingSessionResultPage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3272,7 +3278,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i16.TrainingSessionResult>> getOrgUserTrainingHistory(
+  _i3.Future<List<_i17.TrainingSessionResult>> getOrgUserTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder,
     int userId,
   ) async {
@@ -3295,7 +3301,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.TrainingSessionResult>>);
+                as _i3.Future<List<_i17.TrainingSessionResult>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3303,7 +3309,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries(
+  _i3.Future<_i16.TrainingUserSummaryPage> getTrainingUserSummaries(
     _i1.TestSessionBuilder sessionBuilder, {
     required int page,
     required int limit,
@@ -3340,7 +3346,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i15.TrainingUserSummaryPage>);
+                as _i3.Future<_i16.TrainingUserSummaryPage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3348,7 +3354,7 @@ class _OrganizationAdminEndpoint {
     });
   }
 
-  _i3.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
+  _i3.Future<List<_i17.TrainingSessionResult>> getUserTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder,
     int appUserId,
   ) async {
@@ -3371,7 +3377,7 @@ class _OrganizationAdminEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.TrainingSessionResult>>);
+                as _i3.Future<List<_i17.TrainingSessionResult>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3390,7 +3396,7 @@ class _PublicApiEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i19.LoginResponse> login(
+  _i3.Future<_i20.LoginResponse> login(
     _i1.TestSessionBuilder sessionBuilder,
     String email,
     String password,
@@ -3417,7 +3423,7 @@ class _PublicApiEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i19.LoginResponse>);
+                as _i3.Future<_i20.LoginResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3678,7 +3684,7 @@ class _PublicApiEndpoint {
     String apiKey,
     String userId,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i18.ModuleProgressStatus status,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3719,7 +3725,7 @@ class _PublicApiEndpoint {
     String apiKey,
     String userId,
     int overallPercentage,
-    List<_i20.TrainingCriteriaScore> criteriaValidation,
+    List<_i21.TrainingCriteriaScore> criteriaValidation,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3825,7 +3831,7 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<List<_i9.TheoryChapter>> getTheoryChapters(
+  _i3.Future<List<_i10.TheoryChapter>> getTheoryChapters(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3847,7 +3853,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.TheoryChapter>>);
+                as _i3.Future<List<_i10.TheoryChapter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3855,7 +3861,7 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<List<_i10.TrainingParameter>> getTrainingParameters(
+  _i3.Future<List<_i11.TrainingParameter>> getTrainingParameters(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3877,7 +3883,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i10.TrainingParameter>>);
+                as _i3.Future<List<_i11.TrainingParameter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3885,7 +3891,7 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<List<_i11.AssessmentParameter>> getAssessmentParameters(
+  _i3.Future<List<_i12.AssessmentParameter>> getAssessmentParameters(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3907,7 +3913,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i11.AssessmentParameter>>);
+                as _i3.Future<List<_i12.AssessmentParameter>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3950,7 +3956,7 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<List<_i13.UserModuleProgress>> getMyModuleProgress(
+  _i3.Future<List<_i14.UserModuleProgress>> getMyModuleProgress(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3972,7 +3978,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i13.UserModuleProgress>>);
+                as _i3.Future<List<_i14.UserModuleProgress>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -3980,11 +3986,11 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<_i16.TrainingSessionResult?> submitTrainingResult(
+  _i3.Future<_i17.TrainingSessionResult?> submitTrainingResult(
     _i1.TestSessionBuilder sessionBuilder,
     String externalUserId,
     int overallPercentage,
-    List<_i20.TrainingCriteriaScore> criteriaScores,
+    List<_i21.TrainingCriteriaScore> criteriaScores,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -4009,7 +4015,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i16.TrainingSessionResult?>);
+                as _i3.Future<_i17.TrainingSessionResult?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -4017,7 +4023,7 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<List<_i16.TrainingSessionResult>> getMyTrainingHistory(
+  _i3.Future<List<_i17.TrainingSessionResult>> getMyTrainingHistory(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -4039,7 +4045,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.TrainingSessionResult>>);
+                as _i3.Future<List<_i17.TrainingSessionResult>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -4047,10 +4053,10 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<_i13.UserModuleProgress?> updateMyModuleStatus(
+  _i3.Future<_i14.UserModuleProgress?> updateMyModuleStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i18.ModuleProgressStatus status,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -4074,7 +4080,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.UserModuleProgress?>);
+                as _i3.Future<_i14.UserModuleProgress?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -4082,7 +4088,7 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<List<_i21.TheoryChapterWithProgress>>
+  _i3.Future<List<_i22.TheoryChapterWithProgress>>
   getTheoryChaptersWithProgress(_i1.TestSessionBuilder sessionBuilder) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -4103,7 +4109,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i21.TheoryChapterWithProgress>>);
+                as _i3.Future<List<_i22.TheoryChapterWithProgress>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -4111,7 +4117,7 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<_i22.UserTheoryProgress?> submitTheoryQuiz(
+  _i3.Future<_i23.UserTheoryProgress?> submitTheoryQuiz(
     _i1.TestSessionBuilder sessionBuilder,
     int chapterId,
     int score,
@@ -4138,7 +4144,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i22.UserTheoryProgress?>);
+                as _i3.Future<_i23.UserTheoryProgress?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

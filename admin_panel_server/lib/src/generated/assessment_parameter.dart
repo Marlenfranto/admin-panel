@@ -14,7 +14,8 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'organization.dart' as _i2;
 import 'scoring_rule.dart' as _i3;
-import 'package:admin_panel_server/src/generated/protocol.dart' as _i4;
+import 'localized_parameter_content.dart' as _i4;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i5;
 
 abstract class AssessmentParameter
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -27,6 +28,7 @@ abstract class AssessmentParameter
     required this.description,
     required this.maxScore,
     required this.scoringRules,
+    this.translations,
   });
 
   factory AssessmentParameter({
@@ -38,6 +40,7 @@ abstract class AssessmentParameter
     required String description,
     required int maxScore,
     required List<_i3.ScoringRule> scoringRules,
+    List<_i4.LocalizedParameterContent>? translations,
   }) = _AssessmentParameterImpl;
 
   factory AssessmentParameter.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -46,16 +49,21 @@ abstract class AssessmentParameter
       organizationId: jsonSerialization['organizationId'] as int?,
       organization: jsonSerialization['organization'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.Organization>(
+          : _i5.Protocol().deserialize<_i2.Organization>(
               jsonSerialization['organization'],
             ),
       paramId: jsonSerialization['paramId'] as String,
       name: jsonSerialization['name'] as String,
       description: jsonSerialization['description'] as String,
       maxScore: jsonSerialization['maxScore'] as int,
-      scoringRules: _i4.Protocol().deserialize<List<_i3.ScoringRule>>(
+      scoringRules: _i5.Protocol().deserialize<List<_i3.ScoringRule>>(
         jsonSerialization['scoringRules'],
       ),
+      translations: jsonSerialization['translations'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i4.LocalizedParameterContent>>(
+              jsonSerialization['translations'],
+            ),
     );
   }
 
@@ -80,6 +88,8 @@ abstract class AssessmentParameter
 
   List<_i3.ScoringRule> scoringRules;
 
+  List<_i4.LocalizedParameterContent>? translations;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -95,6 +105,7 @@ abstract class AssessmentParameter
     String? description,
     int? maxScore,
     List<_i3.ScoringRule>? scoringRules,
+    List<_i4.LocalizedParameterContent>? translations,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -108,6 +119,8 @@ abstract class AssessmentParameter
       'description': description,
       'maxScore': maxScore,
       'scoringRules': scoringRules.toJson(valueToJson: (v) => v.toJson()),
+      if (translations != null)
+        'translations': translations?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -126,6 +139,10 @@ abstract class AssessmentParameter
       'scoringRules': scoringRules.toJson(
         valueToJson: (v) => v.toJsonForProtocol(),
       ),
+      if (translations != null)
+        'translations': translations?.toJson(
+          valueToJson: (v) => v.toJsonForProtocol(),
+        ),
     };
   }
 
@@ -173,6 +190,7 @@ class _AssessmentParameterImpl extends AssessmentParameter {
     required String description,
     required int maxScore,
     required List<_i3.ScoringRule> scoringRules,
+    List<_i4.LocalizedParameterContent>? translations,
   }) : super._(
          id: id,
          organizationId: organizationId,
@@ -182,6 +200,7 @@ class _AssessmentParameterImpl extends AssessmentParameter {
          description: description,
          maxScore: maxScore,
          scoringRules: scoringRules,
+         translations: translations,
        );
 
   /// Returns a shallow copy of this [AssessmentParameter]
@@ -197,6 +216,7 @@ class _AssessmentParameterImpl extends AssessmentParameter {
     String? description,
     int? maxScore,
     List<_i3.ScoringRule>? scoringRules,
+    Object? translations = _Undefined,
   }) {
     return AssessmentParameter(
       id: id is int? ? id : this.id,
@@ -212,6 +232,9 @@ class _AssessmentParameterImpl extends AssessmentParameter {
       maxScore: maxScore ?? this.maxScore,
       scoringRules:
           scoringRules ?? this.scoringRules.map((e0) => e0.copyWith()).toList(),
+      translations: translations is List<_i4.LocalizedParameterContent>?
+          ? translations
+          : this.translations?.map((e0) => e0.copyWith()).toList(),
     );
   }
 }
@@ -251,6 +274,15 @@ class AssessmentParameterUpdateTable
     table.scoringRules,
     value,
   );
+
+  _i1.ColumnValue<
+    List<_i4.LocalizedParameterContent>,
+    List<_i4.LocalizedParameterContent>
+  >
+  translations(List<_i4.LocalizedParameterContent>? value) => _i1.ColumnValue(
+    table.translations,
+    value,
+  );
 }
 
 class AssessmentParameterTable extends _i1.Table<int?> {
@@ -281,6 +313,10 @@ class AssessmentParameterTable extends _i1.Table<int?> {
       'scoringRules',
       this,
     );
+    translations = _i1.ColumnSerializable<List<_i4.LocalizedParameterContent>>(
+      'translations',
+      this,
+    );
   }
 
   late final AssessmentParameterUpdateTable updateTable;
@@ -298,6 +334,9 @@ class AssessmentParameterTable extends _i1.Table<int?> {
   late final _i1.ColumnInt maxScore;
 
   late final _i1.ColumnSerializable<List<_i3.ScoringRule>> scoringRules;
+
+  late final _i1.ColumnSerializable<List<_i4.LocalizedParameterContent>>
+  translations;
 
   _i2.OrganizationTable get organization {
     if (_organization != null) return _organization!;
@@ -321,6 +360,7 @@ class AssessmentParameterTable extends _i1.Table<int?> {
     description,
     maxScore,
     scoringRules,
+    translations,
   ];
 
   @override

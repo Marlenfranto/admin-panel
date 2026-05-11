@@ -13,7 +13,8 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'subscription_modules.dart' as _i2;
 import 'languages_config.dart' as _i3;
-import 'package:admin_panel_server/src/generated/protocol.dart' as _i4;
+import 'localized_ai_prompt.dart' as _i4;
+import 'package:admin_panel_server/src/generated/protocol.dart' as _i5;
 
 abstract class ModuleConfigPublic
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
@@ -25,6 +26,7 @@ abstract class ModuleConfigPublic
     required this.languages,
     required this.passingPercentage,
     this.aiChatPrompt,
+    this.aiChatPromptTranslations,
   });
 
   factory ModuleConfigPublic({
@@ -35,6 +37,7 @@ abstract class ModuleConfigPublic
     required _i3.LanguagesConfig languages,
     required int passingPercentage,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
   }) = _ModuleConfigPublicImpl;
 
   factory ModuleConfigPublic.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -42,14 +45,20 @@ abstract class ModuleConfigPublic
       configId: jsonSerialization['configId'] as String,
       lastUpdated: jsonSerialization['lastUpdated'] as String,
       contentVersion: jsonSerialization['contentVersion'] as int,
-      subscriptionModules: _i4.Protocol().deserialize<_i2.SubscriptionModules>(
+      subscriptionModules: _i5.Protocol().deserialize<_i2.SubscriptionModules>(
         jsonSerialization['subscriptionModules'],
       ),
-      languages: _i4.Protocol().deserialize<_i3.LanguagesConfig>(
+      languages: _i5.Protocol().deserialize<_i3.LanguagesConfig>(
         jsonSerialization['languages'],
       ),
       passingPercentage: jsonSerialization['passingPercentage'] as int,
       aiChatPrompt: jsonSerialization['aiChatPrompt'] as String?,
+      aiChatPromptTranslations:
+          jsonSerialization['aiChatPromptTranslations'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i4.LocalizedAiPrompt>>(
+              jsonSerialization['aiChatPromptTranslations'],
+            ),
     );
   }
 
@@ -67,6 +76,8 @@ abstract class ModuleConfigPublic
 
   String? aiChatPrompt;
 
+  List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations;
+
   /// Returns a shallow copy of this [ModuleConfigPublic]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -78,6 +89,7 @@ abstract class ModuleConfigPublic
     _i3.LanguagesConfig? languages,
     int? passingPercentage,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -90,6 +102,10 @@ abstract class ModuleConfigPublic
       'languages': languages.toJson(),
       'passingPercentage': passingPercentage,
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
+      if (aiChatPromptTranslations != null)
+        'aiChatPromptTranslations': aiChatPromptTranslations?.toJson(
+          valueToJson: (v) => v.toJson(),
+        ),
     };
   }
 
@@ -104,6 +120,10 @@ abstract class ModuleConfigPublic
       'languages': languages.toJsonForProtocol(),
       'passingPercentage': passingPercentage,
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
+      if (aiChatPromptTranslations != null)
+        'aiChatPromptTranslations': aiChatPromptTranslations?.toJson(
+          valueToJson: (v) => v.toJsonForProtocol(),
+        ),
     };
   }
 
@@ -124,6 +144,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
     required _i3.LanguagesConfig languages,
     required int passingPercentage,
     String? aiChatPrompt,
+    List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
   }) : super._(
          configId: configId,
          lastUpdated: lastUpdated,
@@ -132,6 +153,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
          languages: languages,
          passingPercentage: passingPercentage,
          aiChatPrompt: aiChatPrompt,
+         aiChatPromptTranslations: aiChatPromptTranslations,
        );
 
   /// Returns a shallow copy of this [ModuleConfigPublic]
@@ -146,6 +168,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
     _i3.LanguagesConfig? languages,
     int? passingPercentage,
     Object? aiChatPrompt = _Undefined,
+    Object? aiChatPromptTranslations = _Undefined,
   }) {
     return ModuleConfigPublic(
       configId: configId ?? this.configId,
@@ -156,6 +179,10 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
       languages: languages ?? this.languages.copyWith(),
       passingPercentage: passingPercentage ?? this.passingPercentage,
       aiChatPrompt: aiChatPrompt is String? ? aiChatPrompt : this.aiChatPrompt,
+      aiChatPromptTranslations:
+          aiChatPromptTranslations is List<_i4.LocalizedAiPrompt>?
+          ? aiChatPromptTranslations
+          : this.aiChatPromptTranslations?.map((e0) => e0.copyWith()).toList(),
     );
   }
 }
