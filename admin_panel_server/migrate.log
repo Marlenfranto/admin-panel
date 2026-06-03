@@ -1,0 +1,653 @@
+SERVERPOD version: 3.4.3, dart: 3.11.3 (stable) (Tue Mar 17 01:06:16 2026 -0700) on "macos_arm64", time: 2026-06-03 13:28:53.430535Z
+runMode: production
+serverId: default
+role: monolith
+loggingMode: normal
+applyMigrations: true
+applyRepairMigration: false
+SERVERPOD initialized, time: 2026-06-03 13:28:53.476213Z
+Latest database migration already applied.
+2026-06-03 13:29:17.374072Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.374072Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:44:23)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.376406Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.376406Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:39:27)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.376611Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.376611Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:44:23)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.376771Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.376771Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:39:27)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.376894Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.376894Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:44:23)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.377051Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.377051Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:39:27)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.377177Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.377177Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:44:23)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.377339Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.377339Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:39:27)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.377500Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.377500Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:44:23)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.377693Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.377693Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:39:27)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.377822Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.377822Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:44:23)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.377985Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.377985Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:39:27)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.378111Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.378111Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:44:23)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.378577Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.378577Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.378791Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.378791Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.378915Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.378915Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.378997Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.378997Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.379126Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.379126Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.379207Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.379207Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.379347Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.379347Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.379429Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.379429Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.379566Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.379566Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.379650Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.379650Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.379780Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.379780Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.379872Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.379872Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.380005Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.380005Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getForeignKeyDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:240:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:17.380089Z ERROR: Internal server error. Zoned exception.
+2026-06-03 13:29:17.380089Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PackagePoolExt.withRequestTimeout (package:postgres/src/utils/package_pool_ext.dart:55:28)
+#2      PoolImplementation._selectOrCreate (package:postgres/src/pool/pool_impl.dart:191:31)
+#3      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:146:26)
+<asynchronous suspension>
+#4      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:20)
+<asynchronous suspension>
+#5      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:18)
+<asynchronous suspension>
+#6      PostgresDatabaseAnalyzer.getIndexDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:104:23)
+<asynchronous suspension>
+
+2026-06-03 13:29:19.135083Z ERROR: Failed to apply database migrations.
+2026-06-03 13:29:19.135083Z ERROR: TimeoutException: Failed to acquire pool lock.
+#0      PackagePoolExt.requestWithTimeout (package:postgres/src/utils/package_pool_ext.dart:8:30)
+#1      PoolImplementation.withConnection (package:postgres/src/pool/pool_impl.dart:134:39)
+#2      PoolImplementation.execute (package:postgres/src/pool/pool_impl.dart:63:12)
+#3      PostgresDatabaseConnection._query (package:serverpod/src/database/adapters/postgres/database_connection.dart:562:34)
+#4      PostgresDatabaseConnection.query (package:serverpod/src/database/adapters/postgres/database_connection.dart:530:24)
+#5      Database.unsafeQuery (package:serverpod/src/database/database.dart:435:32)
+#6      PostgresDatabaseAnalyzer.getColumnDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:69:38)
+#7      PostgresDatabaseAnalyzer.getTableDefinitions.<anonymous closure> (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:34:23)
+#8      MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+#9      ListIterator.moveNext (dart:_internal/iterable.dart:371:26)
+#10     Future.wait (dart:async/future.dart:544:26)
+#11     PostgresDatabaseAnalyzer.getTableDefinitions (package:serverpod/src/database/adapters/postgres/postgres_analyzer.dart:29:25)
+<asynchronous suspension>
+#12     DatabaseAnalyzer.analyze (package:serverpod/src/database/interface/analyzer.dart:21:15)
+<asynchronous suspension>
+#13     MigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/migration_manager.dart:310:24)
+<asynchronous suspension>
+#14     ServerMigrationManager.verifyDatabaseIntegrity (package:serverpod/src/database/migrations/server_migration_manager.dart:47:12)
+<asynchronous suspension>
+#15     Serverpod._applyMigrations (package:serverpod/src/server/serverpod.dart:869:18)
+<asynchronous suspension>
+#16     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:710:7)
+<asynchronous suspension>
+#17     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#18     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#19     run (package:admin_panel_server/server.dart:15:3)
+<asynchronous suspension>
+

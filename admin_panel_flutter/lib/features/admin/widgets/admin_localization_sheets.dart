@@ -151,12 +151,15 @@ class _TheoryChapterLocalizationsBodyState
 
   Future<void> _save() async {
     if (_selectedLocaleKey == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final localeKey = _selectedLocaleKey!;
     setState(() => _saving = true);
     try {
       final loc = TheoryChapterLocalization(
         id: _current?.id,
         chapterId: widget.chapterId,
-        localeKey: _selectedLocaleKey!,
+        localeKey: localeKey,
         title: _titleCtrl.text.trim(),
         description: _descCtrl.text.trim().isEmpty
             ? null
@@ -182,7 +185,7 @@ class _TheoryChapterLocalizationsBodyState
           quizTranslations.add(
             LocalizedQuizContent(
               languageCode: '',
-              localeKey: _selectedLocaleKey,
+              localeKey: localeKey,
               question: state.questionCtrl.text.trim(),
               answers: state.answerCtrls
                   .map((c) => c.text.trim())
@@ -192,7 +195,7 @@ class _TheoryChapterLocalizationsBodyState
         }
         await ref.read(clientProvider).admin.setTheoryChapterQuizTranslations(
               widget.chapterId,
-              _selectedLocaleKey!,
+              localeKey,
               quizTranslations,
             );
       }
@@ -200,19 +203,24 @@ class _TheoryChapterLocalizationsBodyState
       ref.invalidate(
           adminTheoryChapterLocalizationsProvider(widget.chapterId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved $_selectedLocaleKey')),
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text('Saved $localeKey')),
         );
       }
     } catch (e) {
-      if (mounted) _snackError(e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        _snackError(e);
+        setState(() => _saving = false);
+      }
     }
   }
 
   Future<void> _delete() async {
     if (_current?.id == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final localeKey = _selectedLocaleKey;
     setState(() => _saving = true);
     try {
       await ref
@@ -221,18 +229,17 @@ class _TheoryChapterLocalizationsBodyState
           .deleteTheoryChapterLocalization(_current!.id!);
       ref.invalidate(
           adminTheoryChapterLocalizationsProvider(widget.chapterId));
-      setState(() {
-        _loadInto(null);
-      });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Deleted $_selectedLocaleKey')),
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text('Deleted $localeKey')),
         );
       }
     } catch (e) {
-      if (mounted) _snackError(e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        _snackError(e);
+        setState(() => _saving = false);
+      }
     }
   }
 
@@ -563,12 +570,15 @@ class _TrainingParameterLocalizationsBodyState
 
   Future<void> _save() async {
     if (_selectedLocaleKey == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final localeKey = _selectedLocaleKey!;
     setState(() => _saving = true);
     try {
       final loc = TrainingParameterLocalization(
         id: _current?.id,
         parameterId: widget.parameterId,
-        localeKey: _selectedLocaleKey!,
+        localeKey: localeKey,
         name: _nameCtrl.text.trim(),
         description: _descCtrl.text.trim(),
         scoringFeedbacks:
@@ -582,19 +592,24 @@ class _TrainingParameterLocalizationsBodyState
       ref.invalidate(adminTrainingParameterLocalizationsProvider(
           widget.parameterId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved $_selectedLocaleKey')),
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text('Saved $localeKey')),
         );
       }
     } catch (e) {
-      if (mounted) _snackError(e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        _snackError(e);
+        setState(() => _saving = false);
+      }
     }
   }
 
   Future<void> _delete() async {
     if (_current?.id == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final localeKey = _selectedLocaleKey;
     setState(() => _saving = true);
     try {
       await ref
@@ -603,16 +618,17 @@ class _TrainingParameterLocalizationsBodyState
           .deleteTrainingParameterLocalization(_current!.id!);
       ref.invalidate(adminTrainingParameterLocalizationsProvider(
           widget.parameterId));
-      setState(() => _loadInto(null));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Deleted $_selectedLocaleKey')),
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text('Deleted $localeKey')),
         );
       }
     } catch (e) {
-      if (mounted) _snackError(e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        _snackError(e);
+        setState(() => _saving = false);
+      }
     }
   }
 
@@ -817,12 +833,15 @@ class _AssessmentParameterLocalizationsBodyState
 
   Future<void> _save() async {
     if (_selectedLocaleKey == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final localeKey = _selectedLocaleKey!;
     setState(() => _saving = true);
     try {
       final loc = AssessmentParameterLocalization(
         id: _current?.id,
         parameterId: widget.parameterId,
-        localeKey: _selectedLocaleKey!,
+        localeKey: localeKey,
         name: _nameCtrl.text.trim(),
         description: _descCtrl.text.trim(),
         scoringFeedbacks:
@@ -836,19 +855,24 @@ class _AssessmentParameterLocalizationsBodyState
       ref.invalidate(adminAssessmentParameterLocalizationsProvider(
           widget.parameterId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved $_selectedLocaleKey')),
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text('Saved $localeKey')),
         );
       }
     } catch (e) {
-      if (mounted) _snackError(e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        _snackError(e);
+        setState(() => _saving = false);
+      }
     }
   }
 
   Future<void> _delete() async {
     if (_current?.id == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final localeKey = _selectedLocaleKey;
     setState(() => _saving = true);
     try {
       await ref
@@ -857,16 +881,17 @@ class _AssessmentParameterLocalizationsBodyState
           .deleteAssessmentParameterLocalization(_current!.id!);
       ref.invalidate(adminAssessmentParameterLocalizationsProvider(
           widget.parameterId));
-      setState(() => _loadInto(null));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Deleted $_selectedLocaleKey')),
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text('Deleted $localeKey')),
         );
       }
     } catch (e) {
-      if (mounted) _snackError(e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        _snackError(e);
+        setState(() => _saving = false);
+      }
     }
   }
 
@@ -1053,12 +1078,15 @@ class _AssetLocalizationsBodyState
 
   Future<void> _save() async {
     if (_selectedLocaleKey == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final localeKey = _selectedLocaleKey!;
     setState(() => _saving = true);
     try {
       final loc = AssetLocalization(
         id: _current?.id,
         assetId: widget.assetId,
-        localeKey: _selectedLocaleKey!,
+        localeKey: localeKey,
         name: _nameCtrl.text.trim(),
         description: _descCtrl.text.trim().isEmpty
             ? null
@@ -1072,19 +1100,24 @@ class _AssetLocalizationsBodyState
       _current = saved;
       ref.invalidate(adminAssetLocalizationsProvider(widget.assetId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved $_selectedLocaleKey')),
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text('Saved $localeKey')),
         );
       }
     } catch (e) {
-      if (mounted) _snackError(e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        _snackError(e);
+        setState(() => _saving = false);
+      }
     }
   }
 
   Future<void> _delete() async {
     if (_current?.id == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final localeKey = _selectedLocaleKey;
     setState(() => _saving = true);
     try {
       await ref
@@ -1092,16 +1125,17 @@ class _AssetLocalizationsBodyState
           .admin
           .deleteAssetLocalization(_current!.id!);
       ref.invalidate(adminAssetLocalizationsProvider(widget.assetId));
-      setState(() => _loadInto(null));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Deleted $_selectedLocaleKey')),
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text('Deleted $localeKey')),
         );
       }
     } catch (e) {
-      if (mounted) _snackError(e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        _snackError(e);
+        setState(() => _saving = false);
+      }
     }
   }
 

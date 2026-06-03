@@ -35,7 +35,6 @@ class AuthState {
 
   bool get isSignedIn => userInfo != null;
 }
-
 // Notifier to manage changes in authentication state.
 class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;
