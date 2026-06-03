@@ -41,15 +41,6 @@ database:
   name: neondb
   user: neondb_owner
   requireSsl: true
-  # Pool size for the migration-time analyzer fan-out. Serverpod fires
-  # ~100 parallel pg_catalog queries during verifyDatabaseIntegrity; with
-  # only 10 slots, 90 queue up behind the 15s per-acquire timeout and on
-  # a cold Neon compute the queue can't drain in time. 30 leaves enough
-  # headroom that the queue depth stays under ~3x and acquires don't
-  # time out, while staying well under Neon's per-compute connection
-  # limit. ./migrate.sh additionally pre-warms pg_catalog into Neon's
-  # buffer cache before invoking dart.
-  maxConnectionCount: 30
   #isUnixSocket: true # defaults to false
 
 # This is the setup for Redis. The default for the Google Cloud Engine Terraform
