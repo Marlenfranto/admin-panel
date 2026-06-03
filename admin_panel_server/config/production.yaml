@@ -30,7 +30,13 @@ webServer:
 # If you are connecting on a public IP (e.g. on AWS or Google Cloud Run), you
 # connect on the public IP of the database e.g. database.examplepod.com.
 database:
-  host: ep-bitter-leaf-am5a7l52.c-5.us-east-1.aws.neon.tech
+  # Neon pooler endpoint (PgBouncer in front of compute). The direct
+  # endpoint times out on cold-start because each new connection has to
+  # wake the compute. The pooler keeps a warm pool to the compute
+  # internally, so new client connects are near-instant — critical for
+  # both Render server startup and migration verifyDatabaseIntegrity
+  # fan-out. To switch back to direct, drop the `-pooler` suffix.
+  host: ep-bitter-leaf-am5a7l52-pooler.c-5.us-east-1.aws.neon.tech
   port: 5432
   name: neondb
   user: neondb_owner
