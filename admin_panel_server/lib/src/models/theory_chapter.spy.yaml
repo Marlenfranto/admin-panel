@@ -3,8 +3,13 @@ table: theory_chapter
 fields:
   organization: Organization?, relation(optional)
   chapterOrder: int
-  title: String
-  thumbnailUrl: String?
-  videoUrl: String?
-  videoMetadata: VideoMetadata?
   questions: List<QuizQuestion>?
+  ### Content fields are Dart-only (non-persistent). Required + defaulted so
+  ### legacy callers see a non-null value. The upsert endpoint mirrors them
+  ### into the default-locale TheoryChapterLocalization row; reads populate
+  ### them via the hydrate* helpers.
+  title: String, default='', !persist
+  description: String?, !persist
+  thumbnailUrl: String?, !persist
+  videoUrl: String?, !persist
+  videoMetadata: VideoMetadata?, !persist

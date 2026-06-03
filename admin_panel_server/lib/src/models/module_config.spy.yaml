@@ -6,8 +6,12 @@ fields:
   aiExpertModule: bool, default=false
   smartTrainingModule: bool, default=false
   assessmentModule: bool, default=false
-  defaultLanguage: String, default='en'
-  supportedLanguages: List<SupportedLanguage>?
+  defaultLocaleKey: String, default='US-en', defaultPersist='US-en'
+  ### DEPRECATED (future): legacy editor still reads/writes these. Made
+  ### non-persistent so storage is clean; the editor's "Language Settings"
+  ### section is the next thing to remove.
+  defaultLanguage: String, default='en', !persist
+  supportedLanguages: List<SupportedLanguage>?, !persist
   aiChatPrompt: String?
   aiChatPromptTranslations: List<LocalizedAiPrompt>?
   passingPercentage: int, default=60

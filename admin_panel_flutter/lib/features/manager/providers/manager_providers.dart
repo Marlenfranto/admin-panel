@@ -84,6 +84,56 @@ final managerAssetsProvider = FutureProvider<List<Asset>>((ref) async {
   return ref.watch(clientProvider).manager.getAssets(orgId);
 });
 
+// ── Locale (managed org context) ────────────────────────────────────────────
+final managerLocaleConfigsProvider =
+    FutureProvider.family<List<LocaleConfig>, int>((ref, orgId) =>
+        ref.watch(clientProvider).manager.listManagedLocaleConfigs(orgId));
+
+// ── Content localizations (keyed by (orgId, parentId)) ─────────────────────
+final managerTheoryChapterLocalizationsProvider = FutureProvider.family<
+    List<TheoryChapterLocalization>, (int orgId, int chapterId)>(
+  (ref, args) {
+    final (orgId, chapterId) = args;
+    return ref
+        .watch(clientProvider)
+        .manager
+        .listManagedTheoryChapterLocalizations(orgId, chapterId);
+  },
+);
+
+final managerTrainingParameterLocalizationsProvider = FutureProvider.family<
+    List<TrainingParameterLocalization>, (int orgId, int paramId)>(
+  (ref, args) {
+    final (orgId, paramId) = args;
+    return ref
+        .watch(clientProvider)
+        .manager
+        .listManagedTrainingParameterLocalizations(orgId, paramId);
+  },
+);
+
+final managerAssessmentParameterLocalizationsProvider = FutureProvider.family<
+    List<AssessmentParameterLocalization>, (int orgId, int paramId)>(
+  (ref, args) {
+    final (orgId, paramId) = args;
+    return ref
+        .watch(clientProvider)
+        .manager
+        .listManagedAssessmentParameterLocalizations(orgId, paramId);
+  },
+);
+
+final managerAssetLocalizationsProvider = FutureProvider.family<
+    List<AssetLocalization>, (int orgId, int assetId)>(
+  (ref, args) {
+    final (orgId, assetId) = args;
+    return ref
+        .watch(clientProvider)
+        .manager
+        .listManagedAssetLocalizations(orgId, assetId);
+  },
+);
+
 // ── User module progress (per org + user) ────────────────────────────────────
 final managerUserModuleProgressProvider =
     FutureProvider.family<List<UserModuleProgress>, (int orgId, int userId)>(

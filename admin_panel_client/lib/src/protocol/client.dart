@@ -25,27 +25,39 @@ import 'package:admin_panel_client/src/protocol/training_parameter.dart'
 import 'package:admin_panel_client/src/protocol/assessment_parameter.dart'
     as _i11;
 import 'package:admin_panel_client/src/protocol/asset.dart' as _i12;
+import 'package:admin_panel_client/src/protocol/region.dart' as _i13;
+import 'package:admin_panel_client/src/protocol/locale_config.dart' as _i14;
 import 'package:admin_panel_client/src/protocol/user_module_progress.dart'
-    as _i13;
-import 'package:admin_panel_client/src/protocol/training_session_result_page.dart'
-    as _i14;
-import 'package:admin_panel_client/src/protocol/training_user_summary_page.dart'
     as _i15;
-import 'package:admin_panel_client/src/protocol/training_session_result.dart'
+import 'package:admin_panel_client/src/protocol/training_session_result_page.dart'
     as _i16;
-import 'package:admin_panel_client/src/protocol/module_progress_status.dart'
+import 'package:admin_panel_client/src/protocol/training_user_summary_page.dart'
     as _i17;
-import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
+import 'package:admin_panel_client/src/protocol/training_session_result.dart'
     as _i18;
-import 'package:admin_panel_client/src/protocol/login_response.dart' as _i19;
-import 'package:admin_panel_client/src/protocol/training_criteria_score.dart'
+import 'package:admin_panel_client/src/protocol/module_progress_status.dart'
+    as _i19;
+import 'package:admin_panel_client/src/protocol/theory_chapter_localization.dart'
     as _i20;
-import 'package:admin_panel_client/src/protocol/theory_chapter_with_progress.dart'
+import 'package:admin_panel_client/src/protocol/localized_quiz_content.dart'
     as _i21;
-import 'package:admin_panel_client/src/protocol/user_theory_progress.dart'
+import 'package:admin_panel_client/src/protocol/training_parameter_localization.dart'
     as _i22;
-import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i23;
-import 'protocol.dart' as _i24;
+import 'package:admin_panel_client/src/protocol/assessment_parameter_localization.dart'
+    as _i23;
+import 'package:admin_panel_client/src/protocol/asset_localization.dart'
+    as _i24;
+import 'package:admin_panel_client/src/protocol/manager_notification_detail.dart'
+    as _i25;
+import 'package:admin_panel_client/src/protocol/login_response.dart' as _i26;
+import 'package:admin_panel_client/src/protocol/training_criteria_score.dart'
+    as _i27;
+import 'package:admin_panel_client/src/protocol/theory_chapter_with_progress.dart'
+    as _i28;
+import 'package:admin_panel_client/src/protocol/user_theory_progress.dart'
+    as _i29;
+import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i30;
+import 'protocol.dart' as _i31;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -300,10 +312,76 @@ class EndpointAdmin extends _i1.EndpointRef {
     {'assetId': assetId},
   );
 
-  _i2.Future<List<_i13.UserModuleProgress>> getUserModuleProgress(
+  _i2.Future<List<_i13.Region>> listRegions(int organizationId) =>
+      caller.callServerEndpoint<List<_i13.Region>>(
+        'admin',
+        'listRegions',
+        {'organizationId': organizationId},
+      );
+
+  _i2.Future<_i13.Region> upsertRegion(
+    int organizationId,
+    _i13.Region region,
+  ) => caller.callServerEndpoint<_i13.Region>(
+    'admin',
+    'upsertRegion',
+    {
+      'organizationId': organizationId,
+      'region': region,
+    },
+  );
+
+  _i2.Future<bool> deleteRegion(int regionId) =>
+      caller.callServerEndpoint<bool>(
+        'admin',
+        'deleteRegion',
+        {'regionId': regionId},
+      );
+
+  _i2.Future<List<_i14.LocaleConfig>> listLocaleConfigs(int organizationId) =>
+      caller.callServerEndpoint<List<_i14.LocaleConfig>>(
+        'admin',
+        'listLocaleConfigs',
+        {'organizationId': organizationId},
+      );
+
+  _i2.Future<_i14.LocaleConfig> upsertLocaleConfig(
+    int organizationId,
+    _i14.LocaleConfig locale,
+  ) => caller.callServerEndpoint<_i14.LocaleConfig>(
+    'admin',
+    'upsertLocaleConfig',
+    {
+      'organizationId': organizationId,
+      'locale': locale,
+    },
+  );
+
+  _i2.Future<bool> deleteLocaleConfig(int localeConfigId) =>
+      caller.callServerEndpoint<bool>(
+        'admin',
+        'deleteLocaleConfig',
+        {'localeConfigId': localeConfigId},
+      );
+
+  /// Marks [localeKey] as the default locale for [organizationId], clears the
+  /// flag on all other locales, and syncs `ModuleConfig.defaultLocaleKey`.
+  _i2.Future<_i14.LocaleConfig?> setDefaultLocale(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<_i14.LocaleConfig?>(
+    'admin',
+    'setDefaultLocale',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<List<_i15.UserModuleProgress>> getUserModuleProgress(
     int appUserId,
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i13.UserModuleProgress>>(
+  ) => caller.callServerEndpoint<List<_i15.UserModuleProgress>>(
     'admin',
     'getUserModuleProgress',
     {
@@ -312,13 +390,13 @@ class EndpointAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i13.UserModuleProgress> setUserModuleProgress(
+  _i2.Future<_i15.UserModuleProgress> setUserModuleProgress(
     int appUserId,
     int organizationId,
     String moduleId,
     bool isEnabled,
     DateTime? deadline,
-  ) => caller.callServerEndpoint<_i13.UserModuleProgress>(
+  ) => caller.callServerEndpoint<_i15.UserModuleProgress>(
     'admin',
     'setUserModuleProgress',
     {
@@ -331,7 +409,7 @@ class EndpointAdmin extends _i1.EndpointRef {
   );
 
   /// Returns paginated and filtered Smart Training results for Super Admins.
-  _i2.Future<_i14.TrainingSessionResultPage> getTrainingHistory({
+  _i2.Future<_i16.TrainingSessionResultPage> getTrainingHistory({
     required int page,
     required int limit,
     String? search,
@@ -340,7 +418,7 @@ class EndpointAdmin extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i14.TrainingSessionResultPage>(
+  }) => caller.callServerEndpoint<_i16.TrainingSessionResultPage>(
     'admin',
     'getTrainingHistory',
     {
@@ -356,7 +434,7 @@ class EndpointAdmin extends _i1.EndpointRef {
   );
 
   /// Returns paginated unique users who have smart training results, grouped by user.
-  _i2.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries({
+  _i2.Future<_i17.TrainingUserSummaryPage> getTrainingUserSummaries({
     required int page,
     required int limit,
     String? search,
@@ -365,7 +443,7 @@ class EndpointAdmin extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i15.TrainingUserSummaryPage>(
+  }) => caller.callServerEndpoint<_i17.TrainingUserSummaryPage>(
     'admin',
     'getTrainingUserSummaries',
     {
@@ -381,22 +459,22 @@ class EndpointAdmin extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training results for [appUserId] across all orgs.
-  _i2.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
+  _i2.Future<List<_i18.TrainingSessionResult>> getUserTrainingHistory(
     int appUserId,
-  ) => caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i18.TrainingSessionResult>>(
     'admin',
     'getUserTrainingHistory',
     {'appUserId': appUserId},
   );
 
-  _i2.Future<_i13.UserModuleProgress?> updateUserModuleStatus(
+  _i2.Future<_i15.UserModuleProgress?> updateUserModuleStatus(
     int appUserId,
     int organizationId,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i19.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
-  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i15.UserModuleProgress?>(
     'admin',
     'updateUserModuleStatus',
     {
@@ -406,6 +484,182 @@ class EndpointAdmin extends _i1.EndpointRef {
       'status': status,
       'startedAt': startedAt,
       'completedAt': completedAt,
+    },
+  );
+
+  _i2.Future<List<_i20.TheoryChapterLocalization>>
+  listTheoryChapterLocalizations(int chapterId) =>
+      caller.callServerEndpoint<List<_i20.TheoryChapterLocalization>>(
+        'admin',
+        'listTheoryChapterLocalizations',
+        {'chapterId': chapterId},
+      );
+
+  _i2.Future<_i20.TheoryChapterLocalization> upsertTheoryChapterLocalization(
+    int chapterId,
+    _i20.TheoryChapterLocalization loc,
+  ) => caller.callServerEndpoint<_i20.TheoryChapterLocalization>(
+    'admin',
+    'upsertTheoryChapterLocalization',
+    {
+      'chapterId': chapterId,
+      'loc': loc,
+    },
+  );
+
+  /// Sets the per-question quiz translations on [chapterId] for [localeKey].
+  /// Each entry in [questionTranslations] maps to the question at the same
+  /// index. Empty question text removes that locale's translation for that
+  /// question.
+  _i2.Future<void> setTheoryChapterQuizTranslations(
+    int chapterId,
+    String localeKey,
+    List<_i21.LocalizedQuizContent> questionTranslations,
+  ) => caller.callServerEndpoint<void>(
+    'admin',
+    'setTheoryChapterQuizTranslations',
+    {
+      'chapterId': chapterId,
+      'localeKey': localeKey,
+      'questionTranslations': questionTranslations,
+    },
+  );
+
+  _i2.Future<bool> deleteTheoryChapterLocalization(int localizationId) =>
+      caller.callServerEndpoint<bool>(
+        'admin',
+        'deleteTheoryChapterLocalization',
+        {'localizationId': localizationId},
+      );
+
+  _i2.Future<List<_i22.TrainingParameterLocalization>>
+  listTrainingParameterLocalizations(int parameterId) =>
+      caller.callServerEndpoint<List<_i22.TrainingParameterLocalization>>(
+        'admin',
+        'listTrainingParameterLocalizations',
+        {'parameterId': parameterId},
+      );
+
+  _i2.Future<_i22.TrainingParameterLocalization>
+  upsertTrainingParameterLocalization(
+    int parameterId,
+    _i22.TrainingParameterLocalization loc,
+  ) => caller.callServerEndpoint<_i22.TrainingParameterLocalization>(
+    'admin',
+    'upsertTrainingParameterLocalization',
+    {
+      'parameterId': parameterId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteTrainingParameterLocalization(int localizationId) =>
+      caller.callServerEndpoint<bool>(
+        'admin',
+        'deleteTrainingParameterLocalization',
+        {'localizationId': localizationId},
+      );
+
+  _i2.Future<List<_i23.AssessmentParameterLocalization>>
+  listAssessmentParameterLocalizations(int parameterId) =>
+      caller.callServerEndpoint<List<_i23.AssessmentParameterLocalization>>(
+        'admin',
+        'listAssessmentParameterLocalizations',
+        {'parameterId': parameterId},
+      );
+
+  _i2.Future<_i23.AssessmentParameterLocalization>
+  upsertAssessmentParameterLocalization(
+    int parameterId,
+    _i23.AssessmentParameterLocalization loc,
+  ) => caller.callServerEndpoint<_i23.AssessmentParameterLocalization>(
+    'admin',
+    'upsertAssessmentParameterLocalization',
+    {
+      'parameterId': parameterId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteAssessmentParameterLocalization(int localizationId) =>
+      caller.callServerEndpoint<bool>(
+        'admin',
+        'deleteAssessmentParameterLocalization',
+        {'localizationId': localizationId},
+      );
+
+  _i2.Future<List<_i24.AssetLocalization>> listAssetLocalizations(
+    int assetId,
+  ) => caller.callServerEndpoint<List<_i24.AssetLocalization>>(
+    'admin',
+    'listAssetLocalizations',
+    {'assetId': assetId},
+  );
+
+  _i2.Future<_i24.AssetLocalization> upsertAssetLocalization(
+    int assetId,
+    _i24.AssetLocalization loc,
+  ) => caller.callServerEndpoint<_i24.AssetLocalization>(
+    'admin',
+    'upsertAssetLocalization',
+    {
+      'assetId': assetId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteAssetLocalization(int localizationId) =>
+      caller.callServerEndpoint<bool>(
+        'admin',
+        'deleteAssetLocalization',
+        {'localizationId': localizationId},
+      );
+
+  _i2.Future<List<_i9.TheoryChapter>> getTheoryChaptersLocalized(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i9.TheoryChapter>>(
+    'admin',
+    'getTheoryChaptersLocalized',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<List<_i10.TrainingParameter>> getTrainingParametersLocalized(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i10.TrainingParameter>>(
+    'admin',
+    'getTrainingParametersLocalized',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<List<_i11.AssessmentParameter>> getAssessmentParametersLocalized(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i11.AssessmentParameter>>(
+    'admin',
+    'getAssessmentParametersLocalized',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<List<_i12.Asset>> getAssetsLocalized(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i12.Asset>>(
+    'admin',
+    'getAssetsLocalized',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
     },
   );
 }
@@ -604,10 +858,10 @@ class EndpointManager extends _i1.EndpointRef {
     {'assetId': assetId},
   );
 
-  _i2.Future<List<_i13.UserModuleProgress>> getUserModuleProgress(
+  _i2.Future<List<_i15.UserModuleProgress>> getUserModuleProgress(
     int appUserId,
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i13.UserModuleProgress>>(
+  ) => caller.callServerEndpoint<List<_i15.UserModuleProgress>>(
     'manager',
     'getUserModuleProgress',
     {
@@ -616,13 +870,13 @@ class EndpointManager extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i13.UserModuleProgress?> setUserModuleProgress(
+  _i2.Future<_i15.UserModuleProgress?> setUserModuleProgress(
     int appUserId,
     int organizationId,
     String moduleId,
     bool isEnabled,
     DateTime? deadline,
-  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i15.UserModuleProgress?>(
     'manager',
     'setUserModuleProgress',
     {
@@ -634,14 +888,14 @@ class EndpointManager extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i13.UserModuleProgress?> updateUserModuleStatus(
+  _i2.Future<_i15.UserModuleProgress?> updateUserModuleStatus(
     int appUserId,
     int organizationId,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i19.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
-  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i15.UserModuleProgress?>(
     'manager',
     'updateUserModuleStatus',
     {
@@ -656,7 +910,7 @@ class EndpointManager extends _i1.EndpointRef {
 
   /// Returns paginated and filtered Smart Training results for Managers.
   /// Returns paginated and filtered Smart Training results for Managers.
-  _i2.Future<_i14.TrainingSessionResultPage> getTrainingHistory({
+  _i2.Future<_i16.TrainingSessionResultPage> getTrainingHistory({
     required int page,
     required int limit,
     String? search,
@@ -664,7 +918,7 @@ class EndpointManager extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i14.TrainingSessionResultPage>(
+  }) => caller.callServerEndpoint<_i16.TrainingSessionResultPage>(
     'manager',
     'getTrainingHistory',
     {
@@ -679,10 +933,10 @@ class EndpointManager extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training results for [appUserId] within this manager's org.
-  _i2.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
+  _i2.Future<List<_i18.TrainingSessionResult>> getUserTrainingHistory(
     int appUserId,
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i18.TrainingSessionResult>>(
     'manager',
     'getUserTrainingHistory',
     {
@@ -693,14 +947,14 @@ class EndpointManager extends _i1.EndpointRef {
 
   /// Returns paginated unique users who have smart training results, grouped by user,
   /// scoped to the teams managed by this manager.
-  _i2.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries({
+  _i2.Future<_i17.TrainingUserSummaryPage> getTrainingUserSummaries({
     required int page,
     required int limit,
     String? search,
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i15.TrainingUserSummaryPage>(
+  }) => caller.callServerEndpoint<_i17.TrainingUserSummaryPage>(
     'manager',
     'getTrainingUserSummaries',
     {
@@ -715,9 +969,9 @@ class EndpointManager extends _i1.EndpointRef {
 
   /// Returns notification details for [organizationId], auto-creating records
   /// for any overdue (deadline passed, not completed) progress entries.
-  _i2.Future<List<_i18.ManagerNotificationDetail>> getNotifications(
+  _i2.Future<List<_i25.ManagerNotificationDetail>> getNotifications(
     int organizationId,
-  ) => caller.callServerEndpoint<List<_i18.ManagerNotificationDetail>>(
+  ) => caller.callServerEndpoint<List<_i25.ManagerNotificationDetail>>(
     'manager',
     'getNotifications',
     {'organizationId': organizationId},
@@ -751,6 +1005,305 @@ class EndpointManager extends _i1.EndpointRef {
         'deleteNotification',
         {'notificationId': notificationId},
       );
+
+  _i2.Future<List<_i13.Region>> listManagedRegions(int organizationId) =>
+      caller.callServerEndpoint<List<_i13.Region>>(
+        'manager',
+        'listManagedRegions',
+        {'organizationId': organizationId},
+      );
+
+  _i2.Future<_i13.Region> upsertManagedRegion(
+    int organizationId,
+    _i13.Region region,
+  ) => caller.callServerEndpoint<_i13.Region>(
+    'manager',
+    'upsertManagedRegion',
+    {
+      'organizationId': organizationId,
+      'region': region,
+    },
+  );
+
+  _i2.Future<bool> deleteManagedRegion(
+    int organizationId,
+    int regionId,
+  ) => caller.callServerEndpoint<bool>(
+    'manager',
+    'deleteManagedRegion',
+    {
+      'organizationId': organizationId,
+      'regionId': regionId,
+    },
+  );
+
+  _i2.Future<List<_i14.LocaleConfig>> listManagedLocaleConfigs(
+    int organizationId,
+  ) => caller.callServerEndpoint<List<_i14.LocaleConfig>>(
+    'manager',
+    'listManagedLocaleConfigs',
+    {'organizationId': organizationId},
+  );
+
+  _i2.Future<_i14.LocaleConfig> upsertManagedLocaleConfig(
+    int organizationId,
+    _i14.LocaleConfig locale,
+  ) => caller.callServerEndpoint<_i14.LocaleConfig>(
+    'manager',
+    'upsertManagedLocaleConfig',
+    {
+      'organizationId': organizationId,
+      'locale': locale,
+    },
+  );
+
+  _i2.Future<bool> deleteManagedLocaleConfig(
+    int organizationId,
+    int localeConfigId,
+  ) => caller.callServerEndpoint<bool>(
+    'manager',
+    'deleteManagedLocaleConfig',
+    {
+      'organizationId': organizationId,
+      'localeConfigId': localeConfigId,
+    },
+  );
+
+  _i2.Future<_i14.LocaleConfig?> setManagedDefaultLocale(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<_i14.LocaleConfig?>(
+    'manager',
+    'setManagedDefaultLocale',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<List<_i20.TheoryChapterLocalization>>
+  listManagedTheoryChapterLocalizations(
+    int organizationId,
+    int chapterId,
+  ) => caller.callServerEndpoint<List<_i20.TheoryChapterLocalization>>(
+    'manager',
+    'listManagedTheoryChapterLocalizations',
+    {
+      'organizationId': organizationId,
+      'chapterId': chapterId,
+    },
+  );
+
+  _i2.Future<_i20.TheoryChapterLocalization>
+  upsertManagedTheoryChapterLocalization(
+    int organizationId,
+    int chapterId,
+    _i20.TheoryChapterLocalization loc,
+  ) => caller.callServerEndpoint<_i20.TheoryChapterLocalization>(
+    'manager',
+    'upsertManagedTheoryChapterLocalization',
+    {
+      'organizationId': organizationId,
+      'chapterId': chapterId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<void> setManagedTheoryChapterQuizTranslations(
+    int organizationId,
+    int chapterId,
+    String localeKey,
+    List<_i21.LocalizedQuizContent> questionTranslations,
+  ) => caller.callServerEndpoint<void>(
+    'manager',
+    'setManagedTheoryChapterQuizTranslations',
+    {
+      'organizationId': organizationId,
+      'chapterId': chapterId,
+      'localeKey': localeKey,
+      'questionTranslations': questionTranslations,
+    },
+  );
+
+  _i2.Future<bool> deleteManagedTheoryChapterLocalization(
+    int organizationId,
+    int localizationId,
+  ) => caller.callServerEndpoint<bool>(
+    'manager',
+    'deleteManagedTheoryChapterLocalization',
+    {
+      'organizationId': organizationId,
+      'localizationId': localizationId,
+    },
+  );
+
+  _i2.Future<List<_i22.TrainingParameterLocalization>>
+  listManagedTrainingParameterLocalizations(
+    int organizationId,
+    int parameterId,
+  ) => caller.callServerEndpoint<List<_i22.TrainingParameterLocalization>>(
+    'manager',
+    'listManagedTrainingParameterLocalizations',
+    {
+      'organizationId': organizationId,
+      'parameterId': parameterId,
+    },
+  );
+
+  _i2.Future<_i22.TrainingParameterLocalization>
+  upsertManagedTrainingParameterLocalization(
+    int organizationId,
+    int parameterId,
+    _i22.TrainingParameterLocalization loc,
+  ) => caller.callServerEndpoint<_i22.TrainingParameterLocalization>(
+    'manager',
+    'upsertManagedTrainingParameterLocalization',
+    {
+      'organizationId': organizationId,
+      'parameterId': parameterId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteManagedTrainingParameterLocalization(
+    int organizationId,
+    int localizationId,
+  ) => caller.callServerEndpoint<bool>(
+    'manager',
+    'deleteManagedTrainingParameterLocalization',
+    {
+      'organizationId': organizationId,
+      'localizationId': localizationId,
+    },
+  );
+
+  _i2.Future<List<_i23.AssessmentParameterLocalization>>
+  listManagedAssessmentParameterLocalizations(
+    int organizationId,
+    int parameterId,
+  ) => caller.callServerEndpoint<List<_i23.AssessmentParameterLocalization>>(
+    'manager',
+    'listManagedAssessmentParameterLocalizations',
+    {
+      'organizationId': organizationId,
+      'parameterId': parameterId,
+    },
+  );
+
+  _i2.Future<_i23.AssessmentParameterLocalization>
+  upsertManagedAssessmentParameterLocalization(
+    int organizationId,
+    int parameterId,
+    _i23.AssessmentParameterLocalization loc,
+  ) => caller.callServerEndpoint<_i23.AssessmentParameterLocalization>(
+    'manager',
+    'upsertManagedAssessmentParameterLocalization',
+    {
+      'organizationId': organizationId,
+      'parameterId': parameterId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteManagedAssessmentParameterLocalization(
+    int organizationId,
+    int localizationId,
+  ) => caller.callServerEndpoint<bool>(
+    'manager',
+    'deleteManagedAssessmentParameterLocalization',
+    {
+      'organizationId': organizationId,
+      'localizationId': localizationId,
+    },
+  );
+
+  _i2.Future<List<_i24.AssetLocalization>> listManagedAssetLocalizations(
+    int organizationId,
+    int assetId,
+  ) => caller.callServerEndpoint<List<_i24.AssetLocalization>>(
+    'manager',
+    'listManagedAssetLocalizations',
+    {
+      'organizationId': organizationId,
+      'assetId': assetId,
+    },
+  );
+
+  _i2.Future<_i24.AssetLocalization> upsertManagedAssetLocalization(
+    int organizationId,
+    int assetId,
+    _i24.AssetLocalization loc,
+  ) => caller.callServerEndpoint<_i24.AssetLocalization>(
+    'manager',
+    'upsertManagedAssetLocalization',
+    {
+      'organizationId': organizationId,
+      'assetId': assetId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteManagedAssetLocalization(
+    int organizationId,
+    int localizationId,
+  ) => caller.callServerEndpoint<bool>(
+    'manager',
+    'deleteManagedAssetLocalization',
+    {
+      'organizationId': organizationId,
+      'localizationId': localizationId,
+    },
+  );
+
+  _i2.Future<List<_i9.TheoryChapter>> getManagedTheoryChaptersLocalized(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i9.TheoryChapter>>(
+    'manager',
+    'getManagedTheoryChaptersLocalized',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<List<_i10.TrainingParameter>>
+  getManagedTrainingParametersLocalized(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i10.TrainingParameter>>(
+    'manager',
+    'getManagedTrainingParametersLocalized',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<List<_i11.AssessmentParameter>>
+  getManagedAssessmentParametersLocalized(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i11.AssessmentParameter>>(
+    'manager',
+    'getManagedAssessmentParametersLocalized',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<List<_i12.Asset>> getManagedAssetsLocalized(
+    int organizationId,
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i12.Asset>>(
+    'manager',
+    'getManagedAssetsLocalized',
+    {
+      'organizationId': organizationId,
+      'localeKey': localeKey,
+    },
+  );
 }
 
 /// {@category Endpoint}
@@ -912,20 +1465,20 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i13.UserModuleProgress>> getOrgUserModuleProgress(
+  _i2.Future<List<_i15.UserModuleProgress>> getOrgUserModuleProgress(
     int userId,
-  ) => caller.callServerEndpoint<List<_i13.UserModuleProgress>>(
+  ) => caller.callServerEndpoint<List<_i15.UserModuleProgress>>(
     'organizationAdmin',
     'getOrgUserModuleProgress',
     {'userId': userId},
   );
 
-  _i2.Future<_i13.UserModuleProgress?> setOrgUserModuleProgress(
+  _i2.Future<_i15.UserModuleProgress?> setOrgUserModuleProgress(
     int userId,
     String moduleId,
     bool isEnabled,
     DateTime? deadline,
-  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i15.UserModuleProgress?>(
     'organizationAdmin',
     'setOrgUserModuleProgress',
     {
@@ -936,13 +1489,13 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i13.UserModuleProgress?> updateOrgUserModuleStatus(
+  _i2.Future<_i15.UserModuleProgress?> updateOrgUserModuleStatus(
     int userId,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i19.ModuleProgressStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
-  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
+  ) => caller.callServerEndpoint<_i15.UserModuleProgress?>(
     'organizationAdmin',
     'updateOrgUserModuleStatus',
     {
@@ -1042,7 +1595,7 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
       );
 
   /// Returns paginated and filtered Smart Training results for Org Admins.
-  _i2.Future<_i14.TrainingSessionResultPage> getTrainingHistory({
+  _i2.Future<_i16.TrainingSessionResultPage> getTrainingHistory({
     required int page,
     required int limit,
     String? search,
@@ -1050,7 +1603,7 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i14.TrainingSessionResultPage>(
+  }) => caller.callServerEndpoint<_i16.TrainingSessionResultPage>(
     'organizationAdmin',
     'getTrainingHistory',
     {
@@ -1064,16 +1617,16 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i16.TrainingSessionResult>> getOrgUserTrainingHistory(
+  _i2.Future<List<_i18.TrainingSessionResult>> getOrgUserTrainingHistory(
     int userId,
-  ) => caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i18.TrainingSessionResult>>(
     'organizationAdmin',
     'getOrgUserTrainingHistory',
     {'userId': userId},
   );
 
   /// Returns a grouped overview of training results per user, scoped to the caller's organization.
-  _i2.Future<_i15.TrainingUserSummaryPage> getTrainingUserSummaries({
+  _i2.Future<_i17.TrainingUserSummaryPage> getTrainingUserSummaries({
     required int page,
     required int limit,
     String? search,
@@ -1081,7 +1634,7 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
     DateTime? start,
     DateTime? end,
     bool? passed,
-  }) => caller.callServerEndpoint<_i15.TrainingUserSummaryPage>(
+  }) => caller.callServerEndpoint<_i17.TrainingUserSummaryPage>(
     'organizationAdmin',
     'getTrainingUserSummaries',
     {
@@ -1096,13 +1649,219 @@ class EndpointOrganizationAdmin extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training results for [appUserId] scoped to the caller's organization.
-  _i2.Future<List<_i16.TrainingSessionResult>> getUserTrainingHistory(
+  _i2.Future<List<_i18.TrainingSessionResult>> getUserTrainingHistory(
     int appUserId,
-  ) => caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
+  ) => caller.callServerEndpoint<List<_i18.TrainingSessionResult>>(
     'organizationAdmin',
     'getUserTrainingHistory',
     {'appUserId': appUserId},
   );
+
+  _i2.Future<List<_i13.Region>> listMyRegions() =>
+      caller.callServerEndpoint<List<_i13.Region>>(
+        'organizationAdmin',
+        'listMyRegions',
+        {},
+      );
+
+  _i2.Future<_i13.Region> upsertMyRegion(_i13.Region region) =>
+      caller.callServerEndpoint<_i13.Region>(
+        'organizationAdmin',
+        'upsertMyRegion',
+        {'region': region},
+      );
+
+  _i2.Future<bool> deleteMyRegion(int regionId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteMyRegion',
+        {'regionId': regionId},
+      );
+
+  _i2.Future<List<_i14.LocaleConfig>> listMyLocaleConfigs() =>
+      caller.callServerEndpoint<List<_i14.LocaleConfig>>(
+        'organizationAdmin',
+        'listMyLocaleConfigs',
+        {},
+      );
+
+  _i2.Future<_i14.LocaleConfig> upsertMyLocaleConfig(
+    _i14.LocaleConfig locale,
+  ) => caller.callServerEndpoint<_i14.LocaleConfig>(
+    'organizationAdmin',
+    'upsertMyLocaleConfig',
+    {'locale': locale},
+  );
+
+  _i2.Future<bool> deleteMyLocaleConfig(int localeConfigId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteMyLocaleConfig',
+        {'localeConfigId': localeConfigId},
+      );
+
+  _i2.Future<_i14.LocaleConfig?> setMyDefaultLocale(String localeKey) =>
+      caller.callServerEndpoint<_i14.LocaleConfig?>(
+        'organizationAdmin',
+        'setMyDefaultLocale',
+        {'localeKey': localeKey},
+      );
+
+  _i2.Future<List<_i20.TheoryChapterLocalization>>
+  listMyTheoryChapterLocalizations(int chapterId) =>
+      caller.callServerEndpoint<List<_i20.TheoryChapterLocalization>>(
+        'organizationAdmin',
+        'listMyTheoryChapterLocalizations',
+        {'chapterId': chapterId},
+      );
+
+  _i2.Future<_i20.TheoryChapterLocalization> upsertMyTheoryChapterLocalization(
+    int chapterId,
+    _i20.TheoryChapterLocalization loc,
+  ) => caller.callServerEndpoint<_i20.TheoryChapterLocalization>(
+    'organizationAdmin',
+    'upsertMyTheoryChapterLocalization',
+    {
+      'chapterId': chapterId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<void> setMyTheoryChapterQuizTranslations(
+    int chapterId,
+    String localeKey,
+    List<_i21.LocalizedQuizContent> questionTranslations,
+  ) => caller.callServerEndpoint<void>(
+    'organizationAdmin',
+    'setMyTheoryChapterQuizTranslations',
+    {
+      'chapterId': chapterId,
+      'localeKey': localeKey,
+      'questionTranslations': questionTranslations,
+    },
+  );
+
+  _i2.Future<bool> deleteMyTheoryChapterLocalization(int localizationId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteMyTheoryChapterLocalization',
+        {'localizationId': localizationId},
+      );
+
+  _i2.Future<List<_i22.TrainingParameterLocalization>>
+  listMyTrainingParameterLocalizations(int parameterId) =>
+      caller.callServerEndpoint<List<_i22.TrainingParameterLocalization>>(
+        'organizationAdmin',
+        'listMyTrainingParameterLocalizations',
+        {'parameterId': parameterId},
+      );
+
+  _i2.Future<_i22.TrainingParameterLocalization>
+  upsertMyTrainingParameterLocalization(
+    int parameterId,
+    _i22.TrainingParameterLocalization loc,
+  ) => caller.callServerEndpoint<_i22.TrainingParameterLocalization>(
+    'organizationAdmin',
+    'upsertMyTrainingParameterLocalization',
+    {
+      'parameterId': parameterId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteMyTrainingParameterLocalization(int localizationId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteMyTrainingParameterLocalization',
+        {'localizationId': localizationId},
+      );
+
+  _i2.Future<List<_i23.AssessmentParameterLocalization>>
+  listMyAssessmentParameterLocalizations(int parameterId) =>
+      caller.callServerEndpoint<List<_i23.AssessmentParameterLocalization>>(
+        'organizationAdmin',
+        'listMyAssessmentParameterLocalizations',
+        {'parameterId': parameterId},
+      );
+
+  _i2.Future<_i23.AssessmentParameterLocalization>
+  upsertMyAssessmentParameterLocalization(
+    int parameterId,
+    _i23.AssessmentParameterLocalization loc,
+  ) => caller.callServerEndpoint<_i23.AssessmentParameterLocalization>(
+    'organizationAdmin',
+    'upsertMyAssessmentParameterLocalization',
+    {
+      'parameterId': parameterId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteMyAssessmentParameterLocalization(
+    int localizationId,
+  ) => caller.callServerEndpoint<bool>(
+    'organizationAdmin',
+    'deleteMyAssessmentParameterLocalization',
+    {'localizationId': localizationId},
+  );
+
+  _i2.Future<List<_i24.AssetLocalization>> listMyAssetLocalizations(
+    int assetId,
+  ) => caller.callServerEndpoint<List<_i24.AssetLocalization>>(
+    'organizationAdmin',
+    'listMyAssetLocalizations',
+    {'assetId': assetId},
+  );
+
+  _i2.Future<_i24.AssetLocalization> upsertMyAssetLocalization(
+    int assetId,
+    _i24.AssetLocalization loc,
+  ) => caller.callServerEndpoint<_i24.AssetLocalization>(
+    'organizationAdmin',
+    'upsertMyAssetLocalization',
+    {
+      'assetId': assetId,
+      'loc': loc,
+    },
+  );
+
+  _i2.Future<bool> deleteMyAssetLocalization(int localizationId) =>
+      caller.callServerEndpoint<bool>(
+        'organizationAdmin',
+        'deleteMyAssetLocalization',
+        {'localizationId': localizationId},
+      );
+
+  _i2.Future<List<_i9.TheoryChapter>> getMyTheoryChaptersLocalized(
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i9.TheoryChapter>>(
+    'organizationAdmin',
+    'getMyTheoryChaptersLocalized',
+    {'localeKey': localeKey},
+  );
+
+  _i2.Future<List<_i10.TrainingParameter>> getMyTrainingParametersLocalized(
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i10.TrainingParameter>>(
+    'organizationAdmin',
+    'getMyTrainingParametersLocalized',
+    {'localeKey': localeKey},
+  );
+
+  _i2.Future<List<_i11.AssessmentParameter>> getMyAssessmentParametersLocalized(
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i11.AssessmentParameter>>(
+    'organizationAdmin',
+    'getMyAssessmentParametersLocalized',
+    {'localeKey': localeKey},
+  );
+
+  _i2.Future<List<_i12.Asset>> getMyAssetsLocalized(String localeKey) =>
+      caller.callServerEndpoint<List<_i12.Asset>>(
+        'organizationAdmin',
+        'getMyAssetsLocalized',
+        {'localeKey': localeKey},
+      );
 }
 
 /// {@category Endpoint}
@@ -1112,10 +1871,10 @@ class EndpointPublicApi extends _i1.EndpointRef {
   @override
   String get name => 'publicApi';
 
-  _i2.Future<_i19.LoginResponse> login(
+  _i2.Future<_i26.LoginResponse> login(
     String email,
     String password,
-  ) => caller.callServerEndpoint<_i19.LoginResponse>(
+  ) => caller.callServerEndpoint<_i26.LoginResponse>(
     'publicApi',
     'login',
     {
@@ -1125,7 +1884,10 @@ class EndpointPublicApi extends _i1.EndpointRef {
   );
 
   /// Returns theory, training parameters, and assessment parameters for
-  /// [organizationId] in a single call.
+  /// [organizationId] in a single call. Top-level fields include the org's
+  /// region/locale catalog (`defaultLocaleKey`, `regions`, `supportedLocales`).
+  /// Content fields inside each chapter/param/asset are populated from the
+  /// org's default-locale `*Localization` rows.
   _i2.Future<Map<String, dynamic>> getContentBundle(
     int organizationId,
     String apiKey,
@@ -1138,6 +1900,10 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
+  /// Returns the theory chapters for [organizationId] populated with the
+  /// org's default-locale content. The envelope includes the region/locale
+  /// catalog so the caller can immediately offer a locale picker without a
+  /// second round trip.
   _i2.Future<Map<String, dynamic>> getTheorySection(
     int organizationId,
     String apiKey,
@@ -1150,10 +1916,14 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<Map<String, dynamic>>> getTrainingParameters(
+  /// Returns training parameters for [organizationId] populated with the
+  /// org's default-locale content. Wrapped in an envelope that includes the
+  /// region/locale catalog. Pre-existing callers that expected a bare list
+  /// must read `parameters` from the envelope.
+  _i2.Future<Map<String, dynamic>> getTrainingParameters(
     int organizationId,
     String apiKey,
-  ) => caller.callServerEndpoint<List<Map<String, dynamic>>>(
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'getTrainingParameters',
     {
@@ -1162,10 +1932,13 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<Map<String, dynamic>>> getAssessmentParameters(
+  /// Returns assessment parameters for [organizationId] populated with the
+  /// org's default-locale content. Wrapped in an envelope that includes the
+  /// region/locale catalog.
+  _i2.Future<Map<String, dynamic>> getAssessmentParameters(
     int organizationId,
     String apiKey,
-  ) => caller.callServerEndpoint<List<Map<String, dynamic>>>(
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'getAssessmentParameters',
     {
@@ -1174,6 +1947,11 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
+  /// Returns the public module configuration for [organizationId], augmented
+  /// with the per-user `moduleStatuses` map when [userId] resolves to an
+  /// `AppUser`. The response also exposes the org's `regions` list alongside
+  /// the existing `defaultLocaleKey` and `supportedLocales` already on
+  /// `ModuleConfigPublic`.
   _i2.Future<Map<String, dynamic>> getModuleConfig(
     int organizationId,
     String apiKey,
@@ -1188,6 +1966,12 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
+  /// **DEPRECATED.** Returns the legacy `{defaultLanguage, supported}` envelope
+  /// for external apps that have not migrated to the regional locale model.
+  /// New integrations should call [getLocales] and [getRegions] instead.
+  ///
+  /// The response now also carries `defaultLocaleKey`, `supportedLocales`,
+  /// and `regions` so a client can perform a one-shot migration if needed.
   _i2.Future<Map<String, dynamic>> getLanguages(
     int organizationId,
     String apiKey,
@@ -1200,10 +1984,13 @@ class EndpointPublicApi extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<Map<String, dynamic>>> getAssets(
+  /// Returns assets for [organizationId] populated with the org's
+  /// default-locale content. Wrapped in an envelope that includes the
+  /// region/locale catalog.
+  _i2.Future<Map<String, dynamic>> getAssets(
     int organizationId,
     String apiKey,
-  ) => caller.callServerEndpoint<List<Map<String, dynamic>>>(
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'getAssets',
     {
@@ -1217,7 +2004,7 @@ class EndpointPublicApi extends _i1.EndpointRef {
     String apiKey,
     String userId,
     String moduleId,
-    _i17.ModuleProgressStatus status,
+    _i19.ModuleProgressStatus status,
   ) => caller.callServerEndpoint<bool>(
     'publicApi',
     'updateModuleStatus',
@@ -1235,7 +2022,7 @@ class EndpointPublicApi extends _i1.EndpointRef {
     String apiKey,
     String userId,
     int overallPercentage,
-    List<_i20.TrainingCriteriaScore> criteriaValidation,
+    List<_i27.TrainingCriteriaScore> criteriaValidation,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'publicApi',
     'submitTrainingCertificate',
@@ -1245,6 +2032,94 @@ class EndpointPublicApi extends _i1.EndpointRef {
       'userId': userId,
       'overallPercentage': overallPercentage,
       'criteriaValidation': criteriaValidation,
+    },
+  );
+
+  /// Lists the enabled `LocaleConfig` entries for [organizationId]. Use this to
+  /// populate a locale picker on the external client before calling any of the
+  /// `*Localized` reads below. Wrapped in an envelope that also includes
+  /// `defaultLocaleKey` and `regions` so a single call powers a region+locale
+  /// picker.
+  _i2.Future<Map<String, dynamic>> getLocales(
+    int organizationId,
+    String apiKey,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'publicApi',
+    'getLocales',
+    {
+      'organizationId': organizationId,
+      'apiKey': apiKey,
+    },
+  );
+
+  /// Lists the enabled `Region` entries for [organizationId]. Returned in the
+  /// same envelope shape as [getLocales] so a client can build a region
+  /// selector and then filter `supportedLocales` by the chosen region code.
+  _i2.Future<Map<String, dynamic>> getRegions(
+    int organizationId,
+    String apiKey,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'publicApi',
+    'getRegions',
+    {
+      'organizationId': organizationId,
+      'apiKey': apiKey,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> getTheorySectionLocalized(
+    int organizationId,
+    String apiKey,
+    String localeKey,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'publicApi',
+    'getTheorySectionLocalized',
+    {
+      'organizationId': organizationId,
+      'apiKey': apiKey,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> getTrainingParametersLocalized(
+    int organizationId,
+    String apiKey,
+    String localeKey,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'publicApi',
+    'getTrainingParametersLocalized',
+    {
+      'organizationId': organizationId,
+      'apiKey': apiKey,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> getAssessmentParametersLocalized(
+    int organizationId,
+    String apiKey,
+    String localeKey,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'publicApi',
+    'getAssessmentParametersLocalized',
+    {
+      'organizationId': organizationId,
+      'apiKey': apiKey,
+      'localeKey': localeKey,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> getAssetsLocalized(
+    int organizationId,
+    String apiKey,
+    String localeKey,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'publicApi',
+    'getAssetsLocalized',
+    {
+      'organizationId': organizationId,
+      'apiKey': apiKey,
+      'localeKey': localeKey,
     },
   );
 }
@@ -1291,6 +2166,30 @@ class EndpointUser extends _i1.EndpointRef {
         {},
       );
 
+  _i2.Future<List<_i9.TheoryChapter>> getLocalizedTheoryChapters(
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i9.TheoryChapter>>(
+    'user',
+    'getLocalizedTheoryChapters',
+    {'localeKey': localeKey},
+  );
+
+  _i2.Future<List<_i10.TrainingParameter>> getLocalizedTrainingParameters(
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i10.TrainingParameter>>(
+    'user',
+    'getLocalizedTrainingParameters',
+    {'localeKey': localeKey},
+  );
+
+  _i2.Future<List<_i11.AssessmentParameter>> getLocalizedAssessmentParameters(
+    String localeKey,
+  ) => caller.callServerEndpoint<List<_i11.AssessmentParameter>>(
+    'user',
+    'getLocalizedAssessmentParameters',
+    {'localeKey': localeKey},
+  );
+
   /// Changes the authenticated user's password after verifying [currentPassword].
   /// Returns true on success, false if [currentPassword] is wrong or user not found.
   _i2.Future<bool> changePassword(
@@ -1305,19 +2204,37 @@ class EndpointUser extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i13.UserModuleProgress>> getMyModuleProgress() =>
-      caller.callServerEndpoint<List<_i13.UserModuleProgress>>(
+  /// Returns the enabled LocaleConfig list for the user's org so the client
+  /// can populate a locale picker.
+  _i2.Future<List<_i14.LocaleConfig>> getMyLocales() =>
+      caller.callServerEndpoint<List<_i14.LocaleConfig>>(
+        'user',
+        'getMyLocales',
+        {},
+      );
+
+  /// Persists [localeKey] on the caller's AppUser row. Validates the key is
+  /// well-formed and configured on the user's org.
+  _i2.Future<_i4.AppUser?> setPreferredLocale(String localeKey) =>
+      caller.callServerEndpoint<_i4.AppUser?>(
+        'user',
+        'setPreferredLocale',
+        {'localeKey': localeKey},
+      );
+
+  _i2.Future<List<_i15.UserModuleProgress>> getMyModuleProgress() =>
+      caller.callServerEndpoint<List<_i15.UserModuleProgress>>(
         'user',
         'getMyModuleProgress',
         {},
       );
 
   /// Records a completed Smart Training attempt for the authenticated user.
-  _i2.Future<_i16.TrainingSessionResult?> submitTrainingResult(
+  _i2.Future<_i18.TrainingSessionResult?> submitTrainingResult(
     String externalUserId,
     int overallPercentage,
-    List<_i20.TrainingCriteriaScore> criteriaScores,
-  ) => caller.callServerEndpoint<_i16.TrainingSessionResult?>(
+    List<_i27.TrainingCriteriaScore> criteriaScores,
+  ) => caller.callServerEndpoint<_i18.TrainingSessionResult?>(
     'user',
     'submitTrainingResult',
     {
@@ -1328,8 +2245,8 @@ class EndpointUser extends _i1.EndpointRef {
   );
 
   /// Returns all Smart Training attempts for the authenticated user, newest first.
-  _i2.Future<List<_i16.TrainingSessionResult>> getMyTrainingHistory() =>
-      caller.callServerEndpoint<List<_i16.TrainingSessionResult>>(
+  _i2.Future<List<_i18.TrainingSessionResult>> getMyTrainingHistory() =>
+      caller.callServerEndpoint<List<_i18.TrainingSessionResult>>(
         'user',
         'getMyTrainingHistory',
         {},
@@ -1337,10 +2254,10 @@ class EndpointUser extends _i1.EndpointRef {
 
   /// Allows a user to update their own module status. Automatically sets
   /// [startedAt] on first inProgress transition, [completedAt] on completion.
-  _i2.Future<_i13.UserModuleProgress?> updateMyModuleStatus(
+  _i2.Future<_i15.UserModuleProgress?> updateMyModuleStatus(
     String moduleId,
-    _i17.ModuleProgressStatus status,
-  ) => caller.callServerEndpoint<_i13.UserModuleProgress?>(
+    _i19.ModuleProgressStatus status,
+  ) => caller.callServerEndpoint<_i15.UserModuleProgress?>(
     'user',
     'updateMyModuleStatus',
     {
@@ -1349,11 +2266,22 @@ class EndpointUser extends _i1.EndpointRef {
     },
   );
 
+  /// Locale-aware variant of [getTheoryChaptersWithProgress]. Each chapter's
+  /// content fields (title, thumbnail, video, metadata) are resolved through
+  /// the LocaleResolver fallback chain for [localeKey].
+  _i2.Future<List<_i28.TheoryChapterWithProgress>>
+  getLocalizedTheoryChaptersWithProgress(String localeKey) =>
+      caller.callServerEndpoint<List<_i28.TheoryChapterWithProgress>>(
+        'user',
+        'getLocalizedTheoryChaptersWithProgress',
+        {'localeKey': localeKey},
+      );
+
   /// Fetches all theory chapters for the authenticated user's organization,
   /// including the user's specific progress/score for each.
-  _i2.Future<List<_i21.TheoryChapterWithProgress>>
+  _i2.Future<List<_i28.TheoryChapterWithProgress>>
   getTheoryChaptersWithProgress() =>
-      caller.callServerEndpoint<List<_i21.TheoryChapterWithProgress>>(
+      caller.callServerEndpoint<List<_i28.TheoryChapterWithProgress>>(
         'user',
         'getTheoryChaptersWithProgress',
         {},
@@ -1361,10 +2289,10 @@ class EndpointUser extends _i1.EndpointRef {
 
   /// Validates a quiz submission and saves the user's result.
   /// Throws if authorization fails or chapter is not found.
-  _i2.Future<_i22.UserTheoryProgress?> submitTheoryQuiz(
+  _i2.Future<_i29.UserTheoryProgress?> submitTheoryQuiz(
     int chapterId,
     int score,
-  ) => caller.callServerEndpoint<_i22.UserTheoryProgress?>(
+  ) => caller.callServerEndpoint<_i29.UserTheoryProgress?>(
     'user',
     'submitTheoryQuiz',
     {
@@ -1376,10 +2304,10 @@ class EndpointUser extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    auth = _i23.Caller(client);
+    auth = _i30.Caller(client);
   }
 
-  late final _i23.Caller auth;
+  late final _i30.Caller auth;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -1402,7 +2330,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i24.Protocol(),
+         _i31.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

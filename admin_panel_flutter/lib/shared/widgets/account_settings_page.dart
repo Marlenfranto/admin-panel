@@ -1,7 +1,10 @@
+import 'package:admin_panel_client/admin_panel_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/localization/locale_providers.dart';
 import '../../core/theme/theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../src/providers.dart';
 import 'app_side_sheet.dart';
 import 'widgets.dart';
@@ -13,6 +16,7 @@ class AccountSettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t        = AppLocalizations.of(context);
     final auth     = ref.watch(authProvider);
     final userInfo = auth.userInfo;
     final appUser  = auth.appUser;
@@ -24,9 +28,9 @@ class AccountSettingsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ─────────────────────────────────────────────────────
-          Text('Settings', style: AppTextStyles.headingLg),
+          Text(t.settingsPageTitle, style: AppTextStyles.headingLg),
           const SizedBox(height: 4),
-          Text('Account details and security settings.',
+          Text(t.settingsPageSubtitle,
               style: AppTextStyles.bodySm),
           const SizedBox(height: AppSpacing.lg),
 
@@ -38,8 +42,8 @@ class AccountSettingsPage extends ConsumerWidget {
                 _CardHeader(
                   icon:     Icons.person_rounded,
                   color:    AppColors.primary,
-                  title:    'Account',
-                  subtitle: 'Your profile information',
+                  title:    t.settingsAccountTitle,
+                  subtitle: t.settingsAccountSubtitle,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Row(
@@ -70,18 +74,18 @@ class AccountSettingsPage extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            userInfo?.userName ?? '—',
+                            userInfo?.userName ?? t.emDash,
                             style: AppTextStyles.headingMd,
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            userInfo?.email ?? '—',
+                            userInfo?.email ?? t.emDash,
                             style: AppTextStyles.bodySm,
                           ),
                         ],
                       ),
                     ),
-                    _RolePill(role: appUser?.role.name ?? '—'),
+                    _RolePill(role: _localizedRoleName(t, appUser?.role)),
                   ],
                 ),
               ],
@@ -97,8 +101,8 @@ class AccountSettingsPage extends ConsumerWidget {
                 _CardHeader(
                   icon:     Icons.lock_rounded,
                   color:    AppColors.info,
-                  title:    'Security',
-                  subtitle: 'Manage your password',
+                  title:    t.settingsSecurityTitle,
+                  subtitle: t.settingsSecuritySubtitle,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Row(
@@ -107,11 +111,11 @@ class AccountSettingsPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Password',
+                          Text(t.settingsSecurityPasswordLabel,
                               style: AppTextStyles.labelMd),
                           const SizedBox(height: 2),
                           Text(
-                            'Change your account password.',
+                            t.settingsSecurityPasswordDesc,
                             style: AppTextStyles.bodyXs,
                           ),
                         ],
@@ -120,7 +124,7 @@ class AccountSettingsPage extends ConsumerWidget {
                     OutlinedButton.icon(
                       icon:     const Icon(Icons.lock_outline_rounded,
                           size: 15),
-                      label:    const Text('Change Password'),
+                      label:    Text(t.settingsSecurityChangeBtn),
                       onPressed: () =>
                           _showChangePasswordSheet(context, ref),
                     ),
@@ -131,9 +135,19 @@ class AccountSettingsPage extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
 
+          // ── Locale card ────────────────────────────────────────────────
+          // Language & Region is a per-end-user preference — only the User
+          // role sees content rendered through the locale chain. Admin /
+          // OrgAdmin / Manager roles author content rather than consume it
+          // here, so their settings page hides this card.
+          if (appUser?.role == Role.User) ...[
+            _LocaleCard(),
+            const SizedBox(height: AppSpacing.md),
+          ],
+
           // ── Danger zone ────────────────────────────────────────────────
           Container(
-            padding: const EdgeInsets.all(AppSpacing.cardPadding),
+            padding: const EdgeInsetsDirectional.all(AppSpacing.cardPadding),
             decoration: BoxDecoration(
               color:        AppColors.errorSurface,
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -149,11 +163,11 @@ class AccountSettingsPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Sign Out',
+                      Text(t.settingsSignOutTitle,
                           style: AppTextStyles.labelLg
                               .copyWith(color: AppColors.error)),
                       const SizedBox(height: 2),
-                      Text('Sign out of your account on this device.',
+                      Text(t.settingsSignOutDesc,
                           style: AppTextStyles.bodyXs),
                     ],
                   ),
@@ -165,7 +179,7 @@ class AccountSettingsPage extends ConsumerWidget {
                     foregroundColor: AppColors.error,
                     side: const BorderSide(color: AppColors.error),
                   ),
-                  child: const Text('Sign Out'),
+                  child: Text(t.settingsSignOutBtn),
                 ),
               ],
             ),
@@ -176,14 +190,15 @@ class AccountSettingsPage extends ConsumerWidget {
   }
 
   void _showChangePasswordSheet(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
     final currentCtrl = TextEditingController();
     final newCtrl     = TextEditingController();
     final confirmCtrl = TextEditingController();
 
     AppSideSheet.show(
       context:   context,
-      title:     'Change Password',
-      saveLabel: 'Update Password',
+      title:     t.settingsSecurityChangeBtn,
+      saveLabel: t.settingsSecurityUpdateBtn,
       body: _ChangePasswordBody(
         currentCtrl: currentCtrl,
         newCtrl:     newCtrl,
@@ -195,13 +210,13 @@ class AccountSettingsPage extends ConsumerWidget {
         final confirm = confirmCtrl.text;
 
         if (current.isEmpty || next.isEmpty || confirm.isEmpty) {
-          throw Exception('All fields are required.');
+          throw Exception(t.settingsSecurityErrAllRequired);
         }
         if (next.length < 6) {
-          throw Exception('New password must be at least 6 characters.');
+          throw Exception(t.settingsSecurityErrMinLength);
         }
         if (next != confirm) {
-          throw Exception('Passwords do not match.');
+          throw Exception(t.settingsSecurityErrMismatch);
         }
 
         final success = await ref
@@ -210,7 +225,7 @@ class AccountSettingsPage extends ConsumerWidget {
             .changePassword(current, next);
 
         if (!success) {
-          throw Exception('Current password is incorrect.');
+          throw Exception(t.settingsSecurityErrCurrentWrong);
         }
 
         // Sign out so the user re-authenticates with their new password.
@@ -218,6 +233,14 @@ class AccountSettingsPage extends ConsumerWidget {
       },
     );
   }
+
+  String _localizedRoleName(AppLocalizations t, Role? role) => switch (role) {
+        Role.SuperAdmin => t.roleSuperAdmin,
+        Role.OrganizationAdmin => t.roleOrgAdmin,
+        Role.Manager => t.roleManager,
+        Role.User => t.roleUser,
+        null => t.emDash,
+      };
 }
 
 // ── Change password form body ──────────────────────────────────────────────────
@@ -244,25 +267,26 @@ class _ChangePasswordBodyState extends State<_ChangePasswordBody> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SheetSection(title: 'Current Password'),
+        SheetSection(title: t.settingsSecurityCurrentPassword),
         const SizedBox(height: AppSpacing.sm),
         _PasswordField(
           controller: widget.currentCtrl,
-          label:      'Current Password',
+          label:      t.settingsSecurityCurrentPassword,
           hint:       '••••••••',
           obscure:    _obscureCurrent,
           onToggle:   () =>
               setState(() => _obscureCurrent = !_obscureCurrent),
         ),
         const SizedBox(height: AppSpacing.lg),
-        const SheetSection(title: 'New Password'),
+        SheetSection(title: t.settingsSecurityNewPassword),
         const SizedBox(height: AppSpacing.sm),
         _PasswordField(
           controller: widget.newCtrl,
-          label:      'New Password',
+          label:      t.settingsSecurityNewPassword,
           hint:       '••••••••',
           obscure:    _obscureNew,
           onToggle:   () => setState(() => _obscureNew = !_obscureNew),
@@ -270,7 +294,7 @@ class _ChangePasswordBodyState extends State<_ChangePasswordBody> {
         const SizedBox(height: AppSpacing.md),
         _PasswordField(
           controller: widget.confirmCtrl,
-          label:      'Confirm New Password',
+          label:      t.settingsSecurityConfirmPassword,
           hint:       '••••••••',
           obscure:    _obscureConfirm,
           onToggle:   () =>
@@ -279,7 +303,7 @@ class _ChangePasswordBodyState extends State<_ChangePasswordBody> {
         const SizedBox(height: AppSpacing.lg),
         // Password requirements hint
         Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsetsDirectional.all(AppSpacing.md),
           decoration: BoxDecoration(
             color:        AppColors.info.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -294,7 +318,7 @@ class _ChangePasswordBodyState extends State<_ChangePasswordBody> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Password must be at least 6 characters.',
+                  t.settingsSecurityPasswordHint,
                   style: AppTextStyles.bodyXs
                       .copyWith(color: AppColors.info),
                 ),
@@ -354,7 +378,7 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      padding: const EdgeInsetsDirectional.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
         color:        AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -413,7 +437,7 @@ class _RolePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
         gradient:     AppColors.brandGradient,
         borderRadius: BorderRadius.circular(AppSpacing.radiusChip),
@@ -425,6 +449,103 @@ class _RolePill extends StatelessWidget {
           fontWeight: FontWeight.w700,
           color:      Colors.white,
         ),
+      ),
+    );
+  }
+}
+
+class _LocaleCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    final localesAsync = ref.watch(supportedLocalesProvider);
+    final current = ref.watch(currentLocaleProvider);
+
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CardHeader(
+            icon:     Icons.language_rounded,
+            color:    AppColors.success,
+            title:    t.settingsLocaleTitle,
+            subtitle: t.settingsLocaleSubtitle,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          localesAsync.when(
+            loading: () => const AppSkeletonBox(height: 48),
+            error: (e, _) => Text(t.settingsLocaleLoadFailed(e.toString()),
+                style: AppTextStyles.bodySm),
+            data: (locales) {
+              if (locales.isEmpty) {
+                return Text(
+                  t.settingsLocaleEmpty,
+                  style: AppTextStyles.bodySm,
+                );
+              }
+              final values = locales.map((l) => l.localeKey).toSet();
+              final selected = values.contains(current) ? current : null;
+              return Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(t.settingsLocaleLabel,
+                            style: AppTextStyles.labelMd),
+                        const SizedBox(height: 2),
+                        Text(
+                          t.settingsLocaleDesc,
+                          style: AppTextStyles.bodyXs,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 260,
+                    child: DropdownButtonFormField<String>(
+                      value: selected,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsetsDirectional.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
+                      ),
+                      items: locales
+                          .map((l) => DropdownMenuItem(
+                                value: l.localeKey,
+                                child: Text(
+                                  '${l.localeKey} — ${l.displayName}',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (v) async {
+                        if (v == null) return;
+                        try {
+                          await ref
+                              .read(currentLocaleProvider.notifier)
+                              .set(v);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(t.commonError(e.toString())),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }

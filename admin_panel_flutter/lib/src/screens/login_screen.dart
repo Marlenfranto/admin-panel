@@ -94,7 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               const SizedBox(width: 12),
                               const Text(
-                                'FireSafeX Admin',
+                                'FireSafeX',
                                 style: TextStyle(
                                   fontSize:   22,
                                   fontWeight: FontWeight.w700,
@@ -182,7 +182,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               fit:    BoxFit.contain,
                             ),
                             const SizedBox(width: 8),
-                            Text('FireSafeX Admin', style: AppTextStyles.headingMd),
+                            Text('FireSafeX', style: AppTextStyles.headingMd),
                           ],
                         ),
                         const SizedBox(height: 32),

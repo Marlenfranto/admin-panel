@@ -1,3 +1,7 @@
+### DEPRECATED (future): superseded by LocaleConfig. Kept while the legacy
+### "Supported Languages" config editor in admin_modules_screen still uses it.
+### Non-persistent (lives inside ModuleConfig.supportedLanguages which is also
+### !persist) so storage is unaffected.
 class: SupportedLanguage
 fields:
   code: String

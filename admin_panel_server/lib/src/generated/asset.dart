@@ -20,22 +20,23 @@ abstract class Asset implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     this.id,
     this.organizationId,
     this.organization,
-    required this.name,
     required this.version,
-    required this.url,
-    this.description,
     required this.module,
-  });
+    String? name,
+    this.description,
+    String? url,
+  }) : name = name ?? '',
+       url = url ?? '';
 
   factory Asset({
     int? id,
     int? organizationId,
     _i2.Organization? organization,
-    required String name,
     required String version,
-    required String url,
-    String? description,
     required String module,
+    String? name,
+    String? description,
+    String? url,
   }) = _AssetImpl;
 
   factory Asset.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -47,11 +48,11 @@ abstract class Asset implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
           : _i3.Protocol().deserialize<_i2.Organization>(
               jsonSerialization['organization'],
             ),
-      name: jsonSerialization['name'] as String,
       version: jsonSerialization['version'] as String,
-      url: jsonSerialization['url'] as String,
-      description: jsonSerialization['description'] as String?,
       module: jsonSerialization['module'] as String,
+      name: jsonSerialization['name'] as String?,
+      description: jsonSerialization['description'] as String?,
+      url: jsonSerialization['url'] as String?,
     );
   }
 
@@ -66,15 +67,15 @@ abstract class Asset implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   _i2.Organization? organization;
 
-  String name;
-
   String version;
 
-  String url;
+  String module;
+
+  String name;
 
   String? description;
 
-  String module;
+  String url;
 
   @override
   _i1.Table<int?> get table => t;
@@ -86,11 +87,11 @@ abstract class Asset implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     int? id,
     int? organizationId,
     _i2.Organization? organization,
-    String? name,
     String? version,
-    String? url,
-    String? description,
     String? module,
+    String? name,
+    String? description,
+    String? url,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -99,11 +100,11 @@ abstract class Asset implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (id != null) 'id': id,
       if (organizationId != null) 'organizationId': organizationId,
       if (organization != null) 'organization': organization?.toJson(),
-      'name': name,
       'version': version,
-      'url': url,
-      if (description != null) 'description': description,
       'module': module,
+      'name': name,
+      if (description != null) 'description': description,
+      'url': url,
     };
   }
 
@@ -115,11 +116,11 @@ abstract class Asset implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (organizationId != null) 'organizationId': organizationId,
       if (organization != null)
         'organization': organization?.toJsonForProtocol(),
-      'name': name,
       'version': version,
-      'url': url,
-      if (description != null) 'description': description,
       'module': module,
+      'name': name,
+      if (description != null) 'description': description,
+      'url': url,
     };
   }
 
@@ -160,20 +161,20 @@ class _AssetImpl extends Asset {
     int? id,
     int? organizationId,
     _i2.Organization? organization,
-    required String name,
     required String version,
-    required String url,
-    String? description,
     required String module,
+    String? name,
+    String? description,
+    String? url,
   }) : super._(
          id: id,
          organizationId: organizationId,
          organization: organization,
-         name: name,
          version: version,
-         url: url,
-         description: description,
          module: module,
+         name: name,
+         description: description,
+         url: url,
        );
 
   /// Returns a shallow copy of this [Asset]
@@ -184,11 +185,11 @@ class _AssetImpl extends Asset {
     Object? id = _Undefined,
     Object? organizationId = _Undefined,
     Object? organization = _Undefined,
-    String? name,
     String? version,
-    String? url,
-    Object? description = _Undefined,
     String? module,
+    String? name,
+    Object? description = _Undefined,
+    String? url,
   }) {
     return Asset(
       id: id is int? ? id : this.id,
@@ -198,11 +199,11 @@ class _AssetImpl extends Asset {
       organization: organization is _i2.Organization?
           ? organization
           : this.organization?.copyWith(),
-      name: name ?? this.name,
       version: version ?? this.version,
-      url: url ?? this.url,
-      description: description is String? ? description : this.description,
       module: module ?? this.module,
+      name: name ?? this.name,
+      description: description is String? ? description : this.description,
+      url: url ?? this.url,
     );
   }
 }
@@ -215,23 +216,8 @@ class AssetUpdateTable extends _i1.UpdateTable<AssetTable> {
     value,
   );
 
-  _i1.ColumnValue<String, String> name(String value) => _i1.ColumnValue(
-    table.name,
-    value,
-  );
-
   _i1.ColumnValue<String, String> version(String value) => _i1.ColumnValue(
     table.version,
-    value,
-  );
-
-  _i1.ColumnValue<String, String> url(String value) => _i1.ColumnValue(
-    table.url,
-    value,
-  );
-
-  _i1.ColumnValue<String, String> description(String? value) => _i1.ColumnValue(
-    table.description,
     value,
   );
 
@@ -248,20 +234,8 @@ class AssetTable extends _i1.Table<int?> {
       'organizationId',
       this,
     );
-    name = _i1.ColumnString(
-      'name',
-      this,
-    );
     version = _i1.ColumnString(
       'version',
-      this,
-    );
-    url = _i1.ColumnString(
-      'url',
-      this,
-    );
-    description = _i1.ColumnString(
-      'description',
       this,
     );
     module = _i1.ColumnString(
@@ -276,13 +250,7 @@ class AssetTable extends _i1.Table<int?> {
 
   _i2.OrganizationTable? _organization;
 
-  late final _i1.ColumnString name;
-
   late final _i1.ColumnString version;
-
-  late final _i1.ColumnString url;
-
-  late final _i1.ColumnString description;
 
   late final _i1.ColumnString module;
 
@@ -303,10 +271,7 @@ class AssetTable extends _i1.Table<int?> {
   List<_i1.Column> get columns => [
     id,
     organizationId,
-    name,
     version,
-    url,
-    description,
     module,
   ];
 

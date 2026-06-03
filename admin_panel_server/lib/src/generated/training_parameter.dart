@@ -24,22 +24,23 @@ abstract class TrainingParameter
     this.organizationId,
     this.organization,
     required this.paramId,
-    required this.name,
-    required this.description,
     required this.maxScore,
     required this.scoringRules,
+    String? name,
+    String? description,
     this.translations,
-  });
+  }) : name = name ?? '',
+       description = description ?? '';
 
   factory TrainingParameter({
     int? id,
     int? organizationId,
     _i2.Organization? organization,
     required String paramId,
-    required String name,
-    required String description,
     required int maxScore,
     required List<_i3.ScoringRule> scoringRules,
+    String? name,
+    String? description,
     List<_i4.LocalizedParameterContent>? translations,
   }) = _TrainingParameterImpl;
 
@@ -53,12 +54,12 @@ abstract class TrainingParameter
               jsonSerialization['organization'],
             ),
       paramId: jsonSerialization['paramId'] as String,
-      name: jsonSerialization['name'] as String,
-      description: jsonSerialization['description'] as String,
       maxScore: jsonSerialization['maxScore'] as int,
       scoringRules: _i5.Protocol().deserialize<List<_i3.ScoringRule>>(
         jsonSerialization['scoringRules'],
       ),
+      name: jsonSerialization['name'] as String?,
+      description: jsonSerialization['description'] as String?,
       translations: jsonSerialization['translations'] == null
           ? null
           : _i5.Protocol().deserialize<List<_i4.LocalizedParameterContent>>(
@@ -80,14 +81,19 @@ abstract class TrainingParameter
 
   String paramId;
 
-  String name;
-
-  String description;
-
   int maxScore;
 
   List<_i3.ScoringRule> scoringRules;
 
+  /// Non-persistent — populated by hydrateTrainingParameters from the
+  /// default-locale TrainingParameterLocalization row. Defaulted to '' so
+  /// legacy callers see a non-null value.
+  String name;
+
+  String description;
+
+  /// DEPRECATED (future): kept non-persistent until legacy editor's
+  /// translation editor is removed.
   List<_i4.LocalizedParameterContent>? translations;
 
   @override
@@ -101,10 +107,10 @@ abstract class TrainingParameter
     int? organizationId,
     _i2.Organization? organization,
     String? paramId,
-    String? name,
-    String? description,
     int? maxScore,
     List<_i3.ScoringRule>? scoringRules,
+    String? name,
+    String? description,
     List<_i4.LocalizedParameterContent>? translations,
   });
   @override
@@ -115,10 +121,10 @@ abstract class TrainingParameter
       if (organizationId != null) 'organizationId': organizationId,
       if (organization != null) 'organization': organization?.toJson(),
       'paramId': paramId,
-      'name': name,
-      'description': description,
       'maxScore': maxScore,
       'scoringRules': scoringRules.toJson(valueToJson: (v) => v.toJson()),
+      'name': name,
+      'description': description,
       if (translations != null)
         'translations': translations?.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -133,12 +139,12 @@ abstract class TrainingParameter
       if (organization != null)
         'organization': organization?.toJsonForProtocol(),
       'paramId': paramId,
-      'name': name,
-      'description': description,
       'maxScore': maxScore,
       'scoringRules': scoringRules.toJson(
         valueToJson: (v) => v.toJsonForProtocol(),
       ),
+      'name': name,
+      'description': description,
       if (translations != null)
         'translations': translations?.toJson(
           valueToJson: (v) => v.toJsonForProtocol(),
@@ -186,20 +192,20 @@ class _TrainingParameterImpl extends TrainingParameter {
     int? organizationId,
     _i2.Organization? organization,
     required String paramId,
-    required String name,
-    required String description,
     required int maxScore,
     required List<_i3.ScoringRule> scoringRules,
+    String? name,
+    String? description,
     List<_i4.LocalizedParameterContent>? translations,
   }) : super._(
          id: id,
          organizationId: organizationId,
          organization: organization,
          paramId: paramId,
-         name: name,
-         description: description,
          maxScore: maxScore,
          scoringRules: scoringRules,
+         name: name,
+         description: description,
          translations: translations,
        );
 
@@ -212,10 +218,10 @@ class _TrainingParameterImpl extends TrainingParameter {
     Object? organizationId = _Undefined,
     Object? organization = _Undefined,
     String? paramId,
-    String? name,
-    String? description,
     int? maxScore,
     List<_i3.ScoringRule>? scoringRules,
+    String? name,
+    String? description,
     Object? translations = _Undefined,
   }) {
     return TrainingParameter(
@@ -227,11 +233,11 @@ class _TrainingParameterImpl extends TrainingParameter {
           ? organization
           : this.organization?.copyWith(),
       paramId: paramId ?? this.paramId,
-      name: name ?? this.name,
-      description: description ?? this.description,
       maxScore: maxScore ?? this.maxScore,
       scoringRules:
           scoringRules ?? this.scoringRules.map((e0) => e0.copyWith()).toList(),
+      name: name ?? this.name,
+      description: description ?? this.description,
       translations: translations is List<_i4.LocalizedParameterContent>?
           ? translations
           : this.translations?.map((e0) => e0.copyWith()).toList(),
@@ -253,16 +259,6 @@ class TrainingParameterUpdateTable
     value,
   );
 
-  _i1.ColumnValue<String, String> name(String value) => _i1.ColumnValue(
-    table.name,
-    value,
-  );
-
-  _i1.ColumnValue<String, String> description(String value) => _i1.ColumnValue(
-    table.description,
-    value,
-  );
-
   _i1.ColumnValue<int, int> maxScore(int value) => _i1.ColumnValue(
     table.maxScore,
     value,
@@ -272,15 +268,6 @@ class TrainingParameterUpdateTable
     List<_i3.ScoringRule> value,
   ) => _i1.ColumnValue(
     table.scoringRules,
-    value,
-  );
-
-  _i1.ColumnValue<
-    List<_i4.LocalizedParameterContent>,
-    List<_i4.LocalizedParameterContent>
-  >
-  translations(List<_i4.LocalizedParameterContent>? value) => _i1.ColumnValue(
-    table.translations,
     value,
   );
 }
@@ -297,24 +284,12 @@ class TrainingParameterTable extends _i1.Table<int?> {
       'paramId',
       this,
     );
-    name = _i1.ColumnString(
-      'name',
-      this,
-    );
-    description = _i1.ColumnString(
-      'description',
-      this,
-    );
     maxScore = _i1.ColumnInt(
       'maxScore',
       this,
     );
     scoringRules = _i1.ColumnSerializable<List<_i3.ScoringRule>>(
       'scoringRules',
-      this,
-    );
-    translations = _i1.ColumnSerializable<List<_i4.LocalizedParameterContent>>(
-      'translations',
       this,
     );
   }
@@ -327,16 +302,9 @@ class TrainingParameterTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString paramId;
 
-  late final _i1.ColumnString name;
-
-  late final _i1.ColumnString description;
-
   late final _i1.ColumnInt maxScore;
 
   late final _i1.ColumnSerializable<List<_i3.ScoringRule>> scoringRules;
-
-  late final _i1.ColumnSerializable<List<_i4.LocalizedParameterContent>>
-  translations;
 
   _i2.OrganizationTable get organization {
     if (_organization != null) return _organization!;
@@ -356,11 +324,8 @@ class TrainingParameterTable extends _i1.Table<int?> {
     id,
     organizationId,
     paramId,
-    name,
-    description,
     maxScore,
     scoringRules,
-    translations,
   ];
 
   @override

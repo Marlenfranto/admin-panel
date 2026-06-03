@@ -13,6 +13,9 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'package:admin_panel_client/src/protocol/protocol.dart' as _i2;
 
+/// DEPRECATED (future): superseded by TrainingParameterLocalization /
+/// AssessmentParameterLocalization. Lives inside the !persist `translations`
+/// field on TrainingParameter / AssessmentParameter, so storage is unaffected.
 abstract class LocalizedParameterContent implements _i1.SerializableModel {
   LocalizedParameterContent._({
     required this.languageCode,

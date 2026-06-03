@@ -4,7 +4,8 @@ fields:
   lastUpdated: String
   contentVersion: int
   subscriptionModules: SubscriptionModules
-  languages: LanguagesConfig
+  defaultLocaleKey: String
+  supportedLocales: List<LocaleConfig>?
   passingPercentage: int
   aiChatPrompt: String?
   aiChatPromptTranslations: List<LocalizedAiPrompt>?

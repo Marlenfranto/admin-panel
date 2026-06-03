@@ -3,8 +3,13 @@ table: training_parameter
 fields:
   organization: Organization?, relation(optional)
   paramId: String
-  name: String
-  description: String
   maxScore: int
   scoringRules: List<ScoringRule>
-  translations: List<LocalizedParameterContent>?
+  ### Non-persistent — populated by hydrateTrainingParameters from the
+  ### default-locale TrainingParameterLocalization row. Defaulted to '' so
+  ### legacy callers see a non-null value.
+  name: String, default='', !persist
+  description: String, default='', !persist
+  ### DEPRECATED (future): kept non-persistent until legacy editor's
+  ### translation editor is removed.
+  translations: List<LocalizedParameterContent>?, !persist

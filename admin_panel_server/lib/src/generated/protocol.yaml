@@ -24,12 +24,36 @@ admin:
   - getAssets:
   - upsertAsset:
   - deleteAsset:
+  - listRegions:
+  - upsertRegion:
+  - deleteRegion:
+  - listLocaleConfigs:
+  - upsertLocaleConfig:
+  - deleteLocaleConfig:
+  - setDefaultLocale:
   - getUserModuleProgress:
   - setUserModuleProgress:
   - getTrainingHistory:
   - getTrainingUserSummaries:
   - getUserTrainingHistory:
   - updateUserModuleStatus:
+  - listTheoryChapterLocalizations:
+  - upsertTheoryChapterLocalization:
+  - setTheoryChapterQuizTranslations:
+  - deleteTheoryChapterLocalization:
+  - listTrainingParameterLocalizations:
+  - upsertTrainingParameterLocalization:
+  - deleteTrainingParameterLocalization:
+  - listAssessmentParameterLocalizations:
+  - upsertAssessmentParameterLocalization:
+  - deleteAssessmentParameterLocalization:
+  - listAssetLocalizations:
+  - upsertAssetLocalization:
+  - deleteAssetLocalization:
+  - getTheoryChaptersLocalized:
+  - getTrainingParametersLocalized:
+  - getAssessmentParametersLocalized:
+  - getAssetsLocalized:
 manager:
   - getManagedOrganization:
   - getManagedOrganizations:
@@ -61,6 +85,30 @@ manager:
   - markNotificationRead:
   - markAllNotificationsRead:
   - deleteNotification:
+  - listManagedRegions:
+  - upsertManagedRegion:
+  - deleteManagedRegion:
+  - listManagedLocaleConfigs:
+  - upsertManagedLocaleConfig:
+  - deleteManagedLocaleConfig:
+  - setManagedDefaultLocale:
+  - listManagedTheoryChapterLocalizations:
+  - upsertManagedTheoryChapterLocalization:
+  - setManagedTheoryChapterQuizTranslations:
+  - deleteManagedTheoryChapterLocalization:
+  - listManagedTrainingParameterLocalizations:
+  - upsertManagedTrainingParameterLocalization:
+  - deleteManagedTrainingParameterLocalization:
+  - listManagedAssessmentParameterLocalizations:
+  - upsertManagedAssessmentParameterLocalization:
+  - deleteManagedAssessmentParameterLocalization:
+  - listManagedAssetLocalizations:
+  - upsertManagedAssetLocalization:
+  - deleteManagedAssetLocalization:
+  - getManagedTheoryChaptersLocalized:
+  - getManagedTrainingParametersLocalized:
+  - getManagedAssessmentParametersLocalized:
+  - getManagedAssetsLocalized:
 organizationAdmin:
   - getMyOrganization:
   - createTeam:
@@ -93,6 +141,30 @@ organizationAdmin:
   - getOrgUserTrainingHistory:
   - getTrainingUserSummaries:
   - getUserTrainingHistory:
+  - listMyRegions:
+  - upsertMyRegion:
+  - deleteMyRegion:
+  - listMyLocaleConfigs:
+  - upsertMyLocaleConfig:
+  - deleteMyLocaleConfig:
+  - setMyDefaultLocale:
+  - listMyTheoryChapterLocalizations:
+  - upsertMyTheoryChapterLocalization:
+  - setMyTheoryChapterQuizTranslations:
+  - deleteMyTheoryChapterLocalization:
+  - listMyTrainingParameterLocalizations:
+  - upsertMyTrainingParameterLocalization:
+  - deleteMyTrainingParameterLocalization:
+  - listMyAssessmentParameterLocalizations:
+  - upsertMyAssessmentParameterLocalization:
+  - deleteMyAssessmentParameterLocalization:
+  - listMyAssetLocalizations:
+  - upsertMyAssetLocalization:
+  - deleteMyAssetLocalization:
+  - getMyTheoryChaptersLocalized:
+  - getMyTrainingParametersLocalized:
+  - getMyAssessmentParametersLocalized:
+  - getMyAssetsLocalized:
 publicApi:
   - login:
   - getContentBundle:
@@ -104,16 +176,28 @@ publicApi:
   - getAssets:
   - updateModuleStatus:
   - submitTrainingCertificate:
+  - getLocales:
+  - getRegions:
+  - getTheorySectionLocalized:
+  - getTrainingParametersLocalized:
+  - getAssessmentParametersLocalized:
+  - getAssetsLocalized:
 user:
   - getMyPermissions:
   - getMyOrgModuleConfig:
   - getTheoryChapters:
   - getTrainingParameters:
   - getAssessmentParameters:
+  - getLocalizedTheoryChapters:
+  - getLocalizedTrainingParameters:
+  - getLocalizedAssessmentParameters:
   - changePassword:
+  - getMyLocales:
+  - setPreferredLocale:
   - getMyModuleProgress:
   - submitTrainingResult:
   - getMyTrainingHistory:
   - updateMyModuleStatus:
+  - getLocalizedTheoryChaptersWithProgress:
   - getTheoryChaptersWithProgress:
   - submitTheoryQuiz:

@@ -1,11 +1,11 @@
 {
-    "name": "FireSafeX Admin",
+    "name": "FireSafeX",
     "short_name": "FireSafeX",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FF6B35",
     "theme_color": "#FF6B35",
-    "description": "FireSafeX Admin Panel — manage organizations, training and AI-powered expertise.",
+    "description": "FireSafeX — manage organizations, training and AI-powered expertise.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,3 +1,6 @@
+### DEPRECATED (future): superseded by TrainingParameterLocalization /
+### AssessmentParameterLocalization. Lives inside the !persist `translations`
+### field on TrainingParameter / AssessmentParameter, so storage is unaffected.
 class: LocalizedParameterContent
 fields:
   languageCode: String

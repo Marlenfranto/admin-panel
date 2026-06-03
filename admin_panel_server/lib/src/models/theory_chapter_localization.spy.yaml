@@ -1,0 +1,16 @@
+class: TheoryChapterLocalization
+table: theory_chapter_localization
+fields:
+  chapter: TheoryChapter?, relation(onDelete=Cascade)
+  localeKey: String
+  title: String
+  description: String?
+  thumbnailUrl: String?
+  videoUrl: String?
+  videoMetadata: VideoMetadata?
+indexes:
+  theory_chapter_loc_unique_idx:
+    fields: chapterId, localeKey
+    unique: true
+  theory_chapter_loc_locale_idx:
+    fields: localeKey

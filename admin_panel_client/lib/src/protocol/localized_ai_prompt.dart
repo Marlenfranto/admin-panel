@@ -15,22 +15,29 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class LocalizedAiPrompt implements _i1.SerializableModel {
   LocalizedAiPrompt._({
     required this.languageCode,
+    this.localeKey,
     required this.prompt,
   });
 
   factory LocalizedAiPrompt({
     required String languageCode,
+    String? localeKey,
     required String prompt,
   }) = _LocalizedAiPromptImpl;
 
   factory LocalizedAiPrompt.fromJson(Map<String, dynamic> jsonSerialization) {
     return LocalizedAiPrompt(
       languageCode: jsonSerialization['languageCode'] as String,
+      localeKey: jsonSerialization['localeKey'] as String?,
       prompt: jsonSerialization['prompt'] as String,
     );
   }
 
+  /// DEPRECATED (future): legacy AI prompt translation editor keys on
+  /// languageCode. localeKey is the canonical replacement.
   String languageCode;
+
+  String? localeKey;
 
   String prompt;
 
@@ -39,6 +46,7 @@ abstract class LocalizedAiPrompt implements _i1.SerializableModel {
   @_i1.useResult
   LocalizedAiPrompt copyWith({
     String? languageCode,
+    String? localeKey,
     String? prompt,
   });
   @override
@@ -46,6 +54,7 @@ abstract class LocalizedAiPrompt implements _i1.SerializableModel {
     return {
       '__className__': 'LocalizedAiPrompt',
       'languageCode': languageCode,
+      if (localeKey != null) 'localeKey': localeKey,
       'prompt': prompt,
     };
   }
@@ -56,12 +65,16 @@ abstract class LocalizedAiPrompt implements _i1.SerializableModel {
   }
 }
 
+class _Undefined {}
+
 class _LocalizedAiPromptImpl extends LocalizedAiPrompt {
   _LocalizedAiPromptImpl({
     required String languageCode,
+    String? localeKey,
     required String prompt,
   }) : super._(
          languageCode: languageCode,
+         localeKey: localeKey,
          prompt: prompt,
        );
 
@@ -71,10 +84,12 @@ class _LocalizedAiPromptImpl extends LocalizedAiPrompt {
   @override
   LocalizedAiPrompt copyWith({
     String? languageCode,
+    Object? localeKey = _Undefined,
     String? prompt,
   }) {
     return LocalizedAiPrompt(
       languageCode: languageCode ?? this.languageCode,
+      localeKey: localeKey is String? ? localeKey : this.localeKey,
       prompt: prompt ?? this.prompt,
     );
   }

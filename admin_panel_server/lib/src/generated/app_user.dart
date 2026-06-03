@@ -24,6 +24,7 @@ abstract class AppUser
     required this.userInfoId,
     this.userInfo,
     _i2.Role? role,
+    this.preferredLocaleKey,
     this.organizations,
   }) : role = role ?? _i2.Role.User;
 
@@ -32,6 +33,7 @@ abstract class AppUser
     required int userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
+    String? preferredLocaleKey,
     List<_i4.OrganizationUserLink>? organizations,
   }) = _AppUserImpl;
 
@@ -47,6 +49,7 @@ abstract class AppUser
       role: jsonSerialization['role'] == null
           ? null
           : _i2.Role.fromJson((jsonSerialization['role'] as String)),
+      preferredLocaleKey: jsonSerialization['preferredLocaleKey'] as String?,
       organizations: jsonSerialization['organizations'] == null
           ? null
           : _i5.Protocol().deserialize<List<_i4.OrganizationUserLink>>(
@@ -68,6 +71,8 @@ abstract class AppUser
 
   _i2.Role role;
 
+  String? preferredLocaleKey;
+
   List<_i4.OrganizationUserLink>? organizations;
 
   @override
@@ -81,6 +86,7 @@ abstract class AppUser
     int? userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
+    String? preferredLocaleKey,
     List<_i4.OrganizationUserLink>? organizations,
   });
   @override
@@ -91,6 +97,7 @@ abstract class AppUser
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
       'role': role.toJson(),
+      if (preferredLocaleKey != null) 'preferredLocaleKey': preferredLocaleKey,
       if (organizations != null)
         'organizations': organizations?.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -104,6 +111,7 @@ abstract class AppUser
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJsonForProtocol(),
       'role': role.toJson(),
+      if (preferredLocaleKey != null) 'preferredLocaleKey': preferredLocaleKey,
       if (organizations != null)
         'organizations': organizations?.toJson(
           valueToJson: (v) => v.toJsonForProtocol(),
@@ -155,12 +163,14 @@ class _AppUserImpl extends AppUser {
     required int userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
+    String? preferredLocaleKey,
     List<_i4.OrganizationUserLink>? organizations,
   }) : super._(
          id: id,
          userInfoId: userInfoId,
          userInfo: userInfo,
          role: role,
+         preferredLocaleKey: preferredLocaleKey,
          organizations: organizations,
        );
 
@@ -173,6 +183,7 @@ class _AppUserImpl extends AppUser {
     int? userInfoId,
     Object? userInfo = _Undefined,
     _i2.Role? role,
+    Object? preferredLocaleKey = _Undefined,
     Object? organizations = _Undefined,
   }) {
     return AppUser(
@@ -182,6 +193,9 @@ class _AppUserImpl extends AppUser {
           ? userInfo
           : this.userInfo?.copyWith(),
       role: role ?? this.role,
+      preferredLocaleKey: preferredLocaleKey is String?
+          ? preferredLocaleKey
+          : this.preferredLocaleKey,
       organizations: organizations is List<_i4.OrganizationUserLink>?
           ? organizations
           : this.organizations?.map((e0) => e0.copyWith()).toList(),
@@ -201,6 +215,12 @@ class AppUserUpdateTable extends _i1.UpdateTable<AppUserTable> {
     table.role,
     value,
   );
+
+  _i1.ColumnValue<String, String> preferredLocaleKey(String? value) =>
+      _i1.ColumnValue(
+        table.preferredLocaleKey,
+        value,
+      );
 }
 
 class AppUserTable extends _i1.Table<int?> {
@@ -216,6 +236,10 @@ class AppUserTable extends _i1.Table<int?> {
       _i1.EnumSerialization.byName,
       hasDefault: true,
     );
+    preferredLocaleKey = _i1.ColumnString(
+      'preferredLocaleKey',
+      this,
+    );
   }
 
   late final AppUserUpdateTable updateTable;
@@ -225,6 +249,8 @@ class AppUserTable extends _i1.Table<int?> {
   _i3.UserInfoTable? _userInfo;
 
   late final _i1.ColumnEnum<_i2.Role> role;
+
+  late final _i1.ColumnString preferredLocaleKey;
 
   _i4.OrganizationUserLinkTable? ___organizations;
 
@@ -280,6 +306,7 @@ class AppUserTable extends _i1.Table<int?> {
     id,
     userInfoId,
     role,
+    preferredLocaleKey,
   ];
 
   @override

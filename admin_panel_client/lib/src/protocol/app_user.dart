@@ -22,6 +22,7 @@ abstract class AppUser implements _i1.SerializableModel {
     required this.userInfoId,
     this.userInfo,
     _i2.Role? role,
+    this.preferredLocaleKey,
     this.organizations,
   }) : role = role ?? _i2.Role.User;
 
@@ -30,6 +31,7 @@ abstract class AppUser implements _i1.SerializableModel {
     required int userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
+    String? preferredLocaleKey,
     List<_i4.OrganizationUserLink>? organizations,
   }) = _AppUserImpl;
 
@@ -45,6 +47,7 @@ abstract class AppUser implements _i1.SerializableModel {
       role: jsonSerialization['role'] == null
           ? null
           : _i2.Role.fromJson((jsonSerialization['role'] as String)),
+      preferredLocaleKey: jsonSerialization['preferredLocaleKey'] as String?,
       organizations: jsonSerialization['organizations'] == null
           ? null
           : _i5.Protocol().deserialize<List<_i4.OrganizationUserLink>>(
@@ -64,6 +67,8 @@ abstract class AppUser implements _i1.SerializableModel {
 
   _i2.Role role;
 
+  String? preferredLocaleKey;
+
   List<_i4.OrganizationUserLink>? organizations;
 
   /// Returns a shallow copy of this [AppUser]
@@ -74,6 +79,7 @@ abstract class AppUser implements _i1.SerializableModel {
     int? userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
+    String? preferredLocaleKey,
     List<_i4.OrganizationUserLink>? organizations,
   });
   @override
@@ -84,6 +90,7 @@ abstract class AppUser implements _i1.SerializableModel {
       'userInfoId': userInfoId,
       if (userInfo != null) 'userInfo': userInfo?.toJson(),
       'role': role.toJson(),
+      if (preferredLocaleKey != null) 'preferredLocaleKey': preferredLocaleKey,
       if (organizations != null)
         'organizations': organizations?.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -103,12 +110,14 @@ class _AppUserImpl extends AppUser {
     required int userInfoId,
     _i3.UserInfo? userInfo,
     _i2.Role? role,
+    String? preferredLocaleKey,
     List<_i4.OrganizationUserLink>? organizations,
   }) : super._(
          id: id,
          userInfoId: userInfoId,
          userInfo: userInfo,
          role: role,
+         preferredLocaleKey: preferredLocaleKey,
          organizations: organizations,
        );
 
@@ -121,6 +130,7 @@ class _AppUserImpl extends AppUser {
     int? userInfoId,
     Object? userInfo = _Undefined,
     _i2.Role? role,
+    Object? preferredLocaleKey = _Undefined,
     Object? organizations = _Undefined,
   }) {
     return AppUser(
@@ -130,6 +140,9 @@ class _AppUserImpl extends AppUser {
           ? userInfo
           : this.userInfo?.copyWith(),
       role: role ?? this.role,
+      preferredLocaleKey: preferredLocaleKey is String?
+          ? preferredLocaleKey
+          : this.preferredLocaleKey,
       organizations: organizations is List<_i4.OrganizationUserLink>?
           ? organizations
           : this.organizations?.map((e0) => e0.copyWith()).toList(),

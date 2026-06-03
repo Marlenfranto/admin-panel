@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../src/providers.dart';
 import 'app_breadcrumb.dart';
 import 'app_notification_bell.dart';
@@ -199,7 +200,7 @@ class _MobileBottomNav extends StatelessWidget {
                 _BottomNavItem(
                   icon:       Icons.more_horiz_rounded,
                   activeIcon: Icons.more_horiz_rounded,
-                  label:      'More',
+                  label:      AppLocalizations.of(context).shellMore,
                   isActive:   selectedIndex == items.length,
                   onTap:      () => scaffoldKey.currentState?.openDrawer(),
                 ),
@@ -413,16 +414,18 @@ class _UserChipState extends State<_UserChip> {
   String get _initial =>
       widget.userName.isNotEmpty ? widget.userName[0].toUpperCase() : '?';
 
-  String get _roleLabel => switch (widget.role) {
-        Role.SuperAdmin => 'Super Admin',
-        Role.OrganizationAdmin => 'Org Admin',
-        Role.Manager => 'Manager',
-        Role.User => 'User',
-        null => '—',
+  String _localizedRoleLabel(AppLocalizations t) => switch (widget.role) {
+        Role.SuperAdmin => t.roleSuperAdmin,
+        Role.OrganizationAdmin => t.roleOrgAdmin,
+        Role.Manager => t.roleManager,
+        Role.User => t.roleUser,
+        null => t.emDash,
       };
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final roleLabel = _localizedRoleLabel(t);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
@@ -446,7 +449,7 @@ class _UserChipState extends State<_UserChip> {
               children: [
                 Text(widget.userName, style: AppTextStyles.labelLg),
                 const SizedBox(height: 2),
-                Text(_roleLabel, style: AppTextStyles.labelMd),
+                Text(roleLabel, style: AppTextStyles.labelMd),
               ],
             ),
           ),
@@ -458,7 +461,7 @@ class _UserChipState extends State<_UserChip> {
                 const Icon(Icons.logout_rounded,
                     size: 16, color: AppColors.onSurfaceMuted),
                 const SizedBox(width: 8),
-                Text('Sign out', style: AppTextStyles.bodySm),
+                Text(t.topbarSignOut, style: AppTextStyles.bodySm),
               ],
             ),
           ),
@@ -503,7 +506,7 @@ class _UserChipState extends State<_UserChip> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(widget.userName, style: AppTextStyles.labelLg),
-                    Text(_roleLabel, style: AppTextStyles.labelMd),
+                    Text(roleLabel, style: AppTextStyles.labelMd),
                   ],
                 ),
               ],
@@ -545,7 +548,9 @@ class _SideNav extends StatelessWidget {
           expanded ? AppSpacing.sidebarWidth : AppSpacing.sidebarCollapsedWidth,
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(right: BorderSide(color: AppColors.divider)),
+        // Logical "end" border — paints on the right in LTR, on the left
+        // in RTL — keeping the divider between rail and content.
+        border: BorderDirectional(end: BorderSide(color: AppColors.divider)),
       ),
       child: Column(
         children: [
@@ -734,7 +739,7 @@ class _NavDrawer extends StatelessWidget {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(
+              padding: const EdgeInsetsDirectional.fromSTEB(
                 AppSpacing.md,
                 AppSpacing.md,
                 AppSpacing.md,

@@ -1,6 +1,9 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_server/serverpod_auth_server.dart';
 import '../generated/protocol.dart';
+import '../util/default_locale_writer.dart';
+import '../util/locale_resolver.dart';
+import '../util/locale_validator.dart';
 
 class UserEndpoint extends Endpoint {
   @override
@@ -53,31 +56,146 @@ class UserEndpoint extends Endpoint {
     final orgId = await _getMyOrganizationId(session);
     if (orgId == null) return [];
 
-    return await TheoryChapter.db.find(
+    final chapters = await TheoryChapter.db.find(
       session,
       where: (c) => c.organizationId.equals(orgId),
       orderBy: (c) => c.chapterOrder,
     );
+    await hydrateTheoryChapters(session, chapters);
+    return chapters;
   }
 
   Future<List<TrainingParameter>> getTrainingParameters(Session session) async {
     final orgId = await _getMyOrganizationId(session);
     if (orgId == null) return [];
 
-    return await TrainingParameter.db.find(
+    final params = await TrainingParameter.db.find(
       session,
       where: (p) => p.organizationId.equals(orgId),
     );
+    await hydrateTrainingParameters(session, params);
+    return params;
   }
 
   Future<List<AssessmentParameter>> getAssessmentParameters(Session session) async {
     final orgId = await _getMyOrganizationId(session);
     if (orgId == null) return [];
 
-    return await AssessmentParameter.db.find(
+    final params = await AssessmentParameter.db.find(
       session,
       where: (p) => p.organizationId.equals(orgId),
     );
+    await hydrateAssessmentParameters(session, params);
+    return params;
+  }
+
+  // ── Locale-aware reads ────────────────────────────────────────────────────
+
+  Future<List<TheoryChapter>> getLocalizedTheoryChapters(
+    Session session,
+    String localeKey,
+  ) async {
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return [];
+    validateLocaleKeyFormat(localeKey);
+    final chain =
+        await LocaleResolver.resolveChain(session, orgId, localeKey);
+    final chapters = await TheoryChapter.db.find(
+      session,
+      where: (c) => c.organizationId.equals(orgId),
+      orderBy: (c) => c.chapterOrder,
+    );
+    final result = <TheoryChapter>[];
+    for (final c in chapters) {
+      final id = c.id;
+      if (id == null) {
+        result.add(c);
+        continue;
+      }
+      final loc = await LocaleResolver.theoryChapter(session, id, chain);
+      result.add(TheoryChapter(
+        id: c.id,
+        organizationId: c.organizationId,
+        chapterOrder: c.chapterOrder,
+        title: loc?.title ?? c.title,
+        thumbnailUrl: loc?.thumbnailUrl ?? c.thumbnailUrl,
+        videoUrl: loc?.videoUrl ?? c.videoUrl,
+        videoMetadata: loc?.videoMetadata ?? c.videoMetadata,
+        questions: c.questions,
+      ));
+    }
+    return result;
+  }
+
+  Future<List<TrainingParameter>> getLocalizedTrainingParameters(
+    Session session,
+    String localeKey,
+  ) async {
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return [];
+    validateLocaleKeyFormat(localeKey);
+    final chain =
+        await LocaleResolver.resolveChain(session, orgId, localeKey);
+    final params = await TrainingParameter.db.find(
+      session,
+      where: (p) => p.organizationId.equals(orgId),
+    );
+    final result = <TrainingParameter>[];
+    for (final p in params) {
+      final id = p.id;
+      if (id == null) {
+        result.add(p);
+        continue;
+      }
+      final loc = await LocaleResolver.trainingParameter(session, id, chain);
+      result.add(TrainingParameter(
+        id: p.id,
+        organizationId: p.organizationId,
+        paramId: p.paramId,
+        name: loc?.name ?? p.name,
+        description: loc?.description ?? p.description,
+        maxScore: p.maxScore,
+        scoringRules: p.scoringRules,
+        translations: p.translations,
+      ));
+    }
+    return result;
+  }
+
+  Future<List<AssessmentParameter>> getLocalizedAssessmentParameters(
+    Session session,
+    String localeKey,
+  ) async {
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return [];
+    validateLocaleKeyFormat(localeKey);
+    final chain =
+        await LocaleResolver.resolveChain(session, orgId, localeKey);
+    final params = await AssessmentParameter.db.find(
+      session,
+      where: (p) => p.organizationId.equals(orgId),
+    );
+    final result = <AssessmentParameter>[];
+    for (final p in params) {
+      final id = p.id;
+      if (id == null) {
+        result.add(p);
+        continue;
+      }
+      final loc =
+          await LocaleResolver.assessmentParameter(session, id, chain);
+      result.add(AssessmentParameter(
+        id: p.id,
+        organizationId: p.organizationId,
+        paramId: p.paramId,
+        name: loc?.name ?? p.name,
+        description: loc?.description ?? p.description,
+        maxScore: p.maxScore,
+        scoringRules: p.scoringRules,
+        translations: p.translations,
+      ));
+    }
+    return result;
   }
 
   /// Changes the authenticated user's password after verifying [currentPassword].
@@ -96,6 +214,44 @@ class UserEndpoint extends Endpoint {
       currentPassword,
       newPassword,
     );
+  }
+
+  // ── Locale preference ─────────────────────────────────────────────────────
+
+  /// Returns the enabled LocaleConfig list for the user's org so the client
+  /// can populate a locale picker.
+  Future<List<LocaleConfig>> getMyLocales(Session session) async {
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return [];
+    return await LocaleConfig.db.find(
+      session,
+      where: (l) => l.organizationId.equals(orgId) & l.enabled.equals(true),
+      orderBy: (l) => l.localeKey,
+    );
+  }
+
+  /// Persists [localeKey] on the caller's AppUser row. Validates the key is
+  /// well-formed and configured on the user's org.
+  Future<AppUser?> setPreferredLocale(
+    Session session,
+    String localeKey,
+  ) async {
+    final authInfo = await session.authenticated;
+    if (authInfo == null) return null;
+
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) {
+      throw Exception('No organization found for user.');
+    }
+    await ensureLocaleConfigured(session, orgId, localeKey);
+
+    final appUser = await AppUser.db.findFirstRow(
+      session,
+      where: (u) => u.userInfoId.equals(authInfo.userId),
+    );
+    if (appUser == null) return null;
+    appUser.preferredLocaleKey = localeKey;
+    return await AppUser.db.updateRow(session, appUser);
   }
 
   // ── Module progress ───────────────────────────────────────────────────────
@@ -222,6 +378,68 @@ class UserEndpoint extends Endpoint {
 
   // ── Theory Progress ──────────────────────────────────────────────────────────
 
+  /// Locale-aware variant of [getTheoryChaptersWithProgress]. Each chapter's
+  /// content fields (title, thumbnail, video, metadata) are resolved through
+  /// the LocaleResolver fallback chain for [localeKey].
+  Future<List<TheoryChapterWithProgress>>
+      getLocalizedTheoryChaptersWithProgress(
+    Session session,
+    String localeKey,
+  ) async {
+    final orgId = await _getMyOrganizationId(session);
+    if (orgId == null) return [];
+    validateLocaleKeyFormat(localeKey);
+
+    final authInfo = await session.authenticated;
+    if (authInfo == null) return [];
+
+    final appUser = await AppUser.db.findFirstRow(
+      session,
+      where: (u) => u.userInfoId.equals(authInfo.userId),
+    );
+    if (appUser == null) return [];
+
+    final chain =
+        await LocaleResolver.resolveChain(session, orgId, localeKey);
+    final chapters = await TheoryChapter.db.find(
+      session,
+      where: (c) => c.organizationId.equals(orgId),
+      orderBy: (c) => c.chapterOrder,
+    );
+    final progressList = await UserTheoryProgress.db.find(
+      session,
+      where: (p) =>
+          p.appUserId.equals(appUser.id) & p.organizationId.equals(orgId),
+    );
+    final progressMap = {for (final p in progressList) p.chapterId: p};
+
+    final result = <TheoryChapterWithProgress>[];
+    for (final c in chapters) {
+      final id = c.id;
+      final localized = id == null
+          ? c
+          : await () async {
+              final loc =
+                  await LocaleResolver.theoryChapter(session, id, chain);
+              return TheoryChapter(
+                id: c.id,
+                organizationId: c.organizationId,
+                chapterOrder: c.chapterOrder,
+                title: loc?.title ?? c.title,
+                thumbnailUrl: loc?.thumbnailUrl ?? c.thumbnailUrl,
+                videoUrl: loc?.videoUrl ?? c.videoUrl,
+                videoMetadata: loc?.videoMetadata ?? c.videoMetadata,
+                questions: c.questions,
+              );
+            }();
+      result.add(TheoryChapterWithProgress(
+        chapter: localized,
+        progress: progressMap[c.id],
+      ));
+    }
+    return result;
+  }
+
   /// Fetches all theory chapters for the authenticated user's organization,
   /// including the user's specific progress/score for each.
   Future<List<TheoryChapterWithProgress>> getTheoryChaptersWithProgress(
@@ -244,6 +462,7 @@ class UserEndpoint extends Endpoint {
       where: (c) => c.organizationId.equals(orgId),
       orderBy: (c) => c.chapterOrder,
     );
+    await hydrateTheoryChapters(session, chapters);
 
     // 2. Fetch user performance record for these chapters
     final progressList = await UserTheoryProgress.db.find(

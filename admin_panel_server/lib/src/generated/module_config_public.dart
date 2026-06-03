@@ -12,7 +12,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'subscription_modules.dart' as _i2;
-import 'languages_config.dart' as _i3;
+import 'locale_config.dart' as _i3;
 import 'localized_ai_prompt.dart' as _i4;
 import 'package:admin_panel_server/src/generated/protocol.dart' as _i5;
 
@@ -23,7 +23,8 @@ abstract class ModuleConfigPublic
     required this.lastUpdated,
     required this.contentVersion,
     required this.subscriptionModules,
-    required this.languages,
+    required this.defaultLocaleKey,
+    this.supportedLocales,
     required this.passingPercentage,
     this.aiChatPrompt,
     this.aiChatPromptTranslations,
@@ -34,7 +35,8 @@ abstract class ModuleConfigPublic
     required String lastUpdated,
     required int contentVersion,
     required _i2.SubscriptionModules subscriptionModules,
-    required _i3.LanguagesConfig languages,
+    required String defaultLocaleKey,
+    List<_i3.LocaleConfig>? supportedLocales,
     required int passingPercentage,
     String? aiChatPrompt,
     List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
@@ -48,9 +50,12 @@ abstract class ModuleConfigPublic
       subscriptionModules: _i5.Protocol().deserialize<_i2.SubscriptionModules>(
         jsonSerialization['subscriptionModules'],
       ),
-      languages: _i5.Protocol().deserialize<_i3.LanguagesConfig>(
-        jsonSerialization['languages'],
-      ),
+      defaultLocaleKey: jsonSerialization['defaultLocaleKey'] as String,
+      supportedLocales: jsonSerialization['supportedLocales'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i3.LocaleConfig>>(
+              jsonSerialization['supportedLocales'],
+            ),
       passingPercentage: jsonSerialization['passingPercentage'] as int,
       aiChatPrompt: jsonSerialization['aiChatPrompt'] as String?,
       aiChatPromptTranslations:
@@ -70,7 +75,9 @@ abstract class ModuleConfigPublic
 
   _i2.SubscriptionModules subscriptionModules;
 
-  _i3.LanguagesConfig languages;
+  String defaultLocaleKey;
+
+  List<_i3.LocaleConfig>? supportedLocales;
 
   int passingPercentage;
 
@@ -86,7 +93,8 @@ abstract class ModuleConfigPublic
     String? lastUpdated,
     int? contentVersion,
     _i2.SubscriptionModules? subscriptionModules,
-    _i3.LanguagesConfig? languages,
+    String? defaultLocaleKey,
+    List<_i3.LocaleConfig>? supportedLocales,
     int? passingPercentage,
     String? aiChatPrompt,
     List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
@@ -99,7 +107,11 @@ abstract class ModuleConfigPublic
       'lastUpdated': lastUpdated,
       'contentVersion': contentVersion,
       'subscriptionModules': subscriptionModules.toJson(),
-      'languages': languages.toJson(),
+      'defaultLocaleKey': defaultLocaleKey,
+      if (supportedLocales != null)
+        'supportedLocales': supportedLocales?.toJson(
+          valueToJson: (v) => v.toJson(),
+        ),
       'passingPercentage': passingPercentage,
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
       if (aiChatPromptTranslations != null)
@@ -117,7 +129,11 @@ abstract class ModuleConfigPublic
       'lastUpdated': lastUpdated,
       'contentVersion': contentVersion,
       'subscriptionModules': subscriptionModules.toJsonForProtocol(),
-      'languages': languages.toJsonForProtocol(),
+      'defaultLocaleKey': defaultLocaleKey,
+      if (supportedLocales != null)
+        'supportedLocales': supportedLocales?.toJson(
+          valueToJson: (v) => v.toJsonForProtocol(),
+        ),
       'passingPercentage': passingPercentage,
       if (aiChatPrompt != null) 'aiChatPrompt': aiChatPrompt,
       if (aiChatPromptTranslations != null)
@@ -141,7 +157,8 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
     required String lastUpdated,
     required int contentVersion,
     required _i2.SubscriptionModules subscriptionModules,
-    required _i3.LanguagesConfig languages,
+    required String defaultLocaleKey,
+    List<_i3.LocaleConfig>? supportedLocales,
     required int passingPercentage,
     String? aiChatPrompt,
     List<_i4.LocalizedAiPrompt>? aiChatPromptTranslations,
@@ -150,7 +167,8 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
          lastUpdated: lastUpdated,
          contentVersion: contentVersion,
          subscriptionModules: subscriptionModules,
-         languages: languages,
+         defaultLocaleKey: defaultLocaleKey,
+         supportedLocales: supportedLocales,
          passingPercentage: passingPercentage,
          aiChatPrompt: aiChatPrompt,
          aiChatPromptTranslations: aiChatPromptTranslations,
@@ -165,7 +183,8 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
     String? lastUpdated,
     int? contentVersion,
     _i2.SubscriptionModules? subscriptionModules,
-    _i3.LanguagesConfig? languages,
+    String? defaultLocaleKey,
+    Object? supportedLocales = _Undefined,
     int? passingPercentage,
     Object? aiChatPrompt = _Undefined,
     Object? aiChatPromptTranslations = _Undefined,
@@ -176,7 +195,10 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
       contentVersion: contentVersion ?? this.contentVersion,
       subscriptionModules:
           subscriptionModules ?? this.subscriptionModules.copyWith(),
-      languages: languages ?? this.languages.copyWith(),
+      defaultLocaleKey: defaultLocaleKey ?? this.defaultLocaleKey,
+      supportedLocales: supportedLocales is List<_i3.LocaleConfig>?
+          ? supportedLocales
+          : this.supportedLocales?.map((e0) => e0.copyWith()).toList(),
       passingPercentage: passingPercentage ?? this.passingPercentage,
       aiChatPrompt: aiChatPrompt is String? ? aiChatPrompt : this.aiChatPrompt,
       aiChatPromptTranslations:

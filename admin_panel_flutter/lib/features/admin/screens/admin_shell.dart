@@ -41,6 +41,12 @@ class AdminShell extends StatelessWidget {
       route:      AppRoutes.adminContent,
     ),
     NavItem(
+      icon:       Icons.language_outlined,
+      activeIcon: Icons.language_rounded,
+      label:      'Locales',
+      route:      AppRoutes.adminLocales,
+    ),
+    NavItem(
       icon:       Icons.history_edu_outlined,
       activeIcon: Icons.history_edu_rounded,
       label:      'Training History',

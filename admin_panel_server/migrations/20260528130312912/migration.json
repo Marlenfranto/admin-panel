@@ -1,0 +1,418 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "assessment_parameter",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "name",
+          "description",
+          "translations"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"name\" of table \"assessment_parameter\" will be dropped.",
+            "table": "assessment_parameter",
+            "columns": [
+              "name"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"description\" of table \"assessment_parameter\" will be dropped.",
+            "table": "assessment_parameter",
+            "columns": [
+              "description"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"translations\" of table \"assessment_parameter\" will be dropped.",
+            "table": "assessment_parameter",
+            "columns": [
+              "translations"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "asset",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "name",
+          "url",
+          "description"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"name\" of table \"asset\" will be dropped.",
+            "table": "asset",
+            "columns": [
+              "name"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"url\" of table \"asset\" will be dropped.",
+            "table": "asset",
+            "columns": [
+              "url"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"description\" of table \"asset\" will be dropped.",
+            "table": "asset",
+            "columns": [
+              "description"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "module_config",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "defaultLanguage",
+          "supportedLanguages"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"defaultLanguage\" of table \"module_config\" will be dropped.",
+            "table": "module_config",
+            "columns": [
+              "defaultLanguage"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"supportedLanguages\" of table \"module_config\" will be dropped.",
+            "table": "module_config",
+            "columns": [
+              "supportedLanguages"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "theory_chapter",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "title",
+          "thumbnailUrl",
+          "videoUrl",
+          "videoMetadata"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"title\" of table \"theory_chapter\" will be dropped.",
+            "table": "theory_chapter",
+            "columns": [
+              "title"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"thumbnailUrl\" of table \"theory_chapter\" will be dropped.",
+            "table": "theory_chapter",
+            "columns": [
+              "thumbnailUrl"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"videoUrl\" of table \"theory_chapter\" will be dropped.",
+            "table": "theory_chapter",
+            "columns": [
+              "videoUrl"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"videoMetadata\" of table \"theory_chapter\" will be dropped.",
+            "table": "theory_chapter",
+            "columns": [
+              "videoMetadata"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "training_parameter",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "name",
+          "description",
+          "translations"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"name\" of table \"training_parameter\" will be dropped.",
+            "table": "training_parameter",
+            "columns": [
+              "name"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"description\" of table \"training_parameter\" will be dropped.",
+            "table": "training_parameter",
+            "columns": [
+              "description"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"translations\" of table \"training_parameter\" will be dropped.",
+            "table": "training_parameter",
+            "columns": [
+              "translations"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"name\" of table \"assessment_parameter\" will be dropped.",
+      "table": "assessment_parameter",
+      "columns": [
+        "name"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"description\" of table \"assessment_parameter\" will be dropped.",
+      "table": "assessment_parameter",
+      "columns": [
+        "description"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"translations\" of table \"assessment_parameter\" will be dropped.",
+      "table": "assessment_parameter",
+      "columns": [
+        "translations"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"name\" of table \"asset\" will be dropped.",
+      "table": "asset",
+      "columns": [
+        "name"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"url\" of table \"asset\" will be dropped.",
+      "table": "asset",
+      "columns": [
+        "url"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"description\" of table \"asset\" will be dropped.",
+      "table": "asset",
+      "columns": [
+        "description"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"defaultLanguage\" of table \"module_config\" will be dropped.",
+      "table": "module_config",
+      "columns": [
+        "defaultLanguage"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"supportedLanguages\" of table \"module_config\" will be dropped.",
+      "table": "module_config",
+      "columns": [
+        "supportedLanguages"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"title\" of table \"theory_chapter\" will be dropped.",
+      "table": "theory_chapter",
+      "columns": [
+        "title"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"thumbnailUrl\" of table \"theory_chapter\" will be dropped.",
+      "table": "theory_chapter",
+      "columns": [
+        "thumbnailUrl"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"videoUrl\" of table \"theory_chapter\" will be dropped.",
+      "table": "theory_chapter",
+      "columns": [
+        "videoUrl"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"videoMetadata\" of table \"theory_chapter\" will be dropped.",
+      "table": "theory_chapter",
+      "columns": [
+        "videoMetadata"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"name\" of table \"training_parameter\" will be dropped.",
+      "table": "training_parameter",
+      "columns": [
+        "name"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"description\" of table \"training_parameter\" will be dropped.",
+      "table": "training_parameter",
+      "columns": [
+        "description"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"translations\" of table \"training_parameter\" will be dropped.",
+      "table": "training_parameter",
+      "columns": [
+        "translations"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

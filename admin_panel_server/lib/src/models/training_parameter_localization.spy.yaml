@@ -1,0 +1,14 @@
+class: TrainingParameterLocalization
+table: training_parameter_localization
+fields:
+  parameter: TrainingParameter?, relation(onDelete=Cascade)
+  localeKey: String
+  name: String
+  description: String
+  scoringFeedbacks: List<String>?
+indexes:
+  training_param_loc_unique_idx:
+    fields: parameterId, localeKey
+    unique: true
+  training_param_loc_locale_idx:
+    fields: localeKey

@@ -22,22 +22,23 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
     this.organizationId,
     this.organization,
     required this.paramId,
-    required this.name,
-    required this.description,
     required this.maxScore,
     required this.scoringRules,
+    String? name,
+    String? description,
     this.translations,
-  });
+  }) : name = name ?? '',
+       description = description ?? '';
 
   factory AssessmentParameter({
     int? id,
     int? organizationId,
     _i2.Organization? organization,
     required String paramId,
-    required String name,
-    required String description,
     required int maxScore,
     required List<_i3.ScoringRule> scoringRules,
+    String? name,
+    String? description,
     List<_i4.LocalizedParameterContent>? translations,
   }) = _AssessmentParameterImpl;
 
@@ -51,12 +52,12 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
               jsonSerialization['organization'],
             ),
       paramId: jsonSerialization['paramId'] as String,
-      name: jsonSerialization['name'] as String,
-      description: jsonSerialization['description'] as String,
       maxScore: jsonSerialization['maxScore'] as int,
       scoringRules: _i5.Protocol().deserialize<List<_i3.ScoringRule>>(
         jsonSerialization['scoringRules'],
       ),
+      name: jsonSerialization['name'] as String?,
+      description: jsonSerialization['description'] as String?,
       translations: jsonSerialization['translations'] == null
           ? null
           : _i5.Protocol().deserialize<List<_i4.LocalizedParameterContent>>(
@@ -76,13 +77,13 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
 
   String paramId;
 
-  String name;
-
-  String description;
-
   int maxScore;
 
   List<_i3.ScoringRule> scoringRules;
+
+  String name;
+
+  String description;
 
   List<_i4.LocalizedParameterContent>? translations;
 
@@ -94,10 +95,10 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
     int? organizationId,
     _i2.Organization? organization,
     String? paramId,
-    String? name,
-    String? description,
     int? maxScore,
     List<_i3.ScoringRule>? scoringRules,
+    String? name,
+    String? description,
     List<_i4.LocalizedParameterContent>? translations,
   });
   @override
@@ -108,10 +109,10 @@ abstract class AssessmentParameter implements _i1.SerializableModel {
       if (organizationId != null) 'organizationId': organizationId,
       if (organization != null) 'organization': organization?.toJson(),
       'paramId': paramId,
-      'name': name,
-      'description': description,
       'maxScore': maxScore,
       'scoringRules': scoringRules.toJson(valueToJson: (v) => v.toJson()),
+      'name': name,
+      'description': description,
       if (translations != null)
         'translations': translations?.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -131,20 +132,20 @@ class _AssessmentParameterImpl extends AssessmentParameter {
     int? organizationId,
     _i2.Organization? organization,
     required String paramId,
-    required String name,
-    required String description,
     required int maxScore,
     required List<_i3.ScoringRule> scoringRules,
+    String? name,
+    String? description,
     List<_i4.LocalizedParameterContent>? translations,
   }) : super._(
          id: id,
          organizationId: organizationId,
          organization: organization,
          paramId: paramId,
-         name: name,
-         description: description,
          maxScore: maxScore,
          scoringRules: scoringRules,
+         name: name,
+         description: description,
          translations: translations,
        );
 
@@ -157,10 +158,10 @@ class _AssessmentParameterImpl extends AssessmentParameter {
     Object? organizationId = _Undefined,
     Object? organization = _Undefined,
     String? paramId,
-    String? name,
-    String? description,
     int? maxScore,
     List<_i3.ScoringRule>? scoringRules,
+    String? name,
+    String? description,
     Object? translations = _Undefined,
   }) {
     return AssessmentParameter(
@@ -172,11 +173,11 @@ class _AssessmentParameterImpl extends AssessmentParameter {
           ? organization
           : this.organization?.copyWith(),
       paramId: paramId ?? this.paramId,
-      name: name ?? this.name,
-      description: description ?? this.description,
       maxScore: maxScore ?? this.maxScore,
       scoringRules:
           scoringRules ?? this.scoringRules.map((e0) => e0.copyWith()).toList(),
+      name: name ?? this.name,
+      description: description ?? this.description,
       translations: translations is List<_i4.LocalizedParameterContent>?
           ? translations
           : this.translations?.map((e0) => e0.copyWith()).toList(),

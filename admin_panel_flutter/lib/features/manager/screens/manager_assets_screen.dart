@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../providers/manager_providers.dart';
+import '../widgets/manager_localization_sheets.dart';
 import '../../../src/providers.dart';
 
 class ManagerAssetsScreen extends ConsumerWidget {
@@ -220,7 +221,17 @@ class ManagerAssetsScreen extends ConsumerWidget {
                       flex:      1,
                       alignment: Alignment.center,
                       cellBuilder: (a) => _RowActions(
-                        onEdit:   () => _showAssetSheet(context, ref, a),
+                        onEdit: () => _showAssetSheet(context, ref, a),
+                        onLocalize: () {
+                          final orgId = ref.read(activeOrgIdProvider);
+                          if (orgId == null) return;
+                          showManagerAssetLocalizationsSheet(
+                            context: context,
+                            orgId: orgId,
+                            assetId: a.id!,
+                            parentLabel: a.name,
+                          );
+                        },
                         onDelete: () => _deleteAsset(context, ref, a),
                       ),
                     ),
@@ -432,9 +443,14 @@ class _VersionBadge extends StatelessWidget {
 // ── Row action buttons ─────────────────────────────────────────────────────────
 
 class _RowActions extends StatelessWidget {
-  const _RowActions({required this.onEdit, required this.onDelete});
+  const _RowActions({
+    required this.onEdit,
+    required this.onDelete,
+    this.onLocalize,
+  });
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback? onLocalize;
 
   @override
   Widget build(BuildContext context) {
@@ -447,6 +463,15 @@ class _RowActions extends StatelessWidget {
           color:   AppColors.primary,
           onTap:   onEdit,
         ),
+        if (onLocalize != null) ...[
+          const SizedBox(width: 4),
+          _HoverIconBtn(
+            icon:    Icons.language_rounded,
+            tooltip: 'Localizations',
+            color:   AppColors.onSurfaceMuted,
+            onTap:   onLocalize!,
+          ),
+        ],
         const SizedBox(width: 4),
         _HoverIconBtn(
           icon:    Icons.delete_outline_rounded,

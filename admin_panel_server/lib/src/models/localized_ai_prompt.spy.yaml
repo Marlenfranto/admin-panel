@@ -1,4 +1,7 @@
 class: LocalizedAiPrompt
 fields:
+  ### DEPRECATED (future): legacy AI prompt translation editor keys on
+  ### languageCode. localeKey is the canonical replacement.
   languageCode: String
+  localeKey: String?
   prompt: String

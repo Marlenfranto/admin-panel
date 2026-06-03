@@ -1,0 +1,170 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "FireSafeX",
+  "@appTitle": { "description": "Application title used in the browser tab and OS task switcher." },
+
+  "navMyModules": "My Modules",
+  "navSettings": "Settings",
+  "shellPortalTitle": "My Portal",
+  "shellMore": "More",
+  "topbarSignOut": "Sign out",
+  "roleUser": "User",
+  "roleManager": "Manager",
+  "roleOrgAdmin": "Org Admin",
+  "roleSuperAdmin": "Super Admin",
+  "emDash": "—",
+
+  "modulesPageTitle": "My Modules",
+  "modulesPageSubtitle": "Modules assigned to you by your organization.",
+  "modulesSummaryAssigned": "{count, plural, =0{No modules assigned} =1{1 module assigned} other{{count} modules assigned}}",
+  "@modulesSummaryAssigned": {
+    "description": "Summary chip showing how many modules are assigned to the user.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "modulesSummaryOverdue": "{count} overdue",
+  "@modulesSummaryOverdue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "moduleTheoryLabel": "Theory",
+  "moduleTheoryDesc": "Learn concepts, procedures and safety standards through structured lessons.",
+  "moduleAiExpertLabel": "AR Expert",
+  "moduleAiExpertDesc": "Ask our AI assistant questions and get instant expert guidance.",
+  "moduleSmartTrainingLabel": "Smart Training",
+  "moduleSmartTrainingDesc": "Practice hands-on skills with guided training exercises and real-time feedback.",
+  "moduleAssessmentLabel": "Assessment",
+  "moduleAssessmentDesc": "Test your knowledge and competency with structured evaluations.",
+
+  "activityVideos": "Videos",
+  "activityQuizzes": "Quizzes",
+
+  "statusNotStarted": "Not Started",
+  "statusInProgress": "In Progress",
+  "statusCompleted": "Completed",
+
+  "modulesViewDetails": "View Details",
+  "modulesOverdueBanner": "{days, plural, =1{1 day overdue — contact your manager} other{{days} days overdue — contact your manager}}",
+  "@modulesOverdueBanner": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+
+  "modulesNoOrgTitle": "No organization assigned",
+  "modulesNoOrgDesc": "Contact your administrator to be assigned to an organization.",
+  "modulesNoModulesTitle": "No modules assigned",
+  "modulesNoModulesDesc": "Your manager has not enabled any modules for you yet.",
+
+  "historySectionTitle": "Smart Training History",
+  "historyAttempts": "{count, plural, =0{No attempts} =1{1 attempt} other{{count} attempts}}",
+  "@historyAttempts": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "historyErrorLoading": "Error loading history: {error}",
+  "@historyErrorLoading": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "historyPerformanceTrend": "Performance Trend",
+  "historyCriteriaBreakdown": "Criteria Breakdown",
+  "historySessionOn": "Session on {date}",
+  "@historySessionOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "historyScore": "Score: {score}%",
+  "@historyScore": {
+    "placeholders": { "score": { "type": "int" } }
+  },
+  "historyAttemptHistory": "Attempt History",
+  "historyEmptyTitle": "No performance data",
+  "historyEmptyDesc": "Visualizations will appear after your first training session.",
+  "historyViewCertificate": "View Certificate",
+  "certificateCourseTitle": "FireSafeX Training Completion",
+
+  "theoryChaptersTitle": "Theory Modules",
+  "theoryChaptersEmptyTitle": "No theory chapters available",
+  "theoryChaptersEmptyDesc": "Theory content has not been configured for your organization.",
+  "theoryChaptersQuestionsCount": "{count, plural, =0{No Questions} =1{1 Question} other{{count} Questions}}",
+  "@theoryChaptersQuestionsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "theoryChaptersErrorLoading": "Error loading theory chapters: {error}",
+  "@theoryChaptersErrorLoading": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "theoryPlayerLoadingVideo": "Loading video…",
+  "theoryPlayerBuffering": "Buffering…",
+  "theoryPlayerBufferedSecs": "{seconds}s buffered",
+  "@theoryPlayerBufferedSecs": {
+    "placeholders": { "seconds": { "type": "int" } }
+  },
+  "theoryPlayerNoVideoUrl": "No video URL available.",
+  "theoryPlayerLoadTimeout": "Video is taking too long to load. Check your connection.",
+  "theoryPlayerLoadFailed": "Failed to load video: {error}",
+  "@theoryPlayerLoadFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "theoryPlayerRetry": "Retry",
+  "theoryPlayerTakeQuiz": "Take Quiz",
+  "theoryPlayerLockedHint": "Watch full video to unlock the quiz",
+
+  "quizTitle": "Module Quiz",
+  "quizQuestionOf": "Question {current} of {total}",
+  "@quizQuestionOf": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "quizBack": "Back",
+  "quizNext": "Next",
+  "quizFinishQuiz": "Finish Quiz",
+  "quizNoQuestions": "No questions available for this chapter.",
+  "quizGoBack": "Go Back",
+  "quizResultPassedTitle": "Congratulations!",
+  "quizResultFailedTitle": "Almost there!",
+  "quizResultPassedDesc": "You passed the theory quiz.",
+  "quizResultFailedDesc": "Try again to pass this module.",
+  "quizResultYourScore": "Your Score",
+  "quizResultPassed": "PASSED",
+  "quizResultNotPassed": "NOT PASSED",
+  "quizBackToCourse": "Back to Course",
+  "quizRetryQuiz": "Retry Quiz",
+
+  "settingsPageTitle": "Settings",
+  "settingsPageSubtitle": "Account details and security settings.",
+  "settingsAccountTitle": "Account",
+  "settingsAccountSubtitle": "Your profile information",
+  "settingsSecurityTitle": "Security",
+  "settingsSecuritySubtitle": "Manage your password",
+  "settingsSecurityPasswordLabel": "Password",
+  "settingsSecurityPasswordDesc": "Change your account password.",
+  "settingsSecurityChangeBtn": "Change Password",
+  "settingsSecurityUpdateBtn": "Update Password",
+  "settingsSecurityCurrentPassword": "Current Password",
+  "settingsSecurityNewPassword": "New Password",
+  "settingsSecurityConfirmPassword": "Confirm New Password",
+  "settingsSecurityPasswordHint": "Password must be at least 6 characters.",
+  "settingsSecurityErrAllRequired": "All fields are required.",
+  "settingsSecurityErrMinLength": "New password must be at least 6 characters.",
+  "settingsSecurityErrMismatch": "Passwords do not match.",
+  "settingsSecurityErrCurrentWrong": "Current password is incorrect.",
+  "settingsLocaleTitle": "Language & Region",
+  "settingsLocaleSubtitle": "Choose how content is shown to you",
+  "settingsLocaleLabel": "Locale",
+  "settingsLocaleDesc": "Region-specific content variant.",
+  "settingsLocaleLoadFailed": "Failed to load locales: {error}",
+  "@settingsLocaleLoadFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "settingsLocaleEmpty": "No locales configured for your organization.",
+  "settingsSignOutTitle": "Sign Out",
+  "settingsSignOutDesc": "Sign out of your account on this device.",
+  "settingsSignOutBtn": "Sign Out",
+
+  "commonError": "Error: {message}",
+  "@commonError": {
+    "placeholders": { "message": { "type": "String" } }
+  },
+  "commonCancel": "Cancel",
+  "commonClose": "Close"
+}

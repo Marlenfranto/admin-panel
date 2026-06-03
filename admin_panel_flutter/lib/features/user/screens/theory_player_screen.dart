@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'package:admin_panel_client/admin_panel_client.dart';
-import 'package:chewie/chewie.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import '../../../core/theme/theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../widgets/theory_quiz_view.dart';
 import '../../../core/services/web_fullscreen.dart';
+
+const _kReadyTimeout = Duration(seconds: 30);
 
 class TheoryPlayerScreen extends StatefulWidget {
   const TheoryPlayerScreen({
@@ -21,114 +25,131 @@ class TheoryPlayerScreen extends StatefulWidget {
   State<TheoryPlayerScreen> createState() => _TheoryPlayerScreenState();
 }
 
+/// Identifies an error condition for which [_TheoryPlayerScreenState]
+/// shows a localized message. We can't store the message string directly
+/// because it's set from async callbacks where we don't have a [BuildContext].
+enum _PlayerError {
+  noVideoUrl,
+  loadTimeout,
+  loadFailed,
+}
+
 class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
-  VideoPlayerController? _videoPlayerController;
-  ChewieController? _chewieController;
+  late final Player _player;
+  late final VideoController _videoController;
+  StreamSubscription<Duration>? _positionSub;
+  StreamSubscription<Duration>? _durationSub;
+  StreamSubscription<bool>? _completedSub;
+  StreamSubscription<Duration>? _bufferSub;
+  Timer? _readyTimeout;
+
+  Duration _duration = Duration.zero;
+  Duration _buffered = Duration.zero;
   bool _isThresholdReached = false;
   bool _showQuiz = false;
   bool _isVideoCompleted = false;
-  String? _error;
+  bool _isReady = false;
+  _PlayerError? _error;
+  String? _errorDetail;
 
   @override
   void initState() {
     super.initState();
+    _player = Player(
+      configuration: const PlayerConfiguration(
+        bufferSize: 64 * 1024 * 1024,
+        title: 'Theory Player',
+      ),
+    );
+    _videoController = VideoController(_player);
     _initializePlayer();
+  }
+
+  Future<void> _applyNetworkTuning() async {
+    if (kIsWeb) return;
+    try {
+      final dynamic native = _player.platform;
+      if (native == null) return;
+      await native.setProperty('cache', 'yes');
+      await native.setProperty('cache-secs', '120');
+      await native.setProperty('demuxer-max-bytes', '64MiB');
+      await native.setProperty('demuxer-max-back-bytes', '32MiB');
+      await native.setProperty('demuxer-readahead-secs', '20');
+      await native.setProperty('network-timeout', '15');
+      await native.setProperty('stream-buffer-size', '4MiB');
+    } catch (_) {}
   }
 
   Future<void> _initializePlayer() async {
     final url = widget.chapter.videoUrl;
     if (url == null) {
-      if (mounted) setState(() => _error = 'No video URL available.');
+      if (mounted) setState(() => _error = _PlayerError.noVideoUrl);
       return;
     }
 
-    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
-    _videoPlayerController = controller;
+    await _applyNetworkTuning();
 
-    try {
-      await controller.initialize();
-
-      // Small delay to ensure the native layer has fully populated
-      // the asset tracks before we query the size/aspectRatio.
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      if (!mounted) {
-        await controller.dispose();
-        return;
+    _durationSub = _player.stream.duration.listen((d) {
+      if (!mounted) return;
+      _duration = d;
+      if (d > Duration.zero && !_isReady) {
+        setState(() => _isReady = true);
       }
+    });
 
-      controller.addListener(_videoListener);
-
-      // Access aspectRatio safely from the controller value.
-      // If it's invalid (0 or negative), default to 16/9.
-      double aspectRatio = controller.value.aspectRatio;
-      if (aspectRatio <= 0) {
-        aspectRatio = 16 / 9;
-      }
-
-      _chewieController = ChewieController(
-        videoPlayerController: controller,
-        aspectRatio: aspectRatio,
-        autoPlay: false,
-        looping: false,
-        allowFullScreen: true,
-        allowMuting: true,
-        showControls: true,
-        placeholder: Container(color: Colors.black),
-        errorBuilder: (context, errorMessage) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Text(
-              errorMessage,
-              style: AppTextStyles.bodySm.copyWith(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      );
-
-      _chewieController!.addListener(() {
-        if (_chewieController!.isFullScreen) {
-          toggleWebFullscreen(true);
-        } else {
-          toggleWebFullscreen(false);
-        }
-      });
-
-      setState(() {});
-    } catch (e) {
-      debugPrint('Error initializing video player: $e');
-      if (mounted) setState(() => _error = 'Failed to load video: $e');
-    }
-  }
-
-  void _videoListener() {
-    if (!mounted) return;
-    final controller = _videoPlayerController;
-    if (controller == null) return;
-
-    final position = controller.value.position;
-    final duration = controller.value.duration;
-
-    if (duration.inSeconds > 0) {
-      final progress = position.inMilliseconds / duration.inMilliseconds;
-
-      // Threshold reached at 90%
+    _positionSub = _player.stream.position.listen((position) {
+      if (!mounted || _duration.inMilliseconds <= 0) return;
+      final progress = position.inMilliseconds / _duration.inMilliseconds;
       if (progress >= 0.9 && !_isThresholdReached) {
         setState(() => _isThresholdReached = true);
       }
+    });
 
-      if (position >= duration && !_isVideoCompleted) {
-        setState(() => _isVideoCompleted = true);
+    _completedSub = _player.stream.completed.listen((completed) {
+      if (!mounted) return;
+      if (completed && !_isVideoCompleted) {
+        setState(() {
+          _isVideoCompleted = true;
+          _isThresholdReached = true;
+        });
+      }
+    });
+
+    _bufferSub = _player.stream.buffer.listen((b) {
+      if (!mounted) return;
+      setState(() => _buffered = b);
+    });
+
+    _readyTimeout = Timer(_kReadyTimeout, () {
+      if (!mounted || _isReady) return;
+      setState(() {
+        _error = _PlayerError.loadTimeout;
+        _errorDetail = null;
+      });
+    });
+
+    try {
+      await _player.open(Media(url), play: false);
+    } catch (e) {
+      debugPrint('Error initializing video player: $e');
+      if (mounted) {
+        setState(() {
+          _error = _PlayerError.loadFailed;
+          _errorDetail = e.toString();
+        });
       }
     }
   }
 
   @override
   void dispose() {
-    _videoPlayerController?.removeListener(_videoListener);
-    _chewieController?.dispose();
-    _videoPlayerController?.dispose();
+    _readyTimeout?.cancel();
+    _positionSub?.cancel();
+    _durationSub?.cancel();
+    _completedSub?.cancel();
+    _bufferSub?.cancel();
+    _player.dispose();
+    toggleWebFullscreen(false);
     super.dispose();
   }
 
@@ -136,7 +157,7 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
     setState(() {
       _showQuiz = true;
     });
-    _videoPlayerController?.pause();
+    _player.pause();
   }
 
   @override
@@ -155,7 +176,13 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          // arrow_back_ios is direction-sensitive; explicitly tie it to the
+          // ambient Directionality so RTL flips it horizontally.
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+            textDirection: Directionality.of(context),
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -166,25 +193,32 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
       ),
       body: Column(
         children: [
-          // Video Player Section
           Expanded(
             child: Center(
               child: _error != null
                   ? _buildErrorWidget()
-                  : _chewieController != null
-                      ? Chewie(controller: _chewieController!)
-                      : const CircularProgressIndicator(color: Colors.white),
+                  : !_isReady
+                      ? _buildBufferingOverlay()
+                      : Video(
+                          controller: _videoController,
+                          controls: AdaptiveVideoControls,
+                          fill: Colors.black,
+                          onEnterFullscreen: () async {
+                            toggleWebFullscreen(true);
+                          },
+                          onExitFullscreen: () async {
+                            toggleWebFullscreen(false);
+                          },
+                        ),
             ),
           ),
-
-          // Bottom Bar Section
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.symmetric(
+              padding: const EdgeInsetsDirectional.symmetric(
                   horizontal: AppSpacing.md, vertical: AppSpacing.sm),
               child:
-                  _isThresholdReached ? _buildQuizButton() : _buildLockedBar(),
+                  _isThresholdReached ? _buildQuizButton(context) : _buildLockedBar(context),
             ),
           ),
         ],
@@ -192,32 +226,84 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
     );
   }
 
+  Widget _buildBufferingOverlay() {
+    final t = AppLocalizations.of(context);
+    final label = !_isReady ? t.theoryPlayerLoadingVideo : t.theoryPlayerBuffering;
+    final bufferedSecs = _buffered.inSeconds;
+    return Container(
+      color: Colors.black.withValues(alpha: 0.45),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 36,
+            height: 36,
+            child: CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 3,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            label,
+            style: AppTextStyles.bodySm.copyWith(color: Colors.white),
+          ),
+          if (_isReady && bufferedSecs > 0) ...[
+            const SizedBox(height: 4),
+            Text(
+              t.theoryPlayerBufferedSecs(bufferedSecs),
+              style: AppTextStyles.bodyXs
+                  .copyWith(color: Colors.white.withValues(alpha: 0.6)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _localizedError(AppLocalizations t) => switch (_error) {
+        _PlayerError.noVideoUrl  => t.theoryPlayerNoVideoUrl,
+        _PlayerError.loadTimeout => t.theoryPlayerLoadTimeout,
+        _PlayerError.loadFailed  => t.theoryPlayerLoadFailed(_errorDetail ?? ''),
+        null                     => '',
+      };
+
   Widget _buildErrorWidget() {
+    final t = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsetsDirectional.all(AppSpacing.lg),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(Icons.error_outline_rounded,
               color: Colors.white54, size: 48),
           const SizedBox(height: AppSpacing.md),
-          Text(_error!,
+          Text(_localizedError(t),
               style: AppTextStyles.bodySm.copyWith(color: Colors.white70),
               textAlign: TextAlign.center),
           const SizedBox(height: AppSpacing.md),
           TextButton(
             onPressed: () {
-              setState(() => _error = null);
+              _readyTimeout?.cancel();
+              setState(() {
+                _error = null;
+                _errorDetail = null;
+                _isReady = false;
+                _buffered = Duration.zero;
+              });
               _initializePlayer();
             },
-            child: const Text('Retry', style: TextStyle(color: Colors.white)),
+            child: Text(t.theoryPlayerRetry,
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQuizButton() {
+  Widget _buildQuizButton(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return ElevatedButton(
       onPressed: _onTakeQuiz,
       style: ElevatedButton.styleFrom(
@@ -227,21 +313,22 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
         textStyle: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.quiz_rounded, size: 20),
-          SizedBox(width: 10),
-          Text('Take Quiz'),
+          const Icon(Icons.quiz_rounded, size: 20),
+          const SizedBox(width: 10),
+          Text(t.theoryPlayerTakeQuiz),
         ],
       ),
     );
   }
 
-  Widget _buildLockedBar() {
+  Widget _buildLockedBar(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsetsDirectional.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(24),
@@ -253,7 +340,7 @@ class _TheoryPlayerScreenState extends State<TheoryPlayerScreen> {
               size: 14, color: Colors.white.withValues(alpha: 0.6)),
           const SizedBox(width: 8),
           Text(
-            'Watch full video to unlock the quiz',
+            t.theoryPlayerLockedHint,
             style: AppTextStyles.bodyXs
                 .copyWith(color: Colors.white.withValues(alpha: 0.7)),
           ),

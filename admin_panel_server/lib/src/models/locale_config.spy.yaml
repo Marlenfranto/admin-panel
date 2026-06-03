@@ -1,0 +1,19 @@
+class: LocaleConfig
+table: locale_config
+fields:
+  organization: Organization?, relation(optional)
+  regionCode: String
+  languageCode: String
+  localeKey: String
+  displayName: String
+  enabled: bool, default=true, defaultPersist=true
+  isDefault: bool, default=false, defaultPersist=false
+  fallbackLocaleKey: String?
+indexes:
+  locale_config_org_key_idx:
+    fields: organizationId, localeKey
+    unique: true
+  locale_config_org_idx:
+    fields: organizationId
+  locale_config_key_idx:
+    fields: localeKey

@@ -12,6 +12,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
+/// DEPRECATED (future): superseded by LocaleConfig. Kept while the legacy
+/// "Supported Languages" config editor in admin_modules_screen still uses it.
+/// Non-persistent (lives inside ModuleConfig.supportedLanguages which is also
+/// !persist) so storage is unaffected.
 abstract class SupportedLanguage implements _i1.SerializableModel {
   SupportedLanguage._({
     required this.code,

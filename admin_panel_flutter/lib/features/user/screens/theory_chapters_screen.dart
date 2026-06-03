@@ -2,6 +2,7 @@ import 'package:admin_panel_client/admin_panel_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/responsive_helper.dart';
 import '../providers/theory_providers.dart';
 import 'theory_player_screen.dart';
@@ -11,14 +12,21 @@ class TheoryChaptersScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
     final chaptersAsync = ref.watch(theoryChaptersProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Theory Modules', style: AppTextStyles.headingSm),
+        title: Text(t.theoryChaptersTitle, style: AppTextStyles.headingSm),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          // arrow_back_rounded mirrors automatically with the AppBar's
+          // Directionality on Material 3, but we set it explicitly to be
+          // safe in custom layouts.
+          icon: Icon(
+            Icons.arrow_back,
+            textDirection: Directionality.of(context),
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -26,7 +34,7 @@ class TheoryChaptersScreen extends ConsumerWidget {
         data: (chapters) => _ChaptersGrid(chapters: chapters),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, stack) => Center(
-          child: Text('Error loading theory chapters: $e',
+          child: Text(t.theoryChaptersErrorLoading(e.toString()),
               style: AppTextStyles.bodySm.copyWith(color: AppColors.error)),
         ),
       ),
@@ -41,20 +49,22 @@ class _ChaptersGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+
     if (chapters.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsetsDirectional.all(AppSpacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.menu_book_rounded,
                   size: 48, color: AppColors.onSurfaceSubtle),
               const SizedBox(height: AppSpacing.md),
-              Text('No theory chapters available',
+              Text(t.theoryChaptersEmptyTitle,
                   style: AppTextStyles.headingSm),
               const SizedBox(height: 4),
-              Text('Theory content has not been configured for your organization.',
+              Text(t.theoryChaptersEmptyDesc,
                   style: AppTextStyles.bodySm, textAlign: TextAlign.center),
             ],
           ),
@@ -70,7 +80,7 @@ class _ChaptersGrid extends StatelessWidget {
         // Mobile: single-column list (no fixed aspect ratio → intrinsic height)
         if (w <= 600) {
           return ListView.separated(
-            padding: EdgeInsets.all(padding),
+            padding: EdgeInsetsDirectional.all(padding),
             itemCount: chapters.length,
             separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
             itemBuilder: (_, i) => _ChapterCard(item: chapters[i]),
@@ -80,7 +90,7 @@ class _ChaptersGrid extends StatelessWidget {
         // Tablet / Desktop: grid
         final crossAxisCount = w > 1200 ? 4 : (w > 800 ? 3 : 2);
         return GridView.builder(
-          padding: EdgeInsets.all(padding),
+          padding: EdgeInsetsDirectional.all(padding),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: AppSpacing.md,
@@ -102,6 +112,7 @@ class _ChapterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final chapter = item.chapter;
     final progress = item.progress;
     final status = progress?.status ?? ModuleProgressStatus.notStarted;
@@ -138,11 +149,11 @@ class _ChapterCard extends StatelessWidget {
                         ),
                 ),
                 if (status == ModuleProgressStatus.completed)
-                  Positioned(
+                  PositionedDirectional(
                     top: 8,
-                    right: 8,
+                    end: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.success,
                         borderRadius: BorderRadius.circular(4),
@@ -151,17 +162,17 @@ class _ChapterCard extends StatelessWidget {
                         children: [
                           const Icon(Icons.check_circle, size: 12, color: Colors.white),
                           const SizedBox(width: 4),
-                          Text('Completed', style: AppTextStyles.labelXs.copyWith(color: Colors.white)),
+                          Text(t.statusCompleted, style: AppTextStyles.labelXs.copyWith(color: Colors.white)),
                         ],
                       ),
                     ),
                   ),
               ],
             ),
-            
+
             // Body
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsetsDirectional.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -176,7 +187,8 @@ class _ChapterCard extends StatelessWidget {
                     children: [
                       Icon(Icons.quiz_rounded, size: 14, color: AppColors.onSurfaceMuted),
                       const SizedBox(width: 4),
-                      Text('${chapter.questions?.length ?? 0} Questions', style: AppTextStyles.bodyXs),
+                      Text(t.theoryChaptersQuestionsCount(chapter.questions?.length ?? 0),
+                          style: AppTextStyles.bodyXs),
                       const Spacer(),
                       if (score != null)
                         Text('$score%', style: AppTextStyles.labelSm.copyWith(
@@ -186,7 +198,7 @@ class _ChapterCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  _buildStatusBar(status),
+                  _buildStatusBar(t, status),
                 ],
               ),
             ),
@@ -196,22 +208,22 @@ class _ChapterCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBar(ModuleProgressStatus status) {
+  Widget _buildStatusBar(AppLocalizations t, ModuleProgressStatus status) {
     Color color;
     String label;
-    
+
     switch (status) {
       case ModuleProgressStatus.completed:
         color = AppColors.success;
-        label = 'Completed';
+        label = t.statusCompleted;
         break;
       case ModuleProgressStatus.inProgress:
         color = AppColors.warning;
-        label = 'In Progress';
+        label = t.statusInProgress;
         break;
       case ModuleProgressStatus.notStarted:
         color = AppColors.onSurfaceSubtle;
-        label = 'Not Started';
+        label = t.statusNotStarted;
     }
 
     return Row(

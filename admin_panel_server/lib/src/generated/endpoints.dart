@@ -27,11 +27,23 @@ import 'package:admin_panel_server/src/generated/training_parameter.dart'
 import 'package:admin_panel_server/src/generated/assessment_parameter.dart'
     as _i12;
 import 'package:admin_panel_server/src/generated/asset.dart' as _i13;
+import 'package:admin_panel_server/src/generated/region.dart' as _i14;
+import 'package:admin_panel_server/src/generated/locale_config.dart' as _i15;
 import 'package:admin_panel_server/src/generated/module_progress_status.dart'
-    as _i14;
+    as _i16;
+import 'package:admin_panel_server/src/generated/theory_chapter_localization.dart'
+    as _i17;
+import 'package:admin_panel_server/src/generated/localized_quiz_content.dart'
+    as _i18;
+import 'package:admin_panel_server/src/generated/training_parameter_localization.dart'
+    as _i19;
+import 'package:admin_panel_server/src/generated/assessment_parameter_localization.dart'
+    as _i20;
+import 'package:admin_panel_server/src/generated/asset_localization.dart'
+    as _i21;
 import 'package:admin_panel_server/src/generated/training_criteria_score.dart'
-    as _i15;
-import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i16;
+    as _i22;
+import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i23;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -664,6 +676,154 @@ class Endpoints extends _i1.EndpointDispatch {
                 params['assetId'],
               ),
         ),
+        'listRegions': _i1.MethodConnector(
+          name: 'listRegions',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint).listRegions(
+                session,
+                params['organizationId'],
+              ),
+        ),
+        'upsertRegion': _i1.MethodConnector(
+          name: 'upsertRegion',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'region': _i1.ParameterDescription(
+              name: 'region',
+              type: _i1.getType<_i14.Region>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint).upsertRegion(
+                session,
+                params['organizationId'],
+                params['region'],
+              ),
+        ),
+        'deleteRegion': _i1.MethodConnector(
+          name: 'deleteRegion',
+          params: {
+            'regionId': _i1.ParameterDescription(
+              name: 'regionId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint).deleteRegion(
+                session,
+                params['regionId'],
+              ),
+        ),
+        'listLocaleConfigs': _i1.MethodConnector(
+          name: 'listLocaleConfigs',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i2.AdminEndpoint).listLocaleConfigs(
+                    session,
+                    params['organizationId'],
+                  ),
+        ),
+        'upsertLocaleConfig': _i1.MethodConnector(
+          name: 'upsertLocaleConfig',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'locale': _i1.ParameterDescription(
+              name: 'locale',
+              type: _i1.getType<_i15.LocaleConfig>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i2.AdminEndpoint).upsertLocaleConfig(
+                    session,
+                    params['organizationId'],
+                    params['locale'],
+                  ),
+        ),
+        'deleteLocaleConfig': _i1.MethodConnector(
+          name: 'deleteLocaleConfig',
+          params: {
+            'localeConfigId': _i1.ParameterDescription(
+              name: 'localeConfigId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i2.AdminEndpoint).deleteLocaleConfig(
+                    session,
+                    params['localeConfigId'],
+                  ),
+        ),
+        'setDefaultLocale': _i1.MethodConnector(
+          name: 'setDefaultLocale',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i2.AdminEndpoint).setDefaultLocale(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
+                  ),
+        ),
         'getUserModuleProgress': _i1.MethodConnector(
           name: 'getUserModuleProgress',
           params: {
@@ -893,7 +1053,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i14.ModuleProgressStatus>(),
+              type: _i1.getType<_i16.ModuleProgressStatus>(),
               nullable: false,
             ),
             'startedAt': _i1.ParameterDescription(
@@ -920,6 +1080,389 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['status'],
                     params['startedAt'],
                     params['completedAt'],
+                  ),
+        ),
+        'listTheoryChapterLocalizations': _i1.MethodConnector(
+          name: 'listTheoryChapterLocalizations',
+          params: {
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .listTheoryChapterLocalizations(
+                    session,
+                    params['chapterId'],
+                  ),
+        ),
+        'upsertTheoryChapterLocalization': _i1.MethodConnector(
+          name: 'upsertTheoryChapterLocalization',
+          params: {
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i17.TheoryChapterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .upsertTheoryChapterLocalization(
+                    session,
+                    params['chapterId'],
+                    params['loc'],
+                  ),
+        ),
+        'setTheoryChapterQuizTranslations': _i1.MethodConnector(
+          name: 'setTheoryChapterQuizTranslations',
+          params: {
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'questionTranslations': _i1.ParameterDescription(
+              name: 'questionTranslations',
+              type: _i1.getType<List<_i18.LocalizedQuizContent>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .setTheoryChapterQuizTranslations(
+                    session,
+                    params['chapterId'],
+                    params['localeKey'],
+                    params['questionTranslations'],
+                  ),
+        ),
+        'deleteTheoryChapterLocalization': _i1.MethodConnector(
+          name: 'deleteTheoryChapterLocalization',
+          params: {
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .deleteTheoryChapterLocalization(
+                    session,
+                    params['localizationId'],
+                  ),
+        ),
+        'listTrainingParameterLocalizations': _i1.MethodConnector(
+          name: 'listTrainingParameterLocalizations',
+          params: {
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .listTrainingParameterLocalizations(
+                    session,
+                    params['parameterId'],
+                  ),
+        ),
+        'upsertTrainingParameterLocalization': _i1.MethodConnector(
+          name: 'upsertTrainingParameterLocalization',
+          params: {
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i19.TrainingParameterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .upsertTrainingParameterLocalization(
+                    session,
+                    params['parameterId'],
+                    params['loc'],
+                  ),
+        ),
+        'deleteTrainingParameterLocalization': _i1.MethodConnector(
+          name: 'deleteTrainingParameterLocalization',
+          params: {
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .deleteTrainingParameterLocalization(
+                    session,
+                    params['localizationId'],
+                  ),
+        ),
+        'listAssessmentParameterLocalizations': _i1.MethodConnector(
+          name: 'listAssessmentParameterLocalizations',
+          params: {
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .listAssessmentParameterLocalizations(
+                    session,
+                    params['parameterId'],
+                  ),
+        ),
+        'upsertAssessmentParameterLocalization': _i1.MethodConnector(
+          name: 'upsertAssessmentParameterLocalization',
+          params: {
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i20.AssessmentParameterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .upsertAssessmentParameterLocalization(
+                    session,
+                    params['parameterId'],
+                    params['loc'],
+                  ),
+        ),
+        'deleteAssessmentParameterLocalization': _i1.MethodConnector(
+          name: 'deleteAssessmentParameterLocalization',
+          params: {
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .deleteAssessmentParameterLocalization(
+                    session,
+                    params['localizationId'],
+                  ),
+        ),
+        'listAssetLocalizations': _i1.MethodConnector(
+          name: 'listAssetLocalizations',
+          params: {
+            'assetId': _i1.ParameterDescription(
+              name: 'assetId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .listAssetLocalizations(
+                    session,
+                    params['assetId'],
+                  ),
+        ),
+        'upsertAssetLocalization': _i1.MethodConnector(
+          name: 'upsertAssetLocalization',
+          params: {
+            'assetId': _i1.ParameterDescription(
+              name: 'assetId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i21.AssetLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .upsertAssetLocalization(
+                    session,
+                    params['assetId'],
+                    params['loc'],
+                  ),
+        ),
+        'deleteAssetLocalization': _i1.MethodConnector(
+          name: 'deleteAssetLocalization',
+          params: {
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .deleteAssetLocalization(
+                    session,
+                    params['localizationId'],
+                  ),
+        ),
+        'getTheoryChaptersLocalized': _i1.MethodConnector(
+          name: 'getTheoryChaptersLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .getTheoryChaptersLocalized(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getTrainingParametersLocalized': _i1.MethodConnector(
+          name: 'getTrainingParametersLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .getTrainingParametersLocalized(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getAssessmentParametersLocalized': _i1.MethodConnector(
+          name: 'getAssessmentParametersLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .getAssessmentParametersLocalized(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getAssetsLocalized': _i1.MethodConnector(
+          name: 'getAssetsLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i2.AdminEndpoint).getAssetsLocalized(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
                   ),
         ),
       },
@@ -1448,7 +1991,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i14.ModuleProgressStatus>(),
+              type: _i1.getType<_i16.ModuleProgressStatus>(),
               nullable: false,
             ),
             'startedAt': _i1.ParameterDescription(
@@ -1690,6 +2233,630 @@ class Endpoints extends _i1.EndpointDispatch {
                   .deleteNotification(
                     session,
                     params['notificationId'],
+                  ),
+        ),
+        'listManagedRegions': _i1.MethodConnector(
+          name: 'listManagedRegions',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .listManagedRegions(
+                    session,
+                    params['organizationId'],
+                  ),
+        ),
+        'upsertManagedRegion': _i1.MethodConnector(
+          name: 'upsertManagedRegion',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'region': _i1.ParameterDescription(
+              name: 'region',
+              type: _i1.getType<_i14.Region>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .upsertManagedRegion(
+                    session,
+                    params['organizationId'],
+                    params['region'],
+                  ),
+        ),
+        'deleteManagedRegion': _i1.MethodConnector(
+          name: 'deleteManagedRegion',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'regionId': _i1.ParameterDescription(
+              name: 'regionId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .deleteManagedRegion(
+                    session,
+                    params['organizationId'],
+                    params['regionId'],
+                  ),
+        ),
+        'listManagedLocaleConfigs': _i1.MethodConnector(
+          name: 'listManagedLocaleConfigs',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .listManagedLocaleConfigs(
+                    session,
+                    params['organizationId'],
+                  ),
+        ),
+        'upsertManagedLocaleConfig': _i1.MethodConnector(
+          name: 'upsertManagedLocaleConfig',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'locale': _i1.ParameterDescription(
+              name: 'locale',
+              type: _i1.getType<_i15.LocaleConfig>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .upsertManagedLocaleConfig(
+                    session,
+                    params['organizationId'],
+                    params['locale'],
+                  ),
+        ),
+        'deleteManagedLocaleConfig': _i1.MethodConnector(
+          name: 'deleteManagedLocaleConfig',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeConfigId': _i1.ParameterDescription(
+              name: 'localeConfigId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .deleteManagedLocaleConfig(
+                    session,
+                    params['organizationId'],
+                    params['localeConfigId'],
+                  ),
+        ),
+        'setManagedDefaultLocale': _i1.MethodConnector(
+          name: 'setManagedDefaultLocale',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .setManagedDefaultLocale(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
+                  ),
+        ),
+        'listManagedTheoryChapterLocalizations': _i1.MethodConnector(
+          name: 'listManagedTheoryChapterLocalizations',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .listManagedTheoryChapterLocalizations(
+                    session,
+                    params['organizationId'],
+                    params['chapterId'],
+                  ),
+        ),
+        'upsertManagedTheoryChapterLocalization': _i1.MethodConnector(
+          name: 'upsertManagedTheoryChapterLocalization',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i17.TheoryChapterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .upsertManagedTheoryChapterLocalization(
+                    session,
+                    params['organizationId'],
+                    params['chapterId'],
+                    params['loc'],
+                  ),
+        ),
+        'setManagedTheoryChapterQuizTranslations': _i1.MethodConnector(
+          name: 'setManagedTheoryChapterQuizTranslations',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'questionTranslations': _i1.ParameterDescription(
+              name: 'questionTranslations',
+              type: _i1.getType<List<_i18.LocalizedQuizContent>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .setManagedTheoryChapterQuizTranslations(
+                    session,
+                    params['organizationId'],
+                    params['chapterId'],
+                    params['localeKey'],
+                    params['questionTranslations'],
+                  ),
+        ),
+        'deleteManagedTheoryChapterLocalization': _i1.MethodConnector(
+          name: 'deleteManagedTheoryChapterLocalization',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .deleteManagedTheoryChapterLocalization(
+                    session,
+                    params['organizationId'],
+                    params['localizationId'],
+                  ),
+        ),
+        'listManagedTrainingParameterLocalizations': _i1.MethodConnector(
+          name: 'listManagedTrainingParameterLocalizations',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .listManagedTrainingParameterLocalizations(
+                    session,
+                    params['organizationId'],
+                    params['parameterId'],
+                  ),
+        ),
+        'upsertManagedTrainingParameterLocalization': _i1.MethodConnector(
+          name: 'upsertManagedTrainingParameterLocalization',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i19.TrainingParameterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .upsertManagedTrainingParameterLocalization(
+                    session,
+                    params['organizationId'],
+                    params['parameterId'],
+                    params['loc'],
+                  ),
+        ),
+        'deleteManagedTrainingParameterLocalization': _i1.MethodConnector(
+          name: 'deleteManagedTrainingParameterLocalization',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .deleteManagedTrainingParameterLocalization(
+                    session,
+                    params['organizationId'],
+                    params['localizationId'],
+                  ),
+        ),
+        'listManagedAssessmentParameterLocalizations': _i1.MethodConnector(
+          name: 'listManagedAssessmentParameterLocalizations',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .listManagedAssessmentParameterLocalizations(
+                    session,
+                    params['organizationId'],
+                    params['parameterId'],
+                  ),
+        ),
+        'upsertManagedAssessmentParameterLocalization': _i1.MethodConnector(
+          name: 'upsertManagedAssessmentParameterLocalization',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i20.AssessmentParameterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .upsertManagedAssessmentParameterLocalization(
+                    session,
+                    params['organizationId'],
+                    params['parameterId'],
+                    params['loc'],
+                  ),
+        ),
+        'deleteManagedAssessmentParameterLocalization': _i1.MethodConnector(
+          name: 'deleteManagedAssessmentParameterLocalization',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .deleteManagedAssessmentParameterLocalization(
+                    session,
+                    params['organizationId'],
+                    params['localizationId'],
+                  ),
+        ),
+        'listManagedAssetLocalizations': _i1.MethodConnector(
+          name: 'listManagedAssetLocalizations',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'assetId': _i1.ParameterDescription(
+              name: 'assetId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .listManagedAssetLocalizations(
+                    session,
+                    params['organizationId'],
+                    params['assetId'],
+                  ),
+        ),
+        'upsertManagedAssetLocalization': _i1.MethodConnector(
+          name: 'upsertManagedAssetLocalization',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'assetId': _i1.ParameterDescription(
+              name: 'assetId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i21.AssetLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .upsertManagedAssetLocalization(
+                    session,
+                    params['organizationId'],
+                    params['assetId'],
+                    params['loc'],
+                  ),
+        ),
+        'deleteManagedAssetLocalization': _i1.MethodConnector(
+          name: 'deleteManagedAssetLocalization',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .deleteManagedAssetLocalization(
+                    session,
+                    params['organizationId'],
+                    params['localizationId'],
+                  ),
+        ),
+        'getManagedTheoryChaptersLocalized': _i1.MethodConnector(
+          name: 'getManagedTheoryChaptersLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .getManagedTheoryChaptersLocalized(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getManagedTrainingParametersLocalized': _i1.MethodConnector(
+          name: 'getManagedTrainingParametersLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .getManagedTrainingParametersLocalized(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getManagedAssessmentParametersLocalized': _i1.MethodConnector(
+          name: 'getManagedAssessmentParametersLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .getManagedAssessmentParametersLocalized(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getManagedAssetsLocalized': _i1.MethodConnector(
+          name: 'getManagedAssetsLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['manager'] as _i3.ManagerEndpoint)
+                  .getManagedAssetsLocalized(
+                    session,
+                    params['organizationId'],
+                    params['localeKey'],
                   ),
         ),
       },
@@ -2121,7 +3288,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i14.ModuleProgressStatus>(),
+              type: _i1.getType<_i16.ModuleProgressStatus>(),
               nullable: false,
             ),
             'startedAt': _i1.ParameterDescription(
@@ -2523,6 +3690,528 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['appUserId'],
                       ),
         ),
+        'listMyRegions': _i1.MethodConnector(
+          name: 'listMyRegions',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .listMyRegions(session),
+        ),
+        'upsertMyRegion': _i1.MethodConnector(
+          name: 'upsertMyRegion',
+          params: {
+            'region': _i1.ParameterDescription(
+              name: 'region',
+              type: _i1.getType<_i14.Region>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .upsertMyRegion(
+                        session,
+                        params['region'],
+                      ),
+        ),
+        'deleteMyRegion': _i1.MethodConnector(
+          name: 'deleteMyRegion',
+          params: {
+            'regionId': _i1.ParameterDescription(
+              name: 'regionId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .deleteMyRegion(
+                        session,
+                        params['regionId'],
+                      ),
+        ),
+        'listMyLocaleConfigs': _i1.MethodConnector(
+          name: 'listMyLocaleConfigs',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .listMyLocaleConfigs(session),
+        ),
+        'upsertMyLocaleConfig': _i1.MethodConnector(
+          name: 'upsertMyLocaleConfig',
+          params: {
+            'locale': _i1.ParameterDescription(
+              name: 'locale',
+              type: _i1.getType<_i15.LocaleConfig>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .upsertMyLocaleConfig(
+                        session,
+                        params['locale'],
+                      ),
+        ),
+        'deleteMyLocaleConfig': _i1.MethodConnector(
+          name: 'deleteMyLocaleConfig',
+          params: {
+            'localeConfigId': _i1.ParameterDescription(
+              name: 'localeConfigId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .deleteMyLocaleConfig(
+                        session,
+                        params['localeConfigId'],
+                      ),
+        ),
+        'setMyDefaultLocale': _i1.MethodConnector(
+          name: 'setMyDefaultLocale',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .setMyDefaultLocale(
+                        session,
+                        params['localeKey'],
+                      ),
+        ),
+        'listMyTheoryChapterLocalizations': _i1.MethodConnector(
+          name: 'listMyTheoryChapterLocalizations',
+          params: {
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .listMyTheoryChapterLocalizations(
+                        session,
+                        params['chapterId'],
+                      ),
+        ),
+        'upsertMyTheoryChapterLocalization': _i1.MethodConnector(
+          name: 'upsertMyTheoryChapterLocalization',
+          params: {
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i17.TheoryChapterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .upsertMyTheoryChapterLocalization(
+                        session,
+                        params['chapterId'],
+                        params['loc'],
+                      ),
+        ),
+        'setMyTheoryChapterQuizTranslations': _i1.MethodConnector(
+          name: 'setMyTheoryChapterQuizTranslations',
+          params: {
+            'chapterId': _i1.ParameterDescription(
+              name: 'chapterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'questionTranslations': _i1.ParameterDescription(
+              name: 'questionTranslations',
+              type: _i1.getType<List<_i18.LocalizedQuizContent>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .setMyTheoryChapterQuizTranslations(
+                        session,
+                        params['chapterId'],
+                        params['localeKey'],
+                        params['questionTranslations'],
+                      ),
+        ),
+        'deleteMyTheoryChapterLocalization': _i1.MethodConnector(
+          name: 'deleteMyTheoryChapterLocalization',
+          params: {
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .deleteMyTheoryChapterLocalization(
+                        session,
+                        params['localizationId'],
+                      ),
+        ),
+        'listMyTrainingParameterLocalizations': _i1.MethodConnector(
+          name: 'listMyTrainingParameterLocalizations',
+          params: {
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .listMyTrainingParameterLocalizations(
+                        session,
+                        params['parameterId'],
+                      ),
+        ),
+        'upsertMyTrainingParameterLocalization': _i1.MethodConnector(
+          name: 'upsertMyTrainingParameterLocalization',
+          params: {
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i19.TrainingParameterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .upsertMyTrainingParameterLocalization(
+                        session,
+                        params['parameterId'],
+                        params['loc'],
+                      ),
+        ),
+        'deleteMyTrainingParameterLocalization': _i1.MethodConnector(
+          name: 'deleteMyTrainingParameterLocalization',
+          params: {
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .deleteMyTrainingParameterLocalization(
+                        session,
+                        params['localizationId'],
+                      ),
+        ),
+        'listMyAssessmentParameterLocalizations': _i1.MethodConnector(
+          name: 'listMyAssessmentParameterLocalizations',
+          params: {
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .listMyAssessmentParameterLocalizations(
+                        session,
+                        params['parameterId'],
+                      ),
+        ),
+        'upsertMyAssessmentParameterLocalization': _i1.MethodConnector(
+          name: 'upsertMyAssessmentParameterLocalization',
+          params: {
+            'parameterId': _i1.ParameterDescription(
+              name: 'parameterId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i20.AssessmentParameterLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .upsertMyAssessmentParameterLocalization(
+                        session,
+                        params['parameterId'],
+                        params['loc'],
+                      ),
+        ),
+        'deleteMyAssessmentParameterLocalization': _i1.MethodConnector(
+          name: 'deleteMyAssessmentParameterLocalization',
+          params: {
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .deleteMyAssessmentParameterLocalization(
+                        session,
+                        params['localizationId'],
+                      ),
+        ),
+        'listMyAssetLocalizations': _i1.MethodConnector(
+          name: 'listMyAssetLocalizations',
+          params: {
+            'assetId': _i1.ParameterDescription(
+              name: 'assetId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .listMyAssetLocalizations(
+                        session,
+                        params['assetId'],
+                      ),
+        ),
+        'upsertMyAssetLocalization': _i1.MethodConnector(
+          name: 'upsertMyAssetLocalization',
+          params: {
+            'assetId': _i1.ParameterDescription(
+              name: 'assetId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'loc': _i1.ParameterDescription(
+              name: 'loc',
+              type: _i1.getType<_i21.AssetLocalization>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .upsertMyAssetLocalization(
+                        session,
+                        params['assetId'],
+                        params['loc'],
+                      ),
+        ),
+        'deleteMyAssetLocalization': _i1.MethodConnector(
+          name: 'deleteMyAssetLocalization',
+          params: {
+            'localizationId': _i1.ParameterDescription(
+              name: 'localizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .deleteMyAssetLocalization(
+                        session,
+                        params['localizationId'],
+                      ),
+        ),
+        'getMyTheoryChaptersLocalized': _i1.MethodConnector(
+          name: 'getMyTheoryChaptersLocalized',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .getMyTheoryChaptersLocalized(
+                        session,
+                        params['localeKey'],
+                      ),
+        ),
+        'getMyTrainingParametersLocalized': _i1.MethodConnector(
+          name: 'getMyTrainingParametersLocalized',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .getMyTrainingParametersLocalized(
+                        session,
+                        params['localeKey'],
+                      ),
+        ),
+        'getMyAssessmentParametersLocalized': _i1.MethodConnector(
+          name: 'getMyAssessmentParametersLocalized',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .getMyAssessmentParametersLocalized(
+                        session,
+                        params['localeKey'],
+                      ),
+        ),
+        'getMyAssetsLocalized': _i1.MethodConnector(
+          name: 'getMyAssetsLocalized',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['organizationAdmin']
+                          as _i4.OrganizationAdminEndpoint)
+                      .getMyAssetsLocalized(
+                        session,
+                        params['localeKey'],
+                      ),
+        ),
       },
     );
     connectors['publicApi'] = _i1.EndpointConnector(
@@ -2760,7 +4449,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i14.ModuleProgressStatus>(),
+              type: _i1.getType<_i16.ModuleProgressStatus>(),
               nullable: false,
             ),
           },
@@ -2803,7 +4492,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'criteriaValidation': _i1.ParameterDescription(
               name: 'criteriaValidation',
-              type: _i1.getType<List<_i15.TrainingCriteriaScore>>(),
+              type: _i1.getType<List<_i22.TrainingCriteriaScore>>(),
               nullable: false,
             ),
           },
@@ -2819,6 +4508,180 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['userId'],
                     params['overallPercentage'],
                     params['criteriaValidation'],
+                  ),
+        ),
+        'getLocales': _i1.MethodConnector(
+          name: 'getLocales',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'apiKey': _i1.ParameterDescription(
+              name: 'apiKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['publicApi'] as _i5.PublicApiEndpoint).getLocales(
+                    session,
+                    params['organizationId'],
+                    params['apiKey'],
+                  ),
+        ),
+        'getRegions': _i1.MethodConnector(
+          name: 'getRegions',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'apiKey': _i1.ParameterDescription(
+              name: 'apiKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['publicApi'] as _i5.PublicApiEndpoint).getRegions(
+                    session,
+                    params['organizationId'],
+                    params['apiKey'],
+                  ),
+        ),
+        'getTheorySectionLocalized': _i1.MethodConnector(
+          name: 'getTheorySectionLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'apiKey': _i1.ParameterDescription(
+              name: 'apiKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['publicApi'] as _i5.PublicApiEndpoint)
+                  .getTheorySectionLocalized(
+                    session,
+                    params['organizationId'],
+                    params['apiKey'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getTrainingParametersLocalized': _i1.MethodConnector(
+          name: 'getTrainingParametersLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'apiKey': _i1.ParameterDescription(
+              name: 'apiKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['publicApi'] as _i5.PublicApiEndpoint)
+                  .getTrainingParametersLocalized(
+                    session,
+                    params['organizationId'],
+                    params['apiKey'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getAssessmentParametersLocalized': _i1.MethodConnector(
+          name: 'getAssessmentParametersLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'apiKey': _i1.ParameterDescription(
+              name: 'apiKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['publicApi'] as _i5.PublicApiEndpoint)
+                  .getAssessmentParametersLocalized(
+                    session,
+                    params['organizationId'],
+                    params['apiKey'],
+                    params['localeKey'],
+                  ),
+        ),
+        'getAssetsLocalized': _i1.MethodConnector(
+          name: 'getAssetsLocalized',
+          params: {
+            'organizationId': _i1.ParameterDescription(
+              name: 'organizationId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'apiKey': _i1.ParameterDescription(
+              name: 'apiKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['publicApi'] as _i5.PublicApiEndpoint)
+                  .getAssetsLocalized(
+                    session,
+                    params['organizationId'],
+                    params['apiKey'],
+                    params['localeKey'],
                   ),
         ),
       },
@@ -2877,6 +4740,63 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['user'] as _i6.UserEndpoint)
                   .getAssessmentParameters(session),
         ),
+        'getLocalizedTheoryChapters': _i1.MethodConnector(
+          name: 'getLocalizedTheoryChapters',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['user'] as _i6.UserEndpoint)
+                  .getLocalizedTheoryChapters(
+                    session,
+                    params['localeKey'],
+                  ),
+        ),
+        'getLocalizedTrainingParameters': _i1.MethodConnector(
+          name: 'getLocalizedTrainingParameters',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['user'] as _i6.UserEndpoint)
+                  .getLocalizedTrainingParameters(
+                    session,
+                    params['localeKey'],
+                  ),
+        ),
+        'getLocalizedAssessmentParameters': _i1.MethodConnector(
+          name: 'getLocalizedAssessmentParameters',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['user'] as _i6.UserEndpoint)
+                  .getLocalizedAssessmentParameters(
+                    session,
+                    params['localeKey'],
+                  ),
+        ),
         'changePassword': _i1.MethodConnector(
           name: 'changePassword',
           params: {
@@ -2900,6 +4820,35 @@ class Endpoints extends _i1.EndpointDispatch {
                 params['currentPassword'],
                 params['newPassword'],
               ),
+        ),
+        'getMyLocales': _i1.MethodConnector(
+          name: 'getMyLocales',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['user'] as _i6.UserEndpoint).getMyLocales(session),
+        ),
+        'setPreferredLocale': _i1.MethodConnector(
+          name: 'setPreferredLocale',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['user'] as _i6.UserEndpoint).setPreferredLocale(
+                    session,
+                    params['localeKey'],
+                  ),
         ),
         'getMyModuleProgress': _i1.MethodConnector(
           name: 'getMyModuleProgress',
@@ -2926,7 +4875,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'criteriaScores': _i1.ParameterDescription(
               name: 'criteriaScores',
-              type: _i1.getType<List<_i15.TrainingCriteriaScore>>(),
+              type: _i1.getType<List<_i22.TrainingCriteriaScore>>(),
               nullable: false,
             ),
           },
@@ -2962,7 +4911,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'status': _i1.ParameterDescription(
               name: 'status',
-              type: _i1.getType<_i14.ModuleProgressStatus>(),
+              type: _i1.getType<_i16.ModuleProgressStatus>(),
               nullable: false,
             ),
           },
@@ -2975,6 +4924,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['moduleId'],
                     params['status'],
+                  ),
+        ),
+        'getLocalizedTheoryChaptersWithProgress': _i1.MethodConnector(
+          name: 'getLocalizedTheoryChaptersWithProgress',
+          params: {
+            'localeKey': _i1.ParameterDescription(
+              name: 'localeKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['user'] as _i6.UserEndpoint)
+                  .getLocalizedTheoryChaptersWithProgress(
+                    session,
+                    params['localeKey'],
                   ),
         ),
         'getTheoryChaptersWithProgress': _i1.MethodConnector(
@@ -3014,6 +4982,6 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth'] = _i16.Endpoints()..initializeEndpoints(server);
+    modules['serverpod_auth'] = _i23.Endpoints()..initializeEndpoints(server);
   }
 }

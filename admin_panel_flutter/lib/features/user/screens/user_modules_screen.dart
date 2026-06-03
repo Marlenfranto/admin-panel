@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'theory_chapters_screen.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../providers/user_providers.dart';
 import '../../../src/providers.dart';
@@ -15,6 +16,7 @@ class UserModulesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t             = AppLocalizations.of(context);
     final configAsync   = ref.watch(userModuleConfigProvider);
     final progressAsync = ref.watch(userModuleProgressProvider);
     final historyAsync  = ref.watch(userTrainingHistoryProvider);
@@ -29,13 +31,13 @@ class UserModulesScreen extends ConsumerWidget {
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error:   (e, _) => Center(
-          child: Text('Error: $e',
+          child: Text(t.commonError(e.toString()),
               style: AppTextStyles.bodySm.copyWith(color: AppColors.error)),
         ),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error:   (e, _) => Center(
-        child: Text('Error: $e',
+        child: Text(t.commonError(e.toString()),
             style: AppTextStyles.bodySm.copyWith(color: AppColors.error)),
       ),
     );
@@ -57,40 +59,40 @@ class _ModulesContent extends StatelessWidget {
   final AsyncValue<List<TrainingSessionResult>> historyAsync;
   final int                                    passingPct;
 
-  static final _allModules = [
-    _ModuleInfo(
-      icon:  Icons.menu_book_rounded,
-      color: AppColors.theory,
-      label: 'Theory',
-      desc:  'Learn concepts, procedures and safety standards through structured lessons.',
-      key:   'theory',
-      activityTypes: [
-        (icon: Icons.play_circle_outline_rounded, label: 'Videos'),
-        (icon: Icons.quiz_outlined,               label: 'Quizzes'),
-      ],
-    ),
-    _ModuleInfo(
-      icon:  Icons.smart_toy_rounded,
-      color: AppColors.aiExpert,
-      label: 'AR Expert',
-      desc:  'Ask our AI assistant questions and get instant expert guidance.',
-      key:   'aiExpert',
-    ),
-    _ModuleInfo(
-      icon:  Icons.fitness_center_rounded,
-      color: AppColors.training,
-      label: 'Smart Training',
-      desc:  'Practice hands-on skills with guided training exercises and real-time feedback.',
-      key:   'smartTraining',
-    ),
-    _ModuleInfo(
-      icon:  Icons.quiz_rounded,
-      color: AppColors.assess,
-      label: 'Assessment',
-      desc:  'Test your knowledge and competency with structured evaluations.',
-      key:   'assessment',
-    ),
-  ];
+  List<_ModuleInfo> _modulesFor(AppLocalizations t) => [
+        _ModuleInfo(
+          icon:  Icons.menu_book_rounded,
+          color: AppColors.theory,
+          label: t.moduleTheoryLabel,
+          desc:  t.moduleTheoryDesc,
+          key:   'theory',
+          activityTypes: [
+            (icon: Icons.play_circle_outline_rounded, label: t.activityVideos),
+            (icon: Icons.quiz_outlined,               label: t.activityQuizzes),
+          ],
+        ),
+        _ModuleInfo(
+          icon:  Icons.smart_toy_rounded,
+          color: AppColors.aiExpert,
+          label: t.moduleAiExpertLabel,
+          desc:  t.moduleAiExpertDesc,
+          key:   'aiExpert',
+        ),
+        _ModuleInfo(
+          icon:  Icons.fitness_center_rounded,
+          color: AppColors.training,
+          label: t.moduleSmartTrainingLabel,
+          desc:  t.moduleSmartTrainingDesc,
+          key:   'smartTraining',
+        ),
+        _ModuleInfo(
+          icon:  Icons.quiz_rounded,
+          color: AppColors.assess,
+          label: t.moduleAssessmentLabel,
+          desc:  t.moduleAssessmentDesc,
+          key:   'assessment',
+        ),
+      ];
 
   bool _isGlobalEnabled(String key) {
     if (config == null) return false;
@@ -118,6 +120,7 @@ class _ModulesContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     if (config == null) {
       return SingleChildScrollView(
         padding: EdgeInsets.all(context.responsivePagePadding),
@@ -125,7 +128,8 @@ class _ModulesContent extends StatelessWidget {
       );
     }
 
-    final enabledModules = _allModules
+    final allModules = _modulesFor(t);
+    final enabledModules = allModules
         .where((m) => _isEffectiveEnabled(m.key))
         .toList();
 
@@ -143,10 +147,10 @@ class _ModulesContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ──────────────────────────────────────────────────────
-          Text('My Modules', style: AppTextStyles.headingLg),
+          Text(t.modulesPageTitle, style: AppTextStyles.headingLg),
           const SizedBox(height: 4),
           Text(
-            'Modules assigned to you by your organization.',
+            t.modulesPageSubtitle,
             style: AppTextStyles.bodySm,
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -158,13 +162,13 @@ class _ModulesContent extends StatelessWidget {
             children: [
               _SummaryChip(
                 icon:  Icons.extension_rounded,
-                label: '${enabledModules.length} module${enabledModules.length == 1 ? "" : "s"} assigned',
+                label: t.modulesSummaryAssigned(enabledModules.length),
                 color: AppColors.primary,
               ),
               if (overdueCount > 0)
                 _SummaryChip(
                   icon:  Icons.warning_rounded,
-                  label: '$overdueCount overdue',
+                  label: t.modulesSummaryOverdue(overdueCount),
                   color: AppColors.error,
                 ),
             ],
@@ -237,7 +241,7 @@ class _SummaryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 8),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: AppSpacing.md, vertical: 8),
       decoration: BoxDecoration(
         color:        color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -268,8 +272,6 @@ class _ModuleCard extends StatelessWidget {
   final UserModuleProgress?  progress;
   final VoidCallback?        onTap;
 
-  static final _dateFmt = DateFormat('MMM d, y');
-
   bool get _isOverdue {
     final d = progress?.deadline;
     return d != null &&
@@ -285,6 +287,7 @@ class _ModuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t        = AppLocalizations.of(context);
     final overdue  = _isOverdue;
     final status   = progress?.status ?? ModuleProgressStatus.notStarted;
     final deadline = progress?.deadline;
@@ -323,7 +326,7 @@ class _ModuleCard extends StatelessWidget {
           children: [
             // ── Card body ──────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.cardPadding),
+              padding: const EdgeInsetsDirectional.all(AppSpacing.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -363,7 +366,7 @@ class _ModuleCard extends StatelessWidget {
                               Row(
                                 children: module.activityTypes!.map((act) {
                                   return Padding(
-                                    padding: const EdgeInsets.only(right: 12),
+                                    padding: const EdgeInsetsDirectional.only(end: 12),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -391,13 +394,15 @@ class _ModuleCard extends StatelessWidget {
                         ),
                       ),
                       if (hasAction)
+                        // Directional chevron — flips automatically in RTL.
                         Icon(
                           Icons.chevron_right_rounded,
+                          textDirection: Directionality.of(context),
                           color: module.color.withValues(alpha: 0.5),
                         ),
                     ],
                   ),
-  
+
                   // Status + deadline row (only when progress exists)
                   if (progress != null) ...[
                     const SizedBox(height: AppSpacing.md),
@@ -405,7 +410,7 @@ class _ModuleCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.sm),
                     Row(
                       children: [
-                        _statusChip(status),
+                        _statusChip(t, status),
                         const Spacer(),
                         if (deadline != null) ...[
                           _DeadlineLabel(deadline: deadline, isOverdue: overdue),
@@ -414,10 +419,15 @@ class _ModuleCard extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'View Details',
+                                t.modulesViewDetails,
                                 style: AppTextStyles.labelXs.copyWith(color: module.color),
                               ),
-                              Icon(Icons.arrow_forward_rounded, size: 12, color: module.color),
+                              Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 12,
+                                color: module.color,
+                                textDirection: Directionality.of(context),
+                              ),
                             ],
                           ),
                         ],
@@ -427,12 +437,12 @@ class _ModuleCard extends StatelessWidget {
                 ],
               ),
             ),
-  
+
             // ── Overdue banner ─────────────────────────────────────────────
             if (overdue)
               Container(
                 width:   double.infinity,
-                padding: const EdgeInsets.symmetric(
+                padding: const EdgeInsetsDirectional.symmetric(
                     horizontal: AppSpacing.cardPadding, vertical: 9),
                 color: AppColors.error,
                 child: Row(
@@ -441,7 +451,7 @@ class _ModuleCard extends StatelessWidget {
                         size: 14, color: Colors.white),
                     const SizedBox(width: 6),
                     Text(
-                      '$_daysOverdue ${_daysOverdue == 1 ? "day" : "days"} overdue — contact your manager',
+                      t.modulesOverdueBanner(_daysOverdue),
                       style: const TextStyle(
                         color:      Colors.white,
                         fontSize:   12,
@@ -458,11 +468,11 @@ class _ModuleCard extends StatelessWidget {
     );
   }
 
-  Widget _statusChip(ModuleProgressStatus status) {
+  Widget _statusChip(AppLocalizations t, ModuleProgressStatus status) {
     final (label, variant) = switch (status) {
-      ModuleProgressStatus.notStarted => ('Not Started', AppChipVariant.neutral),
-      ModuleProgressStatus.inProgress => ('In Progress', AppChipVariant.warning),
-      ModuleProgressStatus.completed  => ('Completed',   AppChipVariant.success),
+      ModuleProgressStatus.notStarted => (t.statusNotStarted, AppChipVariant.neutral),
+      ModuleProgressStatus.inProgress => (t.statusInProgress, AppChipVariant.warning),
+      ModuleProgressStatus.completed  => (t.statusCompleted,  AppChipVariant.success),
     };
     return AppStatusChip(label: label, variant: variant, small: true);
   }
@@ -476,10 +486,10 @@ class _DeadlineLabel extends StatelessWidget {
   final DateTime deadline;
   final bool     isOverdue;
 
-  static final _fmt = DateFormat('MMM d, y');
-
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final fmt = DateFormat.yMMMd(locale);
     final color = isOverdue ? AppColors.error : AppColors.onSurfaceMuted;
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -491,7 +501,7 @@ class _DeadlineLabel extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          _fmt.format(deadline.toLocal()),
+          fmt.format(deadline.toLocal()),
           style: AppTextStyles.bodyXs.copyWith(
             color:      color,
             fontWeight: isOverdue ? FontWeight.w700 : FontWeight.normal,
@@ -509,8 +519,9 @@ class _NoOrgCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsetsDirectional.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color:        AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -521,10 +532,10 @@ class _NoOrgCard extends StatelessWidget {
           Icon(Icons.domain_disabled_rounded,
               size: 48, color: AppColors.onSurfaceSubtle),
           const SizedBox(height: AppSpacing.md),
-          Text('No organization assigned', style: AppTextStyles.headingSm),
+          Text(t.modulesNoOrgTitle, style: AppTextStyles.headingSm),
           const SizedBox(height: 4),
           Text(
-            'Contact your administrator to be assigned to an organization.',
+            t.modulesNoOrgDesc,
             style:     AppTextStyles.bodySm,
             textAlign: TextAlign.center,
           ),
@@ -539,8 +550,9 @@ class _NoModulesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsetsDirectional.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color:        AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -551,10 +563,10 @@ class _NoModulesCard extends StatelessWidget {
           Icon(Icons.extension_off_rounded,
               size: 48, color: AppColors.onSurfaceSubtle),
           const SizedBox(height: AppSpacing.md),
-          Text('No modules assigned', style: AppTextStyles.headingSm),
+          Text(t.modulesNoModulesTitle, style: AppTextStyles.headingSm),
           const SizedBox(height: 4),
           Text(
-            'Your manager has not enabled any modules for you yet.',
+            t.modulesNoModulesDesc,
             style:     AppTextStyles.bodySm,
             textAlign: TextAlign.center,
           ),
@@ -577,6 +589,7 @@ class _TrainingHistorySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -591,10 +604,10 @@ class _TrainingHistorySection extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text('Smart Training History', style: AppTextStyles.headingSm),
+            Text(t.historySectionTitle, style: AppTextStyles.headingSm),
             const Spacer(),
             historyAsync.when(
-              data:    (h) => Text('${h.length} attempt${h.length == 1 ? "" : "s"}',
+              data:    (h) => Text(t.historyAttempts(h.length),
                   style: AppTextStyles.bodyXs),
               loading: () => const SizedBox.shrink(),
               error:   (_, __) => const SizedBox.shrink(),
@@ -609,7 +622,7 @@ class _TrainingHistorySection extends ConsumerWidget {
             recipientName:     ref.watch(authProvider).userInfo?.userName,
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error:   (e, _) => Text('Error loading history: $e',
+          error:   (e, _) => Text(t.historyErrorLoading(e.toString()),
               style: AppTextStyles.bodySm.copyWith(color: AppColors.error)),
         ),
       ],

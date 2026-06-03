@@ -1,5 +1,8 @@
 class: LocalizedQuizContent
 fields:
+  ### DEPRECATED (future): legacy quiz translation editor keys on languageCode.
+  ### localeKey is the canonical replacement.
   languageCode: String
+  localeKey: String?
   question: String
   answers: List<String>

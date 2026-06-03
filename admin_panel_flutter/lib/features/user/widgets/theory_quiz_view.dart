@@ -1,27 +1,35 @@
 import 'package:admin_panel_client/admin_panel_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/locale_providers.dart';
+import '../../../core/localization/locale_resolver.dart';
 import '../../../core/theme/theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/responsive_helper.dart';
 import '../providers/theory_providers.dart';
 import '../providers/user_providers.dart';
 
-/// Resolves the question text and answers for the best matching language.
-/// Falls back to the default language fields on the QuizQuestion.
+/// Resolves quiz question content through the locale fallback chain.
+/// Falls back to the question's root fields if nothing in the chain matches.
 ({String question, List<String> answers}) _resolveQuizContent(
   QuizQuestion q,
-  String preferredLangCode,
-  String defaultLangCode,
+  String requested,
+  String? orgDefault,
 ) {
-  if (preferredLangCode == defaultLangCode ||
-      q.translations == null ||
-      q.translations!.isEmpty) {
+  if (q.translations == null || q.translations!.isEmpty) {
     return (question: q.question, answers: q.answers);
   }
-  for (final t in q.translations!) {
-    if (t.languageCode == preferredLangCode && t.question.isNotEmpty) {
-      return (question: t.question, answers: t.answers);
-    }
+  final chain = LocaleResolver.resolveChain(
+    requested: requested,
+    orgDefault: orgDefault,
+  );
+  final match = LocaleResolver.firstMatch<LocalizedQuizContent>(
+    chain: chain,
+    items: q.translations!,
+    keyOf: (t) => t.localeKey ?? t.languageCode,
+  );
+  if (match != null && match.question.isNotEmpty) {
+    return (question: match.question, answers: match.answers);
   }
   return (question: q.question, answers: q.answers);
 }
@@ -52,6 +60,7 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final state = ref.watch(quizStateProvider);
     final questions = widget.chapter.questions ?? [];
 
@@ -63,9 +72,9 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
             children: [
               const Icon(Icons.error_outline, size: 48, color: AppColors.onSurfaceMuted),
               const SizedBox(height: 16),
-              const Text('No questions available for this chapter.'),
+              Text(t.quizNoQuestions),
               const SizedBox(height: 16),
-              ElevatedButton(onPressed: widget.onClose, child: const Text('Go Back')),
+              ElevatedButton(onPressed: widget.onClose, child: Text(t.quizGoBack)),
             ],
           ),
         ),
@@ -91,14 +100,17 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
     final progress = (currentIndex + 1) / questions.length;
 
     final config = ref.watch(userModuleConfigProvider).value;
-    final defaultLang = config?.defaultLanguage ?? 'en';
-    final deviceLang = Localizations.localeOf(context).languageCode;
-    final content = _resolveQuizContent(currentQuestion, deviceLang, defaultLang);
+    final requested = ref.watch(currentLocaleProvider);
+    final content = _resolveQuizContent(
+      currentQuestion,
+      requested,
+      config?.defaultLocaleKey,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Module Quiz', style: AppTextStyles.headingSm),
+        title: Text(t.quizTitle, style: AppTextStyles.headingSm),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: widget.onClose,
@@ -114,13 +126,13 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(context.responsivePagePadding),
+          padding: EdgeInsetsDirectional.all(context.responsivePagePadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Question count
               Text(
-                'Question ${currentIndex + 1} of ${questions.length}',
+                t.quizQuestionOf(currentIndex + 1, questions.length),
                 style: AppTextStyles.labelSm
                     .copyWith(color: AppColors.onSurfaceMuted),
               ),
@@ -160,7 +172,7 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
                       onPressed: () => ref
                           .read(quizStateProvider.notifier)
                           .previousQuestion(),
-                      child: const Text('Back'),
+                      child: Text(t.quizBack),
                     ),
                   const Spacer(),
                   if (currentIndex < questions.length - 1)
@@ -171,12 +183,12 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
                               .nextQuestion()
                           : null,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
+                        padding: const EdgeInsetsDirectional.symmetric(
                             horizontal: 24, vertical: 12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)),
                       ),
-                      child: const Text('Next'),
+                      child: Text(t.quizNext),
                     )
                   else
                     ElevatedButton(
@@ -188,7 +200,7 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
+                        padding: const EdgeInsetsDirectional.symmetric(
                             horizontal: 24, vertical: 12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)),
@@ -199,7 +211,7 @@ class _TheoryQuizViewState extends ConsumerState<TheoryQuizView> {
                               height: 20,
                               child: CircularProgressIndicator(
                                   strokeWidth: 2, color: Colors.white))
-                          : const Text('Finish Quiz'),
+                          : Text(t.quizFinishQuiz),
                     ),
                 ],
               ),
@@ -228,7 +240,7 @@ class _AnswerOption extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 20),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
           border: Border.all(
@@ -282,6 +294,7 @@ class _QuizResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final passed = result.status == ModuleProgressStatus.completed;
     final isMobile = context.isMobile;
 
@@ -290,7 +303,7 @@ class _QuizResultView extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(
+            padding: EdgeInsetsDirectional.all(
                 isMobile ? AppSpacing.md : AppSpacing.xl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -304,21 +317,21 @@ class _QuizResultView extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  passed ? 'Congratulations!' : 'Almost there!',
+                  passed ? t.quizResultPassedTitle : t.quizResultFailedTitle,
                   style: AppTextStyles.headingLg,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   passed
-                      ? 'You passed the theory quiz.'
-                      : 'Try again to pass this module.',
+                      ? t.quizResultPassedDesc
+                      : t.quizResultFailedDesc,
                   style: AppTextStyles.bodySm
                       .copyWith(color: AppColors.onSurfaceMuted),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: EdgeInsetsDirectional.symmetric(
                     horizontal: isMobile ? AppSpacing.lg : 32,
                     vertical: isMobile ? AppSpacing.md : 24,
                   ),
@@ -329,7 +342,7 @@ class _QuizResultView extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      Text('Your Score',
+                      Text(t.quizResultYourScore,
                           style: AppTextStyles.labelSm),
                       const SizedBox(height: 8),
                       Text(
@@ -343,7 +356,7 @@ class _QuizResultView extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        passed ? 'PASSED' : 'NOT PASSED',
+                        passed ? t.quizResultPassed : t.quizResultNotPassed,
                         style: AppTextStyles.labelMd.copyWith(
                           color: passed
                               ? AppColors.success
@@ -365,26 +378,26 @@ class _QuizResultView extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
+                          padding: const EdgeInsetsDirectional.symmetric(
                               vertical: 16),
                           shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.circular(30)),
                         ),
-                        child: const Text('Back to Course'),
+                        child: Text(t.quizBackToCourse),
                       ),
                       if (!passed) ...[
                         const SizedBox(height: AppSpacing.sm),
                         OutlinedButton(
                           onPressed: onRetry,
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
+                            padding: const EdgeInsetsDirectional.symmetric(
                                 vertical: 16),
                             shape: RoundedRectangleBorder(
                                 borderRadius:
                                     BorderRadius.circular(30)),
                           ),
-                          child: const Text('Retry Quiz'),
+                          child: Text(t.quizRetryQuiz),
                         ),
                       ],
                     ],
@@ -397,13 +410,13 @@ class _QuizResultView extends StatelessWidget {
                         OutlinedButton(
                           onPressed: onRetry,
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
+                            padding: const EdgeInsetsDirectional.symmetric(
                                 horizontal: 32, vertical: 20),
                             shape: RoundedRectangleBorder(
                                 borderRadius:
                                     BorderRadius.circular(30)),
                           ),
-                          child: const Text('Retry Quiz'),
+                          child: Text(t.quizRetryQuiz),
                         ),
                         const SizedBox(width: 16),
                       ],
@@ -412,13 +425,13 @@ class _QuizResultView extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
+                          padding: const EdgeInsetsDirectional.symmetric(
                               horizontal: 40, vertical: 20),
                           shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.circular(30)),
                         ),
-                        child: const Text('Back to Course'),
+                        child: Text(t.quizBackToCourse),
                       ),
                     ],
                   ),

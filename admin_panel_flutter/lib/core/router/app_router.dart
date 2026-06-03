@@ -13,6 +13,7 @@ import '../../features/admin/screens/admin_teams_screen.dart';
 import '../../features/admin/screens/users_screen.dart';
 import '../../features/admin/screens/admin_modules_screen.dart';
 import '../../features/admin/screens/admin_content_screen.dart';
+import '../../features/admin/screens/admin_locale_screen.dart';
 import '../../features/admin/screens/admin_settings_screen.dart';
 
 // Manager
@@ -161,6 +162,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'admin-content',
             pageBuilder: (context, state) =>
                 _fadePage(state, const AdminContentScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.adminLocales,
+            name: 'admin-locales',
+            pageBuilder: (context, state) =>
+                _fadePage(state, const AdminLocaleScreen()),
           ),
           GoRoute(
             path: AppRoutes.adminTrainingHistory,

@@ -1,12 +1,17 @@
 import 'package:admin_panel_client/admin_panel_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import '../../../core/localization/locale_providers.dart';
 import '../../../src/providers.dart';
 
 /// Fetches all theory chapters joined with the user's current progress.
-final theoryChaptersProvider = FutureProvider.autoDispose<List<TheoryChapterWithProgress>>((ref) async {
+/// Content fields (title, thumbnail, video) are server-resolved through the
+/// locale fallback chain. Refetches when [currentLocaleProvider] changes.
+final theoryChaptersProvider =
+    FutureProvider.autoDispose<List<TheoryChapterWithProgress>>((ref) async {
   final client = ref.watch(clientProvider);
-  return await client.user.getTheoryChaptersWithProgress();
+  final localeKey = ref.watch(currentLocaleProvider);
+  return await client.user.getLocalizedTheoryChaptersWithProgress(localeKey);
 });
 
 /// Manages the state of a single quiz attempt.

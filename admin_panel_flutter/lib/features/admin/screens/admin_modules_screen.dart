@@ -7,31 +7,6 @@ import '../../../shared/widgets/widgets.dart';
 import '../providers/admin_providers.dart';
 import '../../../src/providers.dart';
 
-// ── Language entry helper ─────────────────────────────────────────────────────
-
-class _LangEntry {
-  _LangEntry({String code = '', String name = '', String url = ''})
-      : codeCtrl = TextEditingController(text: code),
-        nameCtrl = TextEditingController(text: name),
-        urlCtrl  = TextEditingController(text: url);
-
-  final TextEditingController codeCtrl;
-  final TextEditingController nameCtrl;
-  final TextEditingController urlCtrl;
-
-  SupportedLanguage toModel() => SupportedLanguage(
-        code:       codeCtrl.text.trim(),
-        name:       nameCtrl.text.trim(),
-        contentUrl: urlCtrl.text.trim().isEmpty ? null : urlCtrl.text.trim(),
-      );
-
-  void dispose() {
-    codeCtrl.dispose();
-    nameCtrl.dispose();
-    urlCtrl.dispose();
-  }
-}
-
 // ── Module metadata ───────────────────────────────────────────────────────────
 
 class _ModuleMeta {
@@ -91,55 +66,44 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
   bool _assessment = false;
   int  _passing    = 60;
 
-  final _defaultLangCtrl = TextEditingController(text: 'en');
-  final _aiPromptCtrl    = TextEditingController();
+  final _aiPromptCtrl = TextEditingController();
+  // Per-locale AI prompt overrides, keyed by localeKey (e.g. "US-en").
   final Map<String, TextEditingController> _aiPromptTranslations = {};
-  List<_LangEntry> _languages = [];
   bool _saving = false;
 
   @override
   void dispose() {
-    _defaultLangCtrl.dispose();
     _aiPromptCtrl.dispose();
-    for (final c in _aiPromptTranslations.values) { c.dispose(); }
-    for (final l in _languages) {
-      l.dispose();
+    for (final c in _aiPromptTranslations.values) {
+      c.dispose();
     }
     super.dispose();
   }
 
   void _loadConfig(ModuleConfig? config) {
-    for (final l in _languages) {
-      l.dispose();
+    for (final c in _aiPromptTranslations.values) {
+      c.dispose();
     }
-    for (final c in _aiPromptTranslations.values) { c.dispose(); }
     _aiPromptTranslations.clear();
     setState(() {
       if (config != null) {
-        _theory     = config.theoryModule;
-        _ai         = config.aiExpertModule;
-        _training   = config.smartTrainingModule;
+        _theory = config.theoryModule;
+        _ai = config.aiExpertModule;
+        _training = config.smartTrainingModule;
         _assessment = config.assessmentModule;
-        _passing    = config.passingPercentage;
-        _defaultLangCtrl.text = config.defaultLanguage;
-        _aiPromptCtrl.text    = config.aiChatPrompt ?? '';
-        _languages = (config.supportedLanguages ?? [])
-            .map((l) => _LangEntry(
-                  code: l.code,
-                  name: l.name,
-                  url:  l.contentUrl ?? '',
-                ))
-            .toList();
+        _passing = config.passingPercentage;
+        _aiPromptCtrl.text = config.aiChatPrompt ?? '';
         for (final t in config.aiChatPromptTranslations ?? []) {
-          _aiPromptTranslations[t.languageCode] =
+          // Prefer localeKey; fall back to languageCode for legacy entries
+          // (Phase 2 backfill populated localeKey for all existing rows).
+          final key = t.localeKey ?? t.languageCode;
+          _aiPromptTranslations[key] =
               TextEditingController(text: t.prompt);
         }
       } else {
         _theory = _ai = _training = _assessment = false;
         _passing = 60;
-        _defaultLangCtrl.text = 'en';
-        _aiPromptCtrl.text    = '';
-        _languages = [];
+        _aiPromptCtrl.text = '';
       }
     });
   }
@@ -149,12 +113,22 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
     setState(() => _saving = true);
     try {
       final prompt = _aiPromptCtrl.text.trim();
+      // Build LocalizedAiPrompt entries keyed by localeKey. languageCode is
+      // derived from the key (the lowercase suffix after the dash) for
+      // backward compat with the deprecated field.
       final promptTranslations = _aiPromptTranslations.entries
           .where((e) => e.value.text.trim().isNotEmpty)
-          .map((e) => LocalizedAiPrompt(
-                languageCode: e.key,
-                prompt:       e.value.text.trim(),
-              ))
+          .map((e) {
+            final localeKey = e.key;
+            final dash = localeKey.indexOf('-');
+            final languageCode =
+                dash >= 0 ? localeKey.substring(dash + 1) : localeKey;
+            return LocalizedAiPrompt(
+              languageCode: languageCode,
+              localeKey: localeKey,
+              prompt: e.value.text.trim(),
+            );
+          })
           .toList();
       await ref.read(clientProvider).admin.setModuleConfig(
             _selectedOrg!.id!,
@@ -162,10 +136,10 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
             _ai,
             _training,
             _assessment,
-            _defaultLangCtrl.text.trim().isEmpty
-                ? 'en'
-                : _defaultLangCtrl.text.trim(),
-            _languages.map((l) => l.toModel()).toList(),
+            // defaultLanguage / supportedLanguages are deprecated (non-persistent).
+            // Locale management lives in the Locales screen.
+            'en',
+            const <SupportedLanguage>[],
             prompt.isEmpty ? null : prompt,
             promptTranslations.isEmpty ? null : promptTranslations,
             _passing,
@@ -178,9 +152,10 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final msg = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:         Text('Error: $e'),
+            content: Text(msg),
             backgroundColor: AppColors.error,
           ),
         );
@@ -195,7 +170,6 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
     final orgsAsync    = ref.watch(parentOrgsProvider);
     final allOrgsAsync = ref.watch(allOrganizationsProvider);
 
-    final isMobile = context.isMobile;
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(context.responsivePagePadding),
@@ -312,331 +286,14 @@ class _AdminModulesScreenState extends ConsumerState<AdminModulesScreen> {
                 onChanged: (v) => setState(() => _passing = v),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // ── Language settings ─────────────────────────────────────────
-            _SectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _CardHeader(
-                    icon:     Icons.language_rounded,
-                    color:    AppColors.info,
-                    title:    'Language Settings',
-                    subtitle: 'Configure the default and supported content languages',
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Default language row — stacks on mobile
-                  if (isMobile) ...[
-                    Text('Default Language',
-                        style: AppTextStyles.labelMd),
-                    const SizedBox(height: 4),
-                    Text('Used when no language is specified',
-                        style: AppTextStyles.bodyXs),
-                    const SizedBox(height: AppSpacing.sm),
-                    TextField(
-                      controller: _defaultLangCtrl,
-                      decoration: const InputDecoration(
-                        hintText: 'en',
-                        prefixIcon: Icon(Icons.translate_rounded, size: 16),
-                      ),
-                    ),
-                  ] else
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Default Language',
-                                  style: AppTextStyles.labelMd),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Used when no language is specified',
-                                style: AppTextStyles.bodyXs,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        SizedBox(
-                          width: 160,
-                          child: TextField(
-                            controller: _defaultLangCtrl,
-                            decoration: const InputDecoration(
-                              hintText:  'en',
-                              prefixIcon: Icon(
-                                  Icons.translate_rounded, size: 16),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(height: AppSpacing.lg),
-
-                  // Supported languages header
-                  Row(
-                    children: [
-                      Text('Supported Languages',
-                          style: AppTextStyles.labelMd),
-                      const Spacer(),
-                      TextButton.icon(
-                        icon:  const Icon(Icons.add_rounded, size: 15),
-                        label: const Text('Add Language'),
-                        onPressed: () =>
-                            setState(() => _languages.add(_LangEntry())),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-
-                  if (_languages.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.lg),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceVariant,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusMd),
-                        border: Border.all(
-                            color: AppColors.divider,
-                            style: BorderStyle.solid),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(Icons.language_rounded,
-                              size: 28,
-                              color: AppColors.onSurfaceSubtle),
-                          const SizedBox(height: 8),
-                          Text(
-                            'No supported languages yet',
-                            style: AppTextStyles.bodyXs,
-                          ),
-                        ],
-                      ),
-                    )
-                  else ...[
-                    // Column headers (hidden on mobile — fields are labeled inline)
-                    if (!isMobile)
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: AppSpacing.xs,
-                            left: 2,
-                            right: 40),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 80,
-                              child: Text('CODE',
-                                  style: AppTextStyles.labelSm.copyWith(
-                                      letterSpacing: 0.6)),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            SizedBox(
-                              width: 160,
-                              child: Text('NAME',
-                                  style: AppTextStyles.labelSm.copyWith(
-                                      letterSpacing: 0.6)),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: Text('CONTENT URL (OPTIONAL)',
-                                  style: AppTextStyles.labelSm.copyWith(
-                                      letterSpacing: 0.6)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ...List.generate(_languages.length, (i) {
-                      final entry = _languages[i];
-
-                      // Stacked layout on mobile
-                      if (isMobile) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                          padding: const EdgeInsets.all(AppSpacing.sm),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceVariant,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 1,
-                                    child: TextField(
-                                      controller: entry.codeCtrl,
-                                      decoration: const InputDecoration(
-                                        hintText: 'en',
-                                        labelText: 'Code',
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextField(
-                                      controller: entry.nameCtrl,
-                                      decoration: const InputDecoration(
-                                        hintText: 'English',
-                                        labelText: 'Name',
-                                      ),
-                                    ),
-                                  ),
-                                  _RemoveButton(
-                                    onTap: () => setState(() {
-                                      entry.dispose();
-                                      _languages.removeAt(i);
-                                    }),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              TextField(
-                                controller: entry.urlCtrl,
-                                decoration: const InputDecoration(
-                                  hintText: 'https://…/content.json',
-                                  labelText: 'Content URL (optional)',
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      // Desktop row layout
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: AppSpacing.sm),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 80,
-                              child: TextField(
-                                controller: entry.codeCtrl,
-                                decoration: const InputDecoration(
-                                  hintText: 'en',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            SizedBox(
-                              width: 160,
-                              child: TextField(
-                                controller: entry.nameCtrl,
-                                decoration: const InputDecoration(
-                                  hintText: 'English',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: TextField(
-                                controller: entry.urlCtrl,
-                                decoration: const InputDecoration(
-                                  hintText: 'https://…/content.json',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            _RemoveButton(
-                              onTap: () => setState(() {
-                                entry.dispose();
-                                _languages.removeAt(i);
-                              }),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ],
-              ),
-            ),
-
             // ── AR Expert AI prompt ───────────────────────────────────────
             if (_ai) ...[
               const SizedBox(height: AppSpacing.lg),
-              _SectionCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _CardHeader(
-                      icon:     Icons.smart_toy_rounded,
-                      color:    AppColors.aiExpert,
-                      title:    'AR Expert AI System Prompt',
-                      subtitle: 'Sent as the system message for every AI chat session',
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Builder(builder: (_) {
-                      final defaultLang = _defaultLangCtrl.text.trim().isEmpty
-                          ? 'en'
-                          : _defaultLangCtrl.text.trim();
-                      final otherLangs = _languages
-                          .where((l) => l.codeCtrl.text.trim() != defaultLang)
-                          .toList();
-                      if (otherLangs.isEmpty) return const SizedBox.shrink();
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: Text(
-                          'Default language ($defaultLang)',
-                          style: AppTextStyles.labelSm,
-                        ),
-                      );
-                    }),
-                    TextField(
-                      controller: _aiPromptCtrl,
-                      maxLines:   6,
-                      decoration: const InputDecoration(
-                        hintText: 'You are a helpful AR Expert assistant…',
-                        alignLabelWithHint: true,
-                      ),
-                    ),
-                    Builder(builder: (_) {
-                      final defaultLang = _defaultLangCtrl.text.trim().isEmpty
-                          ? 'en'
-                          : _defaultLangCtrl.text.trim();
-                      final otherLangs = _languages
-                          .where((l) => l.codeCtrl.text.trim() != defaultLang)
-                          .toList();
-                      if (otherLangs.isEmpty) return const SizedBox.shrink();
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (final lang in otherLangs) ...[
-                            const SizedBox(height: AppSpacing.md),
-                            Text(
-                              lang.nameCtrl.text.isNotEmpty
-                                  ? lang.nameCtrl.text
-                                  : lang.codeCtrl.text.toUpperCase(),
-                              style: AppTextStyles.labelSm,
-                            ),
-                            const SizedBox(height: 4),
-                            TextField(
-                              controller: _aiPromptTranslations.putIfAbsent(
-                                lang.codeCtrl.text.trim(),
-                                () => TextEditingController(),
-                              ),
-                              maxLines: 6,
-                              decoration: InputDecoration(
-                                hintText:
-                                    'System prompt in ${lang.nameCtrl.text.isNotEmpty ? lang.nameCtrl.text : lang.codeCtrl.text.toUpperCase()}…',
-                                alignLabelWithHint: true,
-                              ),
-                            ),
-                          ],
-                        ],
-                      );
-                    }),
-                  ],
-                ),
+              _AiPromptCard(
+                orgId: _selectedOrg!.id!,
+                rootCtrl: _aiPromptCtrl,
+                translations: _aiPromptTranslations,
+                onTranslationChanged: () => setState(() {}),
               ),
             ],
 
@@ -1000,49 +657,124 @@ class _ModuleRowState extends State<_ModuleRow> {
   }
 }
 
-// ── Remove button ─────────────────────────────────────────────────────────────
+// ── AR Expert AI prompt editor ────────────────────────────────────────────────
+//
+// Lists per-locale prompt overrides for the org's enabled LocaleConfig rows.
+// The locale dropdown comes from the Locales screen; manage locales there.
 
-class _RemoveButton extends StatefulWidget {
-  const _RemoveButton({required this.onTap});
-  final VoidCallback onTap;
+class _AiPromptCard extends ConsumerWidget {
+  const _AiPromptCard({
+    required this.orgId,
+    required this.rootCtrl,
+    required this.translations,
+    required this.onTranslationChanged,
+  });
+
+  final int orgId;
+  final TextEditingController rootCtrl;
+  final Map<String, TextEditingController> translations;
+  final VoidCallback onTranslationChanged;
 
   @override
-  State<_RemoveButton> createState() => _RemoveButtonState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localesAsync = ref.watch(adminLocaleConfigsProvider(orgId));
+    final cfgAsync = ref.watch(moduleConfigProvider(orgId));
+    final defaultLocaleKey =
+        cfgAsync.value?.defaultLocaleKey ?? 'US-en';
 
-class _RemoveButtonState extends State<_RemoveButton> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Remove',
-      child: MouseRegion(
-        cursor:  SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit:  (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 100),
-            width:  32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: _hovered
-                  ? AppColors.error.withValues(alpha: 0.1)
-                  : Colors.transparent,
-              borderRadius:
-                  BorderRadius.circular(AppSpacing.radiusMd),
-            ),
-            child: Icon(
-              Icons.delete_outline_rounded,
-              size:  16,
-              color: _hovered
-                  ? AppColors.error
-                  : AppColors.onSurfaceSubtle,
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CardHeader(
+            icon: Icons.smart_toy_rounded,
+            color: AppColors.aiExpert,
+            title: 'AR Expert AI System Prompt',
+            subtitle:
+                'Sent as the system message for every AI chat session. '
+                'Per-locale variants are served to users based on their '
+                'preferred regional locale.',
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Default ($defaultLocaleKey)',
+            style: AppTextStyles.labelSm,
+          ),
+          const SizedBox(height: 4),
+          TextField(
+            controller: rootCtrl,
+            maxLines: 6,
+            decoration: const InputDecoration(
+              hintText: 'You are a helpful AR Expert assistant…',
+              alignLabelWithHint: true,
             ),
           ),
-        ),
+          localesAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (e, _) => Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.md),
+              child: Text(
+                'Could not load locales: $e',
+                style: AppTextStyles.bodyXs
+                    .copyWith(color: AppColors.error),
+              ),
+            ),
+            data: (locales) {
+              final others = locales
+                  .where((l) => l.localeKey != defaultLocaleKey)
+                  .toList();
+              if (others.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.md),
+                  child: Text(
+                    'Add more locales in the Locales screen to provide '
+                    'per-region prompt variants.',
+                    style: AppTextStyles.bodyXs,
+                  ),
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final l in others) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Row(
+                      children: [
+                        Text(
+                          '${l.localeKey} — ${l.displayName}',
+                          style: AppTextStyles.labelSm,
+                        ),
+                        if (l.fallbackLocaleKey != null) ...[
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            '· falls back to ${l.fallbackLocaleKey}',
+                            style: AppTextStyles.bodyXs.copyWith(
+                              color: AppColors.onSurfaceMuted,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    TextField(
+                      controller: translations.putIfAbsent(
+                        l.localeKey,
+                        () => TextEditingController(),
+                      ),
+                      onChanged: (_) => onTranslationChanged(),
+                      maxLines: 6,
+                      decoration: InputDecoration(
+                        hintText:
+                            'System prompt for ${l.displayName} (leave blank to use default)',
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }

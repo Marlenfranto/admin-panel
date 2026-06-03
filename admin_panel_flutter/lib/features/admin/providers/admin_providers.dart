@@ -69,3 +69,40 @@ final adminAssessmentProvider =
 final adminAssetsProvider =
     FutureProvider.family<List<Asset>, int>((ref, orgId) =>
         ref.watch(clientProvider).admin.getAssets(orgId));
+
+// ── Locale (regions + locale configs, per org) ────────────────────────────────
+final adminRegionsProvider =
+    FutureProvider.family<List<Region>, int>((ref, orgId) =>
+        ref.watch(clientProvider).admin.listRegions(orgId));
+
+final adminLocaleConfigsProvider =
+    FutureProvider.family<List<LocaleConfig>, int>((ref, orgId) =>
+        ref.watch(clientProvider).admin.listLocaleConfigs(orgId));
+
+// ── Content localizations (per parent entity) ────────────────────────────────
+final adminTheoryChapterLocalizationsProvider =
+    FutureProvider.family<List<TheoryChapterLocalization>, int>(
+        (ref, chapterId) => ref
+            .watch(clientProvider)
+            .admin
+            .listTheoryChapterLocalizations(chapterId));
+
+final adminTrainingParameterLocalizationsProvider =
+    FutureProvider.family<List<TrainingParameterLocalization>, int>(
+        (ref, paramId) => ref
+            .watch(clientProvider)
+            .admin
+            .listTrainingParameterLocalizations(paramId));
+
+final adminAssessmentParameterLocalizationsProvider =
+    FutureProvider.family<List<AssessmentParameterLocalization>, int>(
+        (ref, paramId) => ref
+            .watch(clientProvider)
+            .admin
+            .listAssessmentParameterLocalizations(paramId));
+
+final adminAssetLocalizationsProvider =
+    FutureProvider.family<List<AssetLocalization>, int>((ref, assetId) => ref
+        .watch(clientProvider)
+        .admin
+        .listAssetLocalizations(assetId));

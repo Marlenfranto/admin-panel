@@ -3,8 +3,8 @@ table: assessment_parameter
 fields:
   organization: Organization?, relation(optional)
   paramId: String
-  name: String
-  description: String
   maxScore: int
   scoringRules: List<ScoringRule>
-  translations: List<LocalizedParameterContent>?
+  name: String, default='', !persist
+  description: String, default='', !persist
+  translations: List<LocalizedParameterContent>?, !persist

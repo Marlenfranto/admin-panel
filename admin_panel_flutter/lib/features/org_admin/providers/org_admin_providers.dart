@@ -84,3 +84,31 @@ final orgAssessmentProvider =
 final orgAssetsProvider = FutureProvider<List<Asset>>((ref) async {
   return ref.watch(clientProvider).organizationAdmin.getOrgAssets();
 });
+
+// ── Locale (caller's own org) ────────────────────────────────────────────────
+final orgLocaleConfigsProvider =
+    FutureProvider<List<LocaleConfig>>((ref) async {
+  return ref.watch(clientProvider).organizationAdmin.listMyLocaleConfigs();
+});
+
+// ── Content localizations (per parent entity) ───────────────────────────────
+final orgTheoryChapterLocalizationsProvider =
+    FutureProvider.family<List<TheoryChapterLocalization>, int>(
+        (ref, chapterId) => ref
+            .watch(clientProvider)
+            .organizationAdmin
+            .listMyTheoryChapterLocalizations(chapterId));
+
+final orgTrainingParameterLocalizationsProvider =
+    FutureProvider.family<List<TrainingParameterLocalization>, int>(
+        (ref, paramId) => ref
+            .watch(clientProvider)
+            .organizationAdmin
+            .listMyTrainingParameterLocalizations(paramId));
+
+final orgAssessmentParameterLocalizationsProvider =
+    FutureProvider.family<List<AssessmentParameterLocalization>, int>(
+        (ref, paramId) => ref
+            .watch(clientProvider)
+            .organizationAdmin
+            .listMyAssessmentParameterLocalizations(paramId));

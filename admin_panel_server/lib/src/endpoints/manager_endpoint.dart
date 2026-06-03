@@ -2,6 +2,9 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_server/serverpod_auth_server.dart';
 import '../generated/protocol.dart';
 import '../scopes.dart';
+import '../util/default_locale_writer.dart';
+import '../util/locale_resolver.dart';
+import '../util/locale_validator.dart';
 import '../util/version_util.dart';
 
 class ManagerEndpoint extends Endpoint {
@@ -197,11 +200,13 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return [];
 
-    return await TheoryChapter.db.find(
+    final chapters = await TheoryChapter.db.find(
       session,
       where: (c) => c.organizationId.equals(org.id),
       orderBy: (c) => c.chapterOrder,
     );
+    await hydrateTheoryChapters(session, chapters);
+    return chapters;
   }
 
   Future<TheoryChapter> upsertTheoryChapter(Session session, int organizationId, TheoryChapter chapter) async {
@@ -221,6 +226,19 @@ class ManagerEndpoint extends Endpoint {
       result = await TheoryChapter.db.updateRow(session, chapter);
     } else {
       result = await TheoryChapter.db.insertRow(session, chapter);
+    }
+    final resultId = result.id;
+    if (resultId != null) {
+      await writeTheoryChapterDefaultContent(
+        session,
+        resultId,
+        organizationId,
+        title: chapter.title,
+        description: chapter.description,
+        thumbnailUrl: chapter.thumbnailUrl,
+        videoUrl: chapter.videoUrl,
+        videoMetadata: chapter.videoMetadata,
+      );
     }
     await bumpOrgContentVersion(session, organizationId);
     return result;
@@ -248,10 +266,12 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return [];
 
-    return await TrainingParameter.db.find(
+    final params = await TrainingParameter.db.find(
       session,
       where: (p) => p.organizationId.equals(org.id),
     );
+    await hydrateTrainingParameters(session, params);
+    return params;
   }
 
   Future<TrainingParameter> upsertTrainingParameter(Session session, int organizationId, TrainingParameter param) async {
@@ -271,6 +291,16 @@ class ManagerEndpoint extends Endpoint {
       result = await TrainingParameter.db.updateRow(session, param);
     } else {
       result = await TrainingParameter.db.insertRow(session, param);
+    }
+    final resultId = result.id;
+    if (resultId != null) {
+      await writeTrainingParameterDefaultContent(
+        session,
+        resultId,
+        organizationId,
+        name: param.name,
+        description: param.description,
+      );
     }
     await bumpOrgContentVersion(session, organizationId);
     return result;
@@ -298,10 +328,12 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return [];
 
-    return await AssessmentParameter.db.find(
+    final params = await AssessmentParameter.db.find(
       session,
       where: (p) => p.organizationId.equals(org.id),
     );
+    await hydrateAssessmentParameters(session, params);
+    return params;
   }
 
   Future<AssessmentParameter> upsertAssessmentParameter(Session session, int organizationId, AssessmentParameter param) async {
@@ -321,6 +353,16 @@ class ManagerEndpoint extends Endpoint {
       result = await AssessmentParameter.db.updateRow(session, param);
     } else {
       result = await AssessmentParameter.db.insertRow(session, param);
+    }
+    final resultId = result.id;
+    if (resultId != null) {
+      await writeAssessmentParameterDefaultContent(
+        session,
+        resultId,
+        organizationId,
+        name: param.name,
+        description: param.description,
+      );
     }
     await bumpOrgContentVersion(session, organizationId);
     return result;
@@ -348,10 +390,12 @@ class ManagerEndpoint extends Endpoint {
     );
     if (org == null) return [];
 
-    return await Asset.db.find(
+    final assets = await Asset.db.find(
       session,
       where: (a) => a.organizationId.equals(org.id),
     );
+    await hydrateAssets(session, assets);
+    return assets;
   }
 
   Future<Asset> upsertAsset(Session session, int organizationId, Asset asset) async {
@@ -371,6 +415,17 @@ class ManagerEndpoint extends Endpoint {
       result = await Asset.db.updateRow(session, asset);
     } else {
       result = await Asset.db.insertRow(session, asset);
+    }
+    final resultId = result.id;
+    if (resultId != null) {
+      await writeAssetDefaultContent(
+        session,
+        resultId,
+        organizationId,
+        name: asset.name,
+        description: asset.description,
+        url: asset.url,
+      );
     }
     await bumpOrgContentVersion(session, organizationId);
     return result;
@@ -936,5 +991,558 @@ class ManagerEndpoint extends Endpoint {
 
     await ManagerNotification.db.deleteRow(session, notif);
     return true;
+  }
+
+  // ── Regions & Locales (scoped to managed orgs) ────────────────────────────
+
+  Future<void> _requireManagedOrg(Session session, int organizationId) async {
+    final managerAppUser = await _getManagerAppUser(session);
+    if (managerAppUser == null) throw Exception('Authentication failed.');
+    final org = await Organization.db.findFirstRow(
+      session,
+      where: (o) =>
+          o.id.equals(organizationId) & o.managerId.equals(managerAppUser.id),
+    );
+    if (org == null) {
+      throw Exception('Forbidden: you do not manage this organization.');
+    }
+  }
+
+  Future<List<Region>> listManagedRegions(
+    Session session,
+    int organizationId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    return await Region.db.find(
+      session,
+      where: (r) => r.organizationId.equals(organizationId),
+      orderBy: (r) => r.code,
+    );
+  }
+
+  Future<Region> upsertManagedRegion(
+    Session session,
+    int organizationId,
+    Region region,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    region.organizationId = organizationId;
+    final Region result;
+    if (region.id != null) {
+      result = await Region.db.updateRow(session, region);
+    } else {
+      result = await Region.db.insertRow(session, region);
+    }
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
+  }
+
+  Future<bool> deleteManagedRegion(
+    Session session,
+    int organizationId,
+    int regionId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final region = await Region.db.findById(session, regionId);
+    if (region == null || region.organizationId != organizationId) return false;
+    final inUse = await LocaleConfig.db.findFirstRow(
+      session,
+      where: (l) =>
+          l.organizationId.equals(organizationId) &
+          l.regionCode.equals(region.code),
+    );
+    if (inUse != null) {
+      throw Exception(
+        'Cannot delete region "${region.code}": locale '
+        '"${inUse.localeKey}" is still using it.',
+      );
+    }
+    await Region.db.deleteRow(session, region);
+    await bumpOrgContentVersion(session, organizationId);
+    return true;
+  }
+
+  Future<List<LocaleConfig>> listManagedLocaleConfigs(
+    Session session,
+    int organizationId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    return await LocaleConfig.db.find(
+      session,
+      where: (l) => l.organizationId.equals(organizationId),
+      orderBy: (l) => l.localeKey,
+    );
+  }
+
+  Future<LocaleConfig> upsertManagedLocaleConfig(
+    Session session,
+    int organizationId,
+    LocaleConfig locale,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    validateLocaleKeyComposition(
+      locale.localeKey,
+      locale.regionCode,
+      locale.languageCode,
+    );
+    await ensureRegionExists(session, organizationId, locale.regionCode);
+    locale.organizationId = organizationId;
+
+    final LocaleConfig result;
+    if (locale.id != null) {
+      result = await LocaleConfig.db.updateRow(session, locale);
+    } else {
+      result = await LocaleConfig.db.insertRow(session, locale);
+    }
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
+  }
+
+  Future<bool> deleteManagedLocaleConfig(
+    Session session,
+    int organizationId,
+    int localeConfigId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final locale = await LocaleConfig.db.findById(session, localeConfigId);
+    if (locale == null || locale.organizationId != organizationId) return false;
+    if (locale.isDefault) {
+      throw Exception(
+        'Cannot delete the default locale "${locale.localeKey}". '
+        'Set another locale as default first.',
+      );
+    }
+    await LocaleConfig.db.deleteRow(session, locale);
+    await bumpOrgContentVersion(session, organizationId);
+    return true;
+  }
+
+  Future<LocaleConfig?> setManagedDefaultLocale(
+    Session session,
+    int organizationId,
+    String localeKey,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    validateLocaleKeyFormat(localeKey);
+
+    final target = await LocaleConfig.db.findFirstRow(
+      session,
+      where: (l) =>
+          l.organizationId.equals(organizationId) &
+          l.localeKey.equals(localeKey),
+    );
+    if (target == null) {
+      throw Exception(
+        'Locale "$localeKey" is not configured for this organization.',
+      );
+    }
+
+    final others = await LocaleConfig.db.find(
+      session,
+      where: (l) =>
+          l.organizationId.equals(organizationId) &
+          l.isDefault.equals(true) &
+          l.id.notEquals(target.id),
+    );
+    for (final o in others) {
+      o.isDefault = false;
+      await LocaleConfig.db.updateRow(session, o);
+    }
+    target.isDefault = true;
+    final updated = await LocaleConfig.db.updateRow(session, target);
+
+    final cfg = await ModuleConfig.db.findFirstRow(
+      session,
+      where: (c) => c.organizationId.equals(organizationId),
+    );
+    if (cfg != null) {
+      cfg.defaultLocaleKey = localeKey;
+      await ModuleConfig.db.updateRow(session, cfg);
+    }
+    await bumpOrgContentVersion(session, organizationId);
+    return updated;
+  }
+
+  // ── Localization CRUD (managed orgs) ──────────────────────────────────────
+
+  Future<List<TheoryChapterLocalization>> listManagedTheoryChapterLocalizations(
+    Session session,
+    int organizationId,
+    int chapterId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final chapter = await TheoryChapter.db.findById(session, chapterId);
+    if (chapter == null || chapter.organizationId != organizationId) return [];
+    return await TheoryChapterLocalization.db.find(
+      session,
+      where: (l) => l.chapterId.equals(chapterId),
+      orderBy: (l) => l.localeKey,
+    );
+  }
+
+  Future<TheoryChapterLocalization> upsertManagedTheoryChapterLocalization(
+    Session session,
+    int organizationId,
+    int chapterId,
+    TheoryChapterLocalization loc,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final chapter = await TheoryChapter.db.findById(session, chapterId);
+    if (chapter == null || chapter.organizationId != organizationId) {
+      throw Exception('Theory chapter not found in this organization.');
+    }
+    await ensureLocaleConfigured(session, organizationId, loc.localeKey);
+    loc.chapterId = chapterId;
+    final result = loc.id != null
+        ? await TheoryChapterLocalization.db.updateRow(session, loc)
+        : await TheoryChapterLocalization.db.insertRow(session, loc);
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
+  }
+
+  Future<void> setManagedTheoryChapterQuizTranslations(
+    Session session,
+    int organizationId,
+    int chapterId,
+    String localeKey,
+    List<LocalizedQuizContent> questionTranslations,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final chapter = await TheoryChapter.db.findById(session, chapterId);
+    if (chapter == null || chapter.organizationId != organizationId) {
+      throw Exception('Theory chapter not found in this organization.');
+    }
+    await ensureLocaleConfigured(session, organizationId, localeKey);
+    await writeTheoryChapterQuizTranslations(
+      session,
+      chapterId,
+      localeKey,
+      questionTranslations,
+    );
+    await bumpOrgContentVersion(session, organizationId);
+  }
+
+  Future<bool> deleteManagedTheoryChapterLocalization(
+    Session session,
+    int organizationId,
+    int localizationId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final loc =
+        await TheoryChapterLocalization.db.findById(session, localizationId);
+    if (loc == null) return false;
+    final chapter = await TheoryChapter.db.findById(session, loc.chapterId);
+    if (chapter == null || chapter.organizationId != organizationId) {
+      return false;
+    }
+    await TheoryChapterLocalization.db.deleteRow(session, loc);
+    await bumpOrgContentVersion(session, organizationId);
+    return true;
+  }
+
+  Future<List<TrainingParameterLocalization>>
+      listManagedTrainingParameterLocalizations(
+    Session session,
+    int organizationId,
+    int parameterId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final param =
+        await TrainingParameter.db.findById(session, parameterId);
+    if (param == null || param.organizationId != organizationId) return [];
+    return await TrainingParameterLocalization.db.find(
+      session,
+      where: (l) => l.parameterId.equals(parameterId),
+      orderBy: (l) => l.localeKey,
+    );
+  }
+
+  Future<TrainingParameterLocalization>
+      upsertManagedTrainingParameterLocalization(
+    Session session,
+    int organizationId,
+    int parameterId,
+    TrainingParameterLocalization loc,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final param =
+        await TrainingParameter.db.findById(session, parameterId);
+    if (param == null || param.organizationId != organizationId) {
+      throw Exception('Training parameter not found in this organization.');
+    }
+    await ensureLocaleConfigured(session, organizationId, loc.localeKey);
+    loc.parameterId = parameterId;
+    final result = loc.id != null
+        ? await TrainingParameterLocalization.db.updateRow(session, loc)
+        : await TrainingParameterLocalization.db.insertRow(session, loc);
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
+  }
+
+  Future<bool> deleteManagedTrainingParameterLocalization(
+    Session session,
+    int organizationId,
+    int localizationId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final loc = await TrainingParameterLocalization.db
+        .findById(session, localizationId);
+    if (loc == null) return false;
+    final param =
+        await TrainingParameter.db.findById(session, loc.parameterId);
+    if (param == null || param.organizationId != organizationId) return false;
+    await TrainingParameterLocalization.db.deleteRow(session, loc);
+    await bumpOrgContentVersion(session, organizationId);
+    return true;
+  }
+
+  Future<List<AssessmentParameterLocalization>>
+      listManagedAssessmentParameterLocalizations(
+    Session session,
+    int organizationId,
+    int parameterId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final param =
+        await AssessmentParameter.db.findById(session, parameterId);
+    if (param == null || param.organizationId != organizationId) return [];
+    return await AssessmentParameterLocalization.db.find(
+      session,
+      where: (l) => l.parameterId.equals(parameterId),
+      orderBy: (l) => l.localeKey,
+    );
+  }
+
+  Future<AssessmentParameterLocalization>
+      upsertManagedAssessmentParameterLocalization(
+    Session session,
+    int organizationId,
+    int parameterId,
+    AssessmentParameterLocalization loc,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final param =
+        await AssessmentParameter.db.findById(session, parameterId);
+    if (param == null || param.organizationId != organizationId) {
+      throw Exception(
+          'Assessment parameter not found in this organization.');
+    }
+    await ensureLocaleConfigured(session, organizationId, loc.localeKey);
+    loc.parameterId = parameterId;
+    final result = loc.id != null
+        ? await AssessmentParameterLocalization.db.updateRow(session, loc)
+        : await AssessmentParameterLocalization.db.insertRow(session, loc);
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
+  }
+
+  Future<bool> deleteManagedAssessmentParameterLocalization(
+    Session session,
+    int organizationId,
+    int localizationId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final loc = await AssessmentParameterLocalization.db
+        .findById(session, localizationId);
+    if (loc == null) return false;
+    final param =
+        await AssessmentParameter.db.findById(session, loc.parameterId);
+    if (param == null || param.organizationId != organizationId) return false;
+    await AssessmentParameterLocalization.db.deleteRow(session, loc);
+    await bumpOrgContentVersion(session, organizationId);
+    return true;
+  }
+
+  Future<List<AssetLocalization>> listManagedAssetLocalizations(
+    Session session,
+    int organizationId,
+    int assetId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final asset = await Asset.db.findById(session, assetId);
+    if (asset == null || asset.organizationId != organizationId) return [];
+    return await AssetLocalization.db.find(
+      session,
+      where: (l) => l.assetId.equals(assetId),
+      orderBy: (l) => l.localeKey,
+    );
+  }
+
+  Future<AssetLocalization> upsertManagedAssetLocalization(
+    Session session,
+    int organizationId,
+    int assetId,
+    AssetLocalization loc,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final asset = await Asset.db.findById(session, assetId);
+    if (asset == null || asset.organizationId != organizationId) {
+      throw Exception('Asset not found in this organization.');
+    }
+    await ensureLocaleConfigured(session, organizationId, loc.localeKey);
+    loc.assetId = assetId;
+    final result = loc.id != null
+        ? await AssetLocalization.db.updateRow(session, loc)
+        : await AssetLocalization.db.insertRow(session, loc);
+    await bumpOrgContentVersion(session, organizationId);
+    return result;
+  }
+
+  Future<bool> deleteManagedAssetLocalization(
+    Session session,
+    int organizationId,
+    int localizationId,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    final loc = await AssetLocalization.db.findById(session, localizationId);
+    if (loc == null) return false;
+    final asset = await Asset.db.findById(session, loc.assetId);
+    if (asset == null || asset.organizationId != organizationId) return false;
+    await AssetLocalization.db.deleteRow(session, loc);
+    await bumpOrgContentVersion(session, organizationId);
+    return true;
+  }
+
+  // ── Locale-aware reads (managed orgs) ─────────────────────────────────────
+
+  Future<List<TheoryChapter>> getManagedTheoryChaptersLocalized(
+    Session session,
+    int organizationId,
+    String localeKey,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    validateLocaleKeyFormat(localeKey);
+    final chapters = await TheoryChapter.db.find(
+      session,
+      where: (c) => c.organizationId.equals(organizationId),
+      orderBy: (c) => c.chapterOrder,
+    );
+    final chain =
+        await LocaleResolver.resolveChain(session, organizationId, localeKey);
+    final result = <TheoryChapter>[];
+    for (final c in chapters) {
+      final id = c.id;
+      if (id == null) {
+        result.add(c);
+        continue;
+      }
+      final loc = await LocaleResolver.theoryChapter(session, id, chain);
+      result.add(TheoryChapter(
+        id: c.id,
+        organizationId: c.organizationId,
+        chapterOrder: c.chapterOrder,
+        title: loc?.title ?? c.title,
+        thumbnailUrl: loc?.thumbnailUrl ?? c.thumbnailUrl,
+        videoUrl: loc?.videoUrl ?? c.videoUrl,
+        videoMetadata: loc?.videoMetadata ?? c.videoMetadata,
+        questions: c.questions,
+      ));
+    }
+    return result;
+  }
+
+  Future<List<TrainingParameter>> getManagedTrainingParametersLocalized(
+    Session session,
+    int organizationId,
+    String localeKey,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    validateLocaleKeyFormat(localeKey);
+    final params = await TrainingParameter.db.find(
+      session,
+      where: (p) => p.organizationId.equals(organizationId),
+    );
+    final chain =
+        await LocaleResolver.resolveChain(session, organizationId, localeKey);
+    final result = <TrainingParameter>[];
+    for (final p in params) {
+      final id = p.id;
+      if (id == null) {
+        result.add(p);
+        continue;
+      }
+      final loc = await LocaleResolver.trainingParameter(session, id, chain);
+      result.add(TrainingParameter(
+        id: p.id,
+        organizationId: p.organizationId,
+        paramId: p.paramId,
+        name: loc?.name ?? p.name,
+        description: loc?.description ?? p.description,
+        maxScore: p.maxScore,
+        scoringRules: p.scoringRules,
+        translations: p.translations,
+      ));
+    }
+    return result;
+  }
+
+  Future<List<AssessmentParameter>> getManagedAssessmentParametersLocalized(
+    Session session,
+    int organizationId,
+    String localeKey,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    validateLocaleKeyFormat(localeKey);
+    final params = await AssessmentParameter.db.find(
+      session,
+      where: (p) => p.organizationId.equals(organizationId),
+    );
+    final chain =
+        await LocaleResolver.resolveChain(session, organizationId, localeKey);
+    final result = <AssessmentParameter>[];
+    for (final p in params) {
+      final id = p.id;
+      if (id == null) {
+        result.add(p);
+        continue;
+      }
+      final loc =
+          await LocaleResolver.assessmentParameter(session, id, chain);
+      result.add(AssessmentParameter(
+        id: p.id,
+        organizationId: p.organizationId,
+        paramId: p.paramId,
+        name: loc?.name ?? p.name,
+        description: loc?.description ?? p.description,
+        maxScore: p.maxScore,
+        scoringRules: p.scoringRules,
+        translations: p.translations,
+      ));
+    }
+    return result;
+  }
+
+  Future<List<Asset>> getManagedAssetsLocalized(
+    Session session,
+    int organizationId,
+    String localeKey,
+  ) async {
+    await _requireManagedOrg(session, organizationId);
+    validateLocaleKeyFormat(localeKey);
+    final assets = await Asset.db.find(
+      session,
+      where: (a) => a.organizationId.equals(organizationId),
+    );
+    final chain =
+        await LocaleResolver.resolveChain(session, organizationId, localeKey);
+    final result = <Asset>[];
+    for (final a in assets) {
+      final id = a.id;
+      if (id == null) {
+        result.add(a);
+        continue;
+      }
+      final loc = await LocaleResolver.asset(session, id, chain);
+      result.add(Asset(
+        id: a.id,
+        organizationId: a.organizationId,
+        name: loc?.name ?? a.name,
+        version: a.version,
+        url: loc?.url ?? a.url,
+        description: loc?.description ?? a.description,
+        module: a.module,
+      ));
+    }
+    return result;
   }
 }

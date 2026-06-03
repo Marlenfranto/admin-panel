@@ -27,6 +27,7 @@ abstract class ModuleConfig
     bool? aiExpertModule,
     bool? smartTrainingModule,
     bool? assessmentModule,
+    String? defaultLocaleKey,
     String? defaultLanguage,
     this.supportedLanguages,
     this.aiChatPrompt,
@@ -36,6 +37,7 @@ abstract class ModuleConfig
        aiExpertModule = aiExpertModule ?? false,
        smartTrainingModule = smartTrainingModule ?? false,
        assessmentModule = assessmentModule ?? false,
+       defaultLocaleKey = defaultLocaleKey ?? 'US-en',
        defaultLanguage = defaultLanguage ?? 'en',
        passingPercentage = passingPercentage ?? 60;
 
@@ -47,6 +49,7 @@ abstract class ModuleConfig
     bool? aiExpertModule,
     bool? smartTrainingModule,
     bool? assessmentModule,
+    String? defaultLocaleKey,
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
@@ -79,6 +82,7 @@ abstract class ModuleConfig
           : _i1.BoolJsonExtension.fromJson(
               jsonSerialization['assessmentModule'],
             ),
+      defaultLocaleKey: jsonSerialization['defaultLocaleKey'] as String?,
       defaultLanguage: jsonSerialization['defaultLanguage'] as String?,
       supportedLanguages: jsonSerialization['supportedLanguages'] == null
           ? null
@@ -115,6 +119,11 @@ abstract class ModuleConfig
 
   bool assessmentModule;
 
+  String defaultLocaleKey;
+
+  /// DEPRECATED (future): legacy editor still reads/writes these. Made
+  /// non-persistent so storage is clean; the editor's "Language Settings"
+  /// section is the next thing to remove.
   String defaultLanguage;
 
   List<_i3.SupportedLanguage>? supportedLanguages;
@@ -139,6 +148,7 @@ abstract class ModuleConfig
     bool? aiExpertModule,
     bool? smartTrainingModule,
     bool? assessmentModule,
+    String? defaultLocaleKey,
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
@@ -156,6 +166,7 @@ abstract class ModuleConfig
       'aiExpertModule': aiExpertModule,
       'smartTrainingModule': smartTrainingModule,
       'assessmentModule': assessmentModule,
+      'defaultLocaleKey': defaultLocaleKey,
       'defaultLanguage': defaultLanguage,
       if (supportedLanguages != null)
         'supportedLanguages': supportedLanguages?.toJson(
@@ -182,6 +193,7 @@ abstract class ModuleConfig
       'aiExpertModule': aiExpertModule,
       'smartTrainingModule': smartTrainingModule,
       'assessmentModule': assessmentModule,
+      'defaultLocaleKey': defaultLocaleKey,
       'defaultLanguage': defaultLanguage,
       if (supportedLanguages != null)
         'supportedLanguages': supportedLanguages?.toJson(
@@ -237,6 +249,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     bool? aiExpertModule,
     bool? smartTrainingModule,
     bool? assessmentModule,
+    String? defaultLocaleKey,
     String? defaultLanguage,
     List<_i3.SupportedLanguage>? supportedLanguages,
     String? aiChatPrompt,
@@ -250,6 +263,7 @@ class _ModuleConfigImpl extends ModuleConfig {
          aiExpertModule: aiExpertModule,
          smartTrainingModule: smartTrainingModule,
          assessmentModule: assessmentModule,
+         defaultLocaleKey: defaultLocaleKey,
          defaultLanguage: defaultLanguage,
          supportedLanguages: supportedLanguages,
          aiChatPrompt: aiChatPrompt,
@@ -269,6 +283,7 @@ class _ModuleConfigImpl extends ModuleConfig {
     bool? aiExpertModule,
     bool? smartTrainingModule,
     bool? assessmentModule,
+    String? defaultLocaleKey,
     String? defaultLanguage,
     Object? supportedLanguages = _Undefined,
     Object? aiChatPrompt = _Undefined,
@@ -287,6 +302,7 @@ class _ModuleConfigImpl extends ModuleConfig {
       aiExpertModule: aiExpertModule ?? this.aiExpertModule,
       smartTrainingModule: smartTrainingModule ?? this.smartTrainingModule,
       assessmentModule: assessmentModule ?? this.assessmentModule,
+      defaultLocaleKey: defaultLocaleKey ?? this.defaultLocaleKey,
       defaultLanguage: defaultLanguage ?? this.defaultLanguage,
       supportedLanguages: supportedLanguages is List<_i3.SupportedLanguage>?
           ? supportedLanguages
@@ -330,17 +346,11 @@ class ModuleConfigUpdateTable extends _i1.UpdateTable<ModuleConfigTable> {
     value,
   );
 
-  _i1.ColumnValue<String, String> defaultLanguage(String value) =>
+  _i1.ColumnValue<String, String> defaultLocaleKey(String value) =>
       _i1.ColumnValue(
-        table.defaultLanguage,
+        table.defaultLocaleKey,
         value,
       );
-
-  _i1.ColumnValue<List<_i3.SupportedLanguage>, List<_i3.SupportedLanguage>>
-  supportedLanguages(List<_i3.SupportedLanguage>? value) => _i1.ColumnValue(
-    table.supportedLanguages,
-    value,
-  );
 
   _i1.ColumnValue<String, String> aiChatPrompt(String? value) =>
       _i1.ColumnValue(
@@ -388,14 +398,10 @@ class ModuleConfigTable extends _i1.Table<int?> {
       this,
       hasDefault: true,
     );
-    defaultLanguage = _i1.ColumnString(
-      'defaultLanguage',
+    defaultLocaleKey = _i1.ColumnString(
+      'defaultLocaleKey',
       this,
       hasDefault: true,
-    );
-    supportedLanguages = _i1.ColumnSerializable<List<_i3.SupportedLanguage>>(
-      'supportedLanguages',
-      this,
     );
     aiChatPrompt = _i1.ColumnString(
       'aiChatPrompt',
@@ -427,10 +433,7 @@ class ModuleConfigTable extends _i1.Table<int?> {
 
   late final _i1.ColumnBool assessmentModule;
 
-  late final _i1.ColumnString defaultLanguage;
-
-  late final _i1.ColumnSerializable<List<_i3.SupportedLanguage>>
-  supportedLanguages;
+  late final _i1.ColumnString defaultLocaleKey;
 
   late final _i1.ColumnString aiChatPrompt;
 
@@ -460,8 +463,7 @@ class ModuleConfigTable extends _i1.Table<int?> {
     aiExpertModule,
     smartTrainingModule,
     assessmentModule,
-    defaultLanguage,
-    supportedLanguages,
+    defaultLocaleKey,
     aiChatPrompt,
     aiChatPromptTranslations,
     passingPercentage,

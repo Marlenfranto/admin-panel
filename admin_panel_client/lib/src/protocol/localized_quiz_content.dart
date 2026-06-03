@@ -16,12 +16,14 @@ import 'package:admin_panel_client/src/protocol/protocol.dart' as _i2;
 abstract class LocalizedQuizContent implements _i1.SerializableModel {
   LocalizedQuizContent._({
     required this.languageCode,
+    this.localeKey,
     required this.question,
     required this.answers,
   });
 
   factory LocalizedQuizContent({
     required String languageCode,
+    String? localeKey,
     required String question,
     required List<String> answers,
   }) = _LocalizedQuizContentImpl;
@@ -31,6 +33,7 @@ abstract class LocalizedQuizContent implements _i1.SerializableModel {
   ) {
     return LocalizedQuizContent(
       languageCode: jsonSerialization['languageCode'] as String,
+      localeKey: jsonSerialization['localeKey'] as String?,
       question: jsonSerialization['question'] as String,
       answers: _i2.Protocol().deserialize<List<String>>(
         jsonSerialization['answers'],
@@ -38,7 +41,11 @@ abstract class LocalizedQuizContent implements _i1.SerializableModel {
     );
   }
 
+  /// DEPRECATED (future): legacy quiz translation editor keys on languageCode.
+  /// localeKey is the canonical replacement.
   String languageCode;
+
+  String? localeKey;
 
   String question;
 
@@ -49,6 +56,7 @@ abstract class LocalizedQuizContent implements _i1.SerializableModel {
   @_i1.useResult
   LocalizedQuizContent copyWith({
     String? languageCode,
+    String? localeKey,
     String? question,
     List<String>? answers,
   });
@@ -57,6 +65,7 @@ abstract class LocalizedQuizContent implements _i1.SerializableModel {
     return {
       '__className__': 'LocalizedQuizContent',
       'languageCode': languageCode,
+      if (localeKey != null) 'localeKey': localeKey,
       'question': question,
       'answers': answers.toJson(),
     };
@@ -68,13 +77,17 @@ abstract class LocalizedQuizContent implements _i1.SerializableModel {
   }
 }
 
+class _Undefined {}
+
 class _LocalizedQuizContentImpl extends LocalizedQuizContent {
   _LocalizedQuizContentImpl({
     required String languageCode,
+    String? localeKey,
     required String question,
     required List<String> answers,
   }) : super._(
          languageCode: languageCode,
+         localeKey: localeKey,
          question: question,
          answers: answers,
        );
@@ -85,11 +98,13 @@ class _LocalizedQuizContentImpl extends LocalizedQuizContent {
   @override
   LocalizedQuizContent copyWith({
     String? languageCode,
+    Object? localeKey = _Undefined,
     String? question,
     List<String>? answers,
   }) {
     return LocalizedQuizContent(
       languageCode: languageCode ?? this.languageCode,
+      localeKey: localeKey is String? ? localeKey : this.localeKey,
       question: question ?? this.question,
       answers: answers ?? this.answers.map((e0) => e0).toList(),
     );

@@ -11,6 +11,7 @@ abstract final class AppRoutes {
   static const adminUsers         = '/admin/users';
   static const adminModules       = '/admin/modules';
   static const adminContent       = '/admin/content';
+  static const adminLocales       = '/admin/locales';
   static const adminTrainingHistory = '/admin/training-history';
   static const adminSettings      = '/admin/settings';
 

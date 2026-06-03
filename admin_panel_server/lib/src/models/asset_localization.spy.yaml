@@ -1,0 +1,14 @@
+class: AssetLocalization
+table: asset_localization
+fields:
+  asset: Asset?, relation(onDelete=Cascade)
+  localeKey: String
+  name: String
+  description: String?
+  url: String
+indexes:
+  asset_loc_unique_idx:
+    fields: assetId, localeKey
+    unique: true
+  asset_loc_locale_idx:
+    fields: localeKey

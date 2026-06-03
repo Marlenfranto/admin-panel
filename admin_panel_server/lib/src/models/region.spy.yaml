@@ -1,0 +1,13 @@
+class: Region
+table: region
+fields:
+  organization: Organization?, relation(optional)
+  code: String
+  displayName: String
+  enabled: bool, default=true, defaultPersist=true
+indexes:
+  region_org_code_idx:
+    fields: organizationId, code
+    unique: true
+  region_org_idx:
+    fields: organizationId

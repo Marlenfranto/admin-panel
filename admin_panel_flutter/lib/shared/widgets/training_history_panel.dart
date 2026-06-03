@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../src/providers.dart';
 import 'certificate_preview_dialog.dart';
 
@@ -55,9 +56,11 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final dateLocale = Localizations.localeOf(context).toLanguageTag();
     if (widget.results.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+        padding: const EdgeInsetsDirectional.symmetric(vertical: AppSpacing.xl),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -65,10 +68,10 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
               Icon(Icons.auto_graph_rounded,
                   size: 36, color: AppColors.onSurfaceSubtle),
               const SizedBox(height: AppSpacing.md),
-              Text('No performance data', style: AppTextStyles.headingSm),
+              Text(t.historyEmptyTitle, style: AppTextStyles.headingSm),
               const SizedBox(height: 4),
               Text(
-                'Visualizations will appear after your first training session.',
+                t.historyEmptyDesc,
                 style: AppTextStyles.bodySm,
                 textAlign: TextAlign.center,
               ),
@@ -87,7 +90,7 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── Trend Chart ──────────────────────────────────────────────────────
-        Text('Performance Trend', style: AppTextStyles.labelLg),
+        Text(t.historyPerformanceTrend, style: AppTextStyles.labelLg),
         const SizedBox(height: AppSpacing.md),
         _PerformanceTrendChart(
           results: widget.results,
@@ -105,9 +108,12 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Criteria Breakdown', style: AppTextStyles.labelLg),
+                  Text(t.historyCriteriaBreakdown, style: AppTextStyles.labelLg),
                   Text(
-                    'Session on ${DateFormat('MMM d, h:mm a').format(selectedResult.completedAt.toLocal())}',
+                    t.historySessionOn(
+                      DateFormat('MMM d, h:mm a', dateLocale)
+                          .format(selectedResult.completedAt.toLocal()),
+                    ),
                     style: AppTextStyles.bodyXs
                         .copyWith(color: AppColors.onSurfaceMuted),
                   ),
@@ -115,7 +121,7 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: (selectedResult.overallPercentage >=
                             widget.passingPercentage
@@ -125,7 +131,7 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
                 borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               ),
               child: Text(
-                'Score: ${selectedResult.overallPercentage}%',
+                t.historyScore(selectedResult.overallPercentage),
                 style: AppTextStyles.labelSm.copyWith(
                   color: selectedResult.overallPercentage >=
                           widget.passingPercentage
@@ -142,7 +148,7 @@ class _TrainingHistoryPanelState extends State<TrainingHistoryPanel> {
         const SizedBox(height: AppSpacing.xl),
 
         // ── Simple History List ──────────────────────────────────────────────
-        Text('Attempt History', style: AppTextStyles.labelLg),
+        Text(t.historyAttemptHistory, style: AppTextStyles.labelLg),
         const SizedBox(height: AppSpacing.sm),
         ...widget.results.map((r) => _HistoryRow(
               result: r,
@@ -178,7 +184,9 @@ class _PerformanceTrendChart extends StatelessWidget {
 
     return Container(
       height: 200,
-      padding: const EdgeInsets.fromLTRB(10, 20, 20, 10),
+      // Asymmetric padding: extra space on the leading side for left-axis
+      // labels. Uses logical edges so RTL mirrors correctly.
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 20, 20, 10),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -332,7 +340,7 @@ class TrainingCriteriaBarChart extends StatelessWidget {
 
     return Container(
       height: 180,
-      padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 20, 10, 10),
       decoration: BoxDecoration(
         color: AppColors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -446,6 +454,7 @@ class _HistoryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final passed = result.overallPercentage >= passingPercentage;
     final color = passed ? AppColors.success : AppColors.error;
+    final dateLocale = Localizations.localeOf(context).toLanguageTag();
 
     return Material(
       color: Colors.transparent,
@@ -453,11 +462,11 @@ class _HistoryRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         child: Container(
-          padding: const EdgeInsets.symmetric(
+          padding: const EdgeInsetsDirectional.symmetric(
               horizontal: AppSpacing.md, vertical: 10),
           decoration: BoxDecoration(
-            border: Border(
-              left: BorderSide(
+            border: BorderDirectional(
+              start: BorderSide(
                 color: isSelected ? AppColors.primary : Colors.transparent,
                 width: 3,
               ),
@@ -470,7 +479,7 @@ class _HistoryRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      DateFormat('MMM d, y • h:mm a')
+                      DateFormat('MMM d, y • h:mm a', dateLocale)
                           .format(result.completedAt.toLocal()),
                       style: AppTextStyles.bodyXs.copyWith(
                         fontWeight: isSelected ? FontWeight.bold : null,
@@ -515,11 +524,12 @@ class _CertificateButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
     final name =
         recipientName ?? ref.watch(authProvider).userInfo?.userName ?? '';
 
     return Tooltip(
-      message: 'View Certificate',
+      message: t.historyViewCertificate,
       child: IconButton(
         icon: const Icon(Icons.workspace_premium_rounded, size: 20),
         color: const Color(0xFFD4AF37).withValues(alpha: 0.8), // Gold accent
@@ -528,7 +538,7 @@ class _CertificateButton extends ConsumerWidget {
             context: context,
             builder: (ctx) => CertificatePreviewDialog(
               recipientName: name,
-              courseTitle: 'FireSafeX Training Completion',
+              courseTitle: t.certificateCourseTitle,
               organizationName: 'Mako',
               date: result.completedAt,
               logoImage: 'assets/images/logo.png',
