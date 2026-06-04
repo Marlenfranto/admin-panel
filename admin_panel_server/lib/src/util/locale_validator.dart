@@ -3,6 +3,12 @@ import '../generated/protocol.dart';
 
 final RegExp _localeKeyRe = RegExp(r'^[A-Z]{2}-[a-z]{2,3}$');
 
+/// Returns true if [key] matches the canonical `REGION-language` format.
+/// Null or non-matching values return false (no throw). Use this to skip
+/// legacy pre-Phase-2 rows whose `localeKey` was just the language code.
+bool isValidLocaleKeyFormat(String? key) =>
+    key != null && _localeKeyRe.hasMatch(key);
+
 /// Throws if [key] does not match the canonical `REGION-language` format.
 /// Valid: `US-en`, `UK-en`, `AE-ar`. Invalid: `english-us`, `us-EN`, `enUS`.
 void validateLocaleKeyFormat(String key) {

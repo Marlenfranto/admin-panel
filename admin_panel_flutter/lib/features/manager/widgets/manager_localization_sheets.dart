@@ -87,6 +87,7 @@ class _MgrTheoryChapterBody extends ConsumerStatefulWidget {
 
 class _MgrTheoryChapterBodyState extends ConsumerState<_MgrTheoryChapterBody> {
   String? _selectedLocaleKey;
+  String? _loadedLocaleKey;
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _thumbCtrl = TextEditingController();
@@ -136,6 +137,7 @@ class _MgrTheoryChapterBodyState extends ConsumerState<_MgrTheoryChapterBody> {
 
   void _loadInto(TheoryChapterLocalization? loc) {
     _current = loc;
+    _loadedLocaleKey = _selectedLocaleKey;
     _titleCtrl.text = loc?.title ?? '';
     _descCtrl.text = loc?.description ?? '';
     _thumbCtrl.text = loc?.thumbnailUrl ?? '';
@@ -194,6 +196,7 @@ class _MgrTheoryChapterBodyState extends ConsumerState<_MgrTheoryChapterBody> {
 
       ref.invalidate(managerTheoryChapterLocalizationsProvider(
           (widget.orgId, widget.chapterId)));
+      ref.invalidate(managerTheoryProvider);
       if (mounted) _snackOk('Saved $_selectedLocaleKey');
     } catch (e) {
       if (mounted) _snackError(e);
@@ -286,7 +289,7 @@ class _MgrTheoryChapterBodyState extends ConsumerState<_MgrTheoryChapterBody> {
       _selectedLocaleKey = nonDefault.first.localeKey;
     }
     final existingByKey = {for (final l in existing) l.localeKey: l};
-    if (firstLoad || _current?.localeKey != _selectedLocaleKey) {
+    if (firstLoad || _loadedLocaleKey != _selectedLocaleKey) {
       _loadInto(existingByKey[_selectedLocaleKey]);
       _loadQuizTranslationsForLocale(_selectedLocaleKey!);
     }
@@ -497,6 +500,7 @@ class _MgrTrainingParamBody extends ConsumerStatefulWidget {
 
 class _MgrTrainingParamBodyState extends ConsumerState<_MgrTrainingParamBody> {
   String? _selectedLocaleKey;
+  String? _loadedLocaleKey;
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   late List<TextEditingController> _feedbackCtrls;
@@ -524,6 +528,7 @@ class _MgrTrainingParamBodyState extends ConsumerState<_MgrTrainingParamBody> {
 
   void _loadInto(TrainingParameterLocalization? loc) {
     _current = loc;
+    _loadedLocaleKey = _selectedLocaleKey;
     _nameCtrl.text = loc?.name ?? '';
     _descCtrl.text = loc?.description ?? '';
     final fb = loc?.scoringFeedbacks ?? const <String>[];
@@ -645,7 +650,7 @@ class _MgrTrainingParamBodyState extends ConsumerState<_MgrTrainingParamBody> {
       _selectedLocaleKey = nonDefault.first.localeKey;
     }
     final existingByKey = {for (final l in existing) l.localeKey: l};
-    if (_current?.localeKey != _selectedLocaleKey) {
+    if (_loadedLocaleKey != _selectedLocaleKey) {
       _loadInto(existingByKey[_selectedLocaleKey]);
     }
 
@@ -717,6 +722,7 @@ class _MgrAssessmentParamBody extends ConsumerStatefulWidget {
 class _MgrAssessmentParamBodyState
     extends ConsumerState<_MgrAssessmentParamBody> {
   String? _selectedLocaleKey;
+  String? _loadedLocaleKey;
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   late List<TextEditingController> _feedbackCtrls;
@@ -744,6 +750,7 @@ class _MgrAssessmentParamBodyState
 
   void _loadInto(AssessmentParameterLocalization? loc) {
     _current = loc;
+    _loadedLocaleKey = _selectedLocaleKey;
     _nameCtrl.text = loc?.name ?? '';
     _descCtrl.text = loc?.description ?? '';
     final fb = loc?.scoringFeedbacks ?? const <String>[];
@@ -865,7 +872,7 @@ class _MgrAssessmentParamBodyState
       _selectedLocaleKey = nonDefault.first.localeKey;
     }
     final existingByKey = {for (final l in existing) l.localeKey: l};
-    if (_current?.localeKey != _selectedLocaleKey) {
+    if (_loadedLocaleKey != _selectedLocaleKey) {
       _loadInto(existingByKey[_selectedLocaleKey]);
     }
 
@@ -931,6 +938,7 @@ class _MgrAssetBody extends ConsumerStatefulWidget {
 
 class _MgrAssetBodyState extends ConsumerState<_MgrAssetBody> {
   String? _selectedLocaleKey;
+  String? _loadedLocaleKey;
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _urlCtrl = TextEditingController();
@@ -947,6 +955,7 @@ class _MgrAssetBodyState extends ConsumerState<_MgrAssetBody> {
 
   void _loadInto(AssetLocalization? loc) {
     _current = loc;
+    _loadedLocaleKey = _selectedLocaleKey;
     _nameCtrl.text = loc?.name ?? '';
     _descCtrl.text = loc?.description ?? '';
     _urlCtrl.text = loc?.url ?? '';
@@ -1063,7 +1072,7 @@ class _MgrAssetBodyState extends ConsumerState<_MgrAssetBody> {
       _selectedLocaleKey = nonDefault.first.localeKey;
     }
     final existingByKey = {for (final l in existing) l.localeKey: l};
-    if (_current?.localeKey != _selectedLocaleKey) {
+    if (_loadedLocaleKey != _selectedLocaleKey) {
       _loadInto(existingByKey[_selectedLocaleKey]);
     }
 

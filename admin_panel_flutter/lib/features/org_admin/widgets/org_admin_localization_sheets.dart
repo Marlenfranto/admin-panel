@@ -84,6 +84,7 @@ class _OrgTheoryChapterLocalizationsBody extends ConsumerStatefulWidget {
 class _OrgTheoryChapterLocalizationsBodyState
     extends ConsumerState<_OrgTheoryChapterLocalizationsBody> {
   String? _selectedLocaleKey;
+  String? _loadedLocaleKey;
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _thumbCtrl = TextEditingController();
@@ -133,6 +134,7 @@ class _OrgTheoryChapterLocalizationsBodyState
 
   void _loadInto(TheoryChapterLocalization? loc) {
     _current = loc;
+    _loadedLocaleKey = _selectedLocaleKey;
     _titleCtrl.text = loc?.title ?? '';
     _descCtrl.text = loc?.description ?? '';
     _thumbCtrl.text = loc?.thumbnailUrl ?? '';
@@ -189,6 +191,7 @@ class _OrgTheoryChapterLocalizationsBodyState
 
       ref.invalidate(
           orgTheoryChapterLocalizationsProvider(widget.chapterId));
+      ref.invalidate(orgTheoryProvider);
       if (mounted) _snackOk('Saved $_selectedLocaleKey');
     } catch (e) {
       if (mounted) _snackError(e);
@@ -279,7 +282,7 @@ class _OrgTheoryChapterLocalizationsBodyState
       _selectedLocaleKey = nonDefault.first.localeKey;
     }
     final existingByKey = {for (final l in existing) l.localeKey: l};
-    if (firstLoad || _current?.localeKey != _selectedLocaleKey) {
+    if (firstLoad || _loadedLocaleKey != _selectedLocaleKey) {
       _loadInto(existingByKey[_selectedLocaleKey]);
       _loadQuizTranslationsForLocale(_selectedLocaleKey!);
     }
@@ -487,6 +490,7 @@ class _OrgTrainingParameterLocalizationsBody extends ConsumerStatefulWidget {
 class _OrgTrainingParameterLocalizationsBodyState
     extends ConsumerState<_OrgTrainingParameterLocalizationsBody> {
   String? _selectedLocaleKey;
+  String? _loadedLocaleKey;
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   late List<TextEditingController> _feedbackCtrls;
@@ -514,6 +518,7 @@ class _OrgTrainingParameterLocalizationsBodyState
 
   void _loadInto(TrainingParameterLocalization? loc) {
     _current = loc;
+    _loadedLocaleKey = _selectedLocaleKey;
     _nameCtrl.text = loc?.name ?? '';
     _descCtrl.text = loc?.description ?? '';
     final fb = loc?.scoringFeedbacks ?? const <String>[];
@@ -631,7 +636,7 @@ class _OrgTrainingParameterLocalizationsBodyState
       _selectedLocaleKey = nonDefault.first.localeKey;
     }
     final existingByKey = {for (final l in existing) l.localeKey: l};
-    if (_current?.localeKey != _selectedLocaleKey) {
+    if (_loadedLocaleKey != _selectedLocaleKey) {
       _loadInto(existingByKey[_selectedLocaleKey]);
     }
 
@@ -699,6 +704,7 @@ class _OrgAssessmentParameterLocalizationsBody extends ConsumerStatefulWidget {
 class _OrgAssessmentParameterLocalizationsBodyState
     extends ConsumerState<_OrgAssessmentParameterLocalizationsBody> {
   String? _selectedLocaleKey;
+  String? _loadedLocaleKey;
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   late List<TextEditingController> _feedbackCtrls;
@@ -726,6 +732,7 @@ class _OrgAssessmentParameterLocalizationsBodyState
 
   void _loadInto(AssessmentParameterLocalization? loc) {
     _current = loc;
+    _loadedLocaleKey = _selectedLocaleKey;
     _nameCtrl.text = loc?.name ?? '';
     _descCtrl.text = loc?.description ?? '';
     final fb = loc?.scoringFeedbacks ?? const <String>[];
@@ -843,7 +850,7 @@ class _OrgAssessmentParameterLocalizationsBodyState
       _selectedLocaleKey = nonDefault.first.localeKey;
     }
     final existingByKey = {for (final l in existing) l.localeKey: l};
-    if (_current?.localeKey != _selectedLocaleKey) {
+    if (_loadedLocaleKey != _selectedLocaleKey) {
       _loadInto(existingByKey[_selectedLocaleKey]);
     }
 

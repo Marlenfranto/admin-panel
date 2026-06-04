@@ -188,6 +188,15 @@ class PublicApiEndpoint extends Endpoint {
       orderBy: (l) => l.localeKey,
     );
 
+    // Drop legacy pre-Phase-2 rows whose `localeKey` is null or just the bare
+    // language code (e.g. "ta"). Canonical entries use the REGION-language
+    // form (e.g. "IN-ta"); the legacy concept was removed but old rows may
+    // still sit in the DB next to the canonical one.
+    final canonicalAiPromptTranslations =
+        (config.aiChatPromptTranslations ?? const <LocalizedAiPrompt>[])
+            .where((t) => isValidLocaleKeyFormat(t.localeKey))
+            .toList();
+
     // Resolve the AR Expert AI prompt to the user's preferred regional locale.
     // Walks the fallback chain (preferred → LocaleConfig.fallbackLocaleKey →
     // org default) and picks the first matching translation. If nothing
@@ -197,7 +206,7 @@ class PublicApiEndpoint extends Endpoint {
       organizationId,
       appUser?.preferredLocaleKey,
       config.aiChatPrompt,
-      config.aiChatPromptTranslations,
+      canonicalAiPromptTranslations,
     );
 
     return ModuleConfigPublic(
@@ -218,8 +227,7 @@ class PublicApiEndpoint extends Endpoint {
       // null (`if (x != null)`), which made these vanish from the login
       // response whenever an admin hadn't authored a prompt yet.
       aiChatPrompt:      resolvedAiPrompt ?? '',
-      aiChatPromptTranslations:
-          config.aiChatPromptTranslations ?? const <LocalizedAiPrompt>[],
+      aiChatPromptTranslations: canonicalAiPromptTranslations,
     );
   }
 

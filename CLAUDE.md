@@ -19,8 +19,17 @@ cd admin_panel_server && docker compose up --build --detach
 # Run the server
 cd admin_panel_server && dart bin/main.dart
 
-# Apply migrations on boot
+# Apply migrations on boot (development)
 cd admin_panel_server && dart bin/main.dart --apply-migrations
+
+# Apply migrations against production Neon DB (run locally — Render free
+# tier can't apply migrations from the deployed server). The wrapper
+# pre-warms Neon's pg_catalog with psql and treats post-migration
+# verifyDatabaseIntegrity timeouts as harmless. See migrate.sh.
+cd admin_panel_server && ./migrate.sh production
+cd admin_panel_server && ./migrate.sh staging
+# Pass extra flags through if needed:
+cd admin_panel_server && ./migrate.sh production --apply-repair-migration
 
 # Stop Docker services
 cd admin_panel_server && docker compose stop
@@ -305,11 +314,14 @@ Strip the `Exception: ` prefix: `e.toString().replaceFirst('Exception: ', '')`. 
 - Dev server runs on port `8080`, Postgres on `8090`, test Postgres on `9090`; Redis on `8091` dev / `9091` test
 - Flutter connects to `http://localhost:8080/` in development (`src/providers.dart::clientProvider`)
 - Integration tests use `integration` tag (configured in `dart_test.yaml`)
+- **Production database (`production.yaml`) must point at Neon's pooler endpoint** — the hostname includes a `-pooler` suffix (e.g. `ep-bitter-leaf-am5a7l52-pooler.c-5.us-east-1.aws.neon.tech`). The direct (non-pooler) endpoint causes Serverpod startup and migrations to time out because each new pool connection has to wake the compute. Pool size (`maxConnectionCount: 100`) is sized to match Serverpod's parallel pg_catalog fan-out so the per-acquire timeout never triggers.
 
 ### Deployment
-- GCP (Cloud Run) and AWS terraform configs in `deploy/` directory
-- Firebase hosting config in `admin_panel_flutter/firebase.json`
-- Server Docker image: multi-stage build (dart:3.8.0 → Alpine), exposes ports 8080/8081/8082
+- **Server: Render (free tier).** The Dockerfile in `admin_panel_server/` is what Render builds. Render's free tier cannot run database migrations, so migrations are applied locally against the Neon production DB via `./migrate.sh production` and a redeploy follows once the schema is live.
+- **Database: Neon (managed Postgres, `us-east-1`).** Production points at the **pooler** endpoint — see Configuration above.
+- **Flutter web: Firebase Hosting** (`admin_panel_flutter/firebase.json`); deploy with `firebase deploy` from the flutter package.
+- GCP (Cloud Run) and AWS terraform configs in `deploy/` directory are templates / not in active use.
+- Server Docker image: multi-stage build (dart:3.8.0 → Alpine), exposes ports 8080/8081/8082.
 
 ### Linting
 - Server: uses `package:lints/recommended.yaml`, excludes auto-generated files
@@ -317,4 +329,6 @@ Strip the `Exception: ` prefix: `e.toString().replaceFirst('Exception: ', '')`. 
 - Flutter: uses `package:flutter_lints/flutter.yaml`
 
 ### Database Migrations
-Migrations are in `admin_panel_server/migrations/` and tracked in `migration_registry.txt`. Run `serverpod generate` to create new migrations after `.spy.yaml` changes. Apply pending migrations on boot with `dart bin/main.dart --apply-migrations`. Do not hand-edit migration SQL.
+Migrations are in `admin_panel_server/migrations/` and tracked in `migration_registry.txt`. Run `serverpod generate` to create new migrations after `.spy.yaml` changes. Apply pending migrations against the **local** dev DB with `dart bin/main.dart --apply-migrations`; apply against **Neon production** with `./migrate.sh production` (see Backend Server commands). Do not hand-edit migration SQL.
+
+**Serverpod runs `verifyDatabaseIntegrity` on every server startup**, not just when `--apply-migrations` is passed (Serverpod 3.4.3 `_unguardedStart` → `_applyMigrations` → `verifyDatabaseIntegrity`, unconditional). The check fires ~100 parallel `pg_catalog` queries via `Future.wait` and is gated by the postgres package's hardcoded 15s pool `connectTimeout` (no YAML knob). This is why production needs both the pooler endpoint AND `maxConnectionCount: 100` — without them, Render boots and migration runs both die with `TimeoutException: Failed to acquire pool lock`. If the migration command logs `Latest database migration already applied` before timing out on verify, the migration itself succeeded; `migrate.sh` detects this case and exits 0.

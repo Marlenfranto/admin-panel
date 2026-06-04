@@ -759,7 +759,7 @@ class _AssessmentTab extends ConsumerWidget {
         searchable: true,
         mobileCardBuilder: (p) => _ParamMobileCard(
           name:     p.name,
-          subtitle: p.description,
+          subtitle: p.paramId,
           maxScore: p.maxScore,
           onEdit:   () => _showDialog(context, ref, p),
           onDelete: () async {
@@ -773,15 +773,14 @@ class _AssessmentTab extends ConsumerWidget {
             flex:        3,
             sortKey:     'name',
             comparator:  (a, b) => a.name.compareTo(b.name),
-            searchValue: (p) => '${p.name} ${p.description}',
+            searchValue: (p) => '${p.name} ${p.paramId} ${p.description}',
             cellBuilder: (p) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(p.name, style: AppTextStyles.labelLg,
                     overflow: TextOverflow.ellipsis),
-                Text(p.description, style: AppTextStyles.bodyXs,
-                    overflow: TextOverflow.ellipsis),
+                Text(p.paramId, style: AppTextStyles.bodyXs),
               ],
             ),
           ),
