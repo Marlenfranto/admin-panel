@@ -9,8 +9,8 @@ import 'package:serverpod_flutter/serverpod_flutter.dart';
 // Creates a singleton instance of the client, configured for the local server.
 final clientProvider = Provider<Client>((ref) {
   return Client(
-    'https://admin-panel-zi8p.onrender.com/', // Your server's address
-    // 'http://localhost:8080/', // Your server's address
+    // 'https://admin-panel-zi8p.onrender.com/', // Your server's address
+    'http://localhost:8080/', // Your server's address
     authenticationKeyManager: FlutterAuthenticationKeyManager(),
   )..connectivityMonitor = FlutterConnectivityMonitor();
 });
@@ -35,6 +35,7 @@ class AuthState {
 
   bool get isSignedIn => userInfo != null;
 }
+
 // Notifier to manage changes in authentication state.
 class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;

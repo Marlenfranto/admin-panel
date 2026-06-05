@@ -1886,8 +1886,17 @@ class EndpointPublicApi extends _i1.EndpointRef {
   /// Returns theory, training parameters, and assessment parameters for
   /// [organizationId] in a single call. Top-level fields include the org's
   /// region/locale catalog (`defaultLocaleKey`, `regions`, `supportedLocales`).
-  /// Content fields inside each chapter/param/asset are populated from the
-  /// org's default-locale `*Localization` rows.
+  ///
+  /// Each theory chapter exposes its per-locale content via the
+  /// `chapterDetails` array (one entry per `TheoryChapterLocalization` row).
+  /// Each quiz question carries the default-locale text at the top with
+  /// `languageCode` set, and a `theoryTranslations` array containing only the
+  /// non-default-language variants.
+  ///
+  /// Each training/assessment parameter's top-level fields hold the
+  /// default-locale content (with `languageCode` set). The `translations`
+  /// array contains only the non-default-locale rows, each tagged with its
+  /// `languageCode`.
   _i2.Future<Map<String, dynamic>> getContentBundle(
     int organizationId,
     String apiKey,

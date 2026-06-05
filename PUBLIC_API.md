@@ -14,6 +14,20 @@ client, and the certificate / progress callbacks.
 > additionally embed the **resolution envelope** (`requestedLocaleKey`,
 > `resolvedLocaleChain`) and add `resolvedLocaleKey` on every content item
 > so the client can show which locale actually rendered.
+>
+> Every locale-key field is now paired with a sibling **language code**
+> field carrying the bare ISO-639 code (e.g. `IN-en` → `en`). The siblings
+> are:
+> - `defaultLocaleKey` → `defaultLanguageCode`
+> - `requestedLocaleKey` → `requestedLanguageCode`
+> - `resolvedLocaleChain` → `resolvedLanguageChain` (parallel list)
+> - `resolvedLocaleKey` (per item) → `resolvedLanguageCode` (per item)
+> - The envelope-root `localeKey` legacy alias on `getTheorySectionLocalized`
+>   → `languageCode`
+>
+> Inside embedded locale rows (`chapterDetails[]`, `translations[]`, every
+> `LocaleConfig` entry in `supportedLocales`) the `languageCode` field is
+> already part of the row shape and is emitted alongside `localeKey`.
 
 ---
 
@@ -147,6 +161,7 @@ POST /publicApi/login
       "assessmentModule": false
     },
     "defaultLocaleKey": "US-en",
+    "defaultLanguageCode": "en",
     "supportedLocales": [
       {
         "id": 7,
@@ -218,29 +233,119 @@ POST /publicApi/getContentBundle
 
 ```json
 {
-  "defaultLocaleKey": "US-en",
+  "defaultLocaleKey": "IN-en",
+  "defaultLanguageCode": "en",
   "regions": [
-    { "id": 3, "organizationId": 1, "code": "US", "displayName": "United States", "enabled": true },
-    { "id": 4, "organizationId": 1, "code": "AE", "displayName": "United Arab Emirates", "enabled": true }
+    { "id": 1, "organizationId": 1, "code": "IN", "displayName": "India", "enabled": true }
   ],
   "supportedLocales": [
-    { "id": 7, "organizationId": 1, "regionCode": "US", "languageCode": "en", "localeKey": "US-en", "displayName": "English (US)", "enabled": true, "isDefault": true, "fallbackLocaleKey": null },
-    { "id": 8, "organizationId": 1, "regionCode": "AE", "languageCode": "ar", "localeKey": "AE-ar", "displayName": "Arabic (UAE)", "enabled": true, "isDefault": false, "fallbackLocaleKey": "US-en" }
+    { "id": 1, "organizationId": 1, "regionCode": "IN", "languageCode": "en", "localeKey": "IN-en", "displayName": "India (English)", "enabled": true, "isDefault": true, "fallbackLocaleKey": null },
+    { "id": 2, "organizationId": 1, "regionCode": "IN", "languageCode": "ta", "localeKey": "IN-ta", "displayName": "India (Tamil)", "enabled": true, "isDefault": false, "fallbackLocaleKey": "IN-en" }
   ],
   "organizationId": 1,
-  "contentVersion": 12,
+  "contentVersion": 137,
   "theorySection": {
-    "moduleTitle": "Mako Industrial",
-    "chapters": [ /* see getTheorySection */ ]
+    "moduleTitle": "Mako",
+    "chapters": [
+      {
+        "id": 2,
+        "organizationId": 1,
+        "chapterOrder": 1,
+        "chapterDetails": [
+          {
+            "id": 1,
+            "chapterId": 2,
+            "localeKey": "IN-en",
+            "title": "Fire",
+            "thumbnailUrl": "https://cdn.example/chapter-1.png",
+            "videoUrl": "https://cdn.example/chapter-1.mp4",
+            "languageCode": "en"
+          },
+          {
+            "id": 7,
+            "chapterId": 2,
+            "localeKey": "IN-ta",
+            "title": "நெருப்பு",
+            "thumbnailUrl": "https://cdn.example/chapter-1.png",
+            "videoUrl": "https://cdn.example/chapter-1.mp4",
+            "languageCode": "ta"
+          }
+        ],
+        "questions": [
+          {
+            "question": "Which of these is an uncontrolled fire?",
+            "answers": ["Cooking fire", "Lighting fire", "Forest fire", "Candle fire"],
+            "correctAnswer": 2,
+            "languageCode": "en",
+            "theoryTranslations": [
+              {
+                "languageCode": "ta",
+                "question": "கீழ்க்கண்டவற்றில் எது கட்டுப்பாடின்றி இயற்கைக்கு பெரிய சேதத்தை ஏற்படுத்தும் தீ?",
+                "answers": ["சமையல் தீ", "ஒளி தீ", "காட்டு தீ", "மெழுகுவர்த்தி தீ"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
-  "trainingParameters": [ /* see getTrainingParameters → parameters */ ],
-  "assessmentParameters": [ /* see getAssessmentParameters → parameters */ ]
+  "trainingParameters": [
+    {
+      "id": 2,
+      "organizationId": 1,
+      "paramId": "safe_distance",
+      "maxScore": 5,
+      "scoringRules": [
+        { "threshold": 80, "score": 5, "feedback": "Superior safety awareness." },
+        { "threshold": 60, "score": 3, "feedback": "Caution required." },
+        { "threshold": 0,  "score": 0, "feedback": "Safety violation." }
+      ],
+      "name": "SafeDistance",
+      "description": "",
+      "languageCode": "en",
+      "translations": [
+        {
+          "id": 4,
+          "parameterId": 2,
+          "localeKey": "IN-ta",
+          "name": "பாதுகாப்பான தூரம்",
+          "description": "",
+          "scoringFeedbacks": [
+            "உயர்ந்த பாதுகாப்பு விழிப்புணர்வு.",
+            "கவனம் தேவை.",
+            "பாதுகாப்பு மீறல்."
+          ],
+          "languageCode": "ta"
+        }
+      ]
+    }
+  ],
+  "assessmentParameters": [ /* same shape as trainingParameters */ ]
 }
 ```
 
-Content fields inside each chapter/param are populated from the org's
-default-locale `*Localization` row (hydrated by `hydrate*`). To render in
-a non-default locale, call the `*Localized` variants instead.
+Shape notes:
+
+- **`theorySection.chapters[].chapterDetails`** — one entry per
+  `TheoryChapterLocalization` row for the chapter, including the
+  default-locale row. Each entry carries `localeKey` plus a derived
+  `languageCode` (so `IN-ta` adds `"languageCode": "ta"`). The chapter
+  object itself does NOT carry top-level `title` / `thumbnailUrl` /
+  `videoUrl` — all per-language content lives inside `chapterDetails`.
+- **`theorySection.chapters[].questions[]`** — the top-level `question` /
+  `answers` / `correctAnswer` are the **default-locale** content, tagged
+  with `languageCode` set to the default language. `theoryTranslations`
+  contains only the **non-default-language** variants (the default is
+  already at the top), each emitted as
+  `{languageCode, question, answers}`.
+- **`trainingParameters[]` / `assessmentParameters[]`** — top-level
+  `name` / `description` / `scoringRules` are the default-locale content,
+  with `languageCode` set to the default language. `translations`
+  contains only the **non-default-locale** rows, each tagged with its
+  `languageCode`.
+
+To render in a non-default locale on demand, call the `*Localized`
+variants below (they walk the fallback chain per item).
 
 ---
 
@@ -263,6 +368,7 @@ POST /publicApi/getTheorySection
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* Region[] */ ],
   "supportedLocales": [ /* LocaleConfig[] */ ],
   "organizationId": 1,
@@ -328,13 +434,17 @@ POST /publicApi/getTheorySectionLocalized
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* … */ ],
   "supportedLocales": [ /* … */ ],
   "requestedLocaleKey": "AE-ar",
+  "requestedLanguageCode": "ar",
   "resolvedLocaleChain": ["AE-ar", "US-en"],
+  "resolvedLanguageChain": ["ar", "en"],
   "organizationId": 1,
   "moduleTitle": "Mako Industrial",
   "localeKey": "AE-ar",
+  "languageCode": "ar",
   "chapters": [
     {
       "id": 12,
@@ -346,7 +456,8 @@ POST /publicApi/getTheorySectionLocalized
       "thumbnailUrl": "https://cdn.example/thumb-12-ar.jpg",
       "videoUrl": "https://cdn.example/video-12-ar.mp4",
       "videoMetadata": { "durationMs": 184000, "width": 1920, "height": 1080 },
-      "resolvedLocaleKey": "AE-ar"
+      "resolvedLocaleKey": "AE-ar",
+      "resolvedLanguageCode": "ar"
     },
     {
       "id": 13,
@@ -358,7 +469,8 @@ POST /publicApi/getTheorySectionLocalized
       "thumbnailUrl": "https://cdn.example/thumb-13.jpg",
       "videoUrl": null,
       "videoMetadata": null,
-      "resolvedLocaleKey": "US-en"
+      "resolvedLocaleKey": "US-en",
+      "resolvedLanguageCode": "en"
     }
   ]
 }
@@ -394,6 +506,7 @@ POST /publicApi/getTrainingParameters
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* … */ ],
   "supportedLocales": [ /* … */ ],
   "organizationId": 1,
@@ -435,10 +548,13 @@ POST /publicApi/getTrainingParametersLocalized
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* … */ ],
   "supportedLocales": [ /* … */ ],
   "requestedLocaleKey": "AE-ar",
+  "requestedLanguageCode": "ar",
   "resolvedLocaleChain": ["AE-ar", "US-en"],
+  "resolvedLanguageChain": ["ar", "en"],
   "organizationId": 1,
   "parameters": [
     {
@@ -455,7 +571,8 @@ POST /publicApi/getTrainingParametersLocalized
         "إمساك جيد",
         "ممتاز"
       ],
-      "resolvedLocaleKey": "AE-ar"
+      "resolvedLocaleKey": "AE-ar",
+      "resolvedLanguageCode": "ar"
     }
   ]
 }
@@ -483,6 +600,7 @@ POST /publicApi/getAssessmentParameters
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* … */ ],
   "supportedLocales": [ /* … */ ],
   "organizationId": 1,
@@ -523,10 +641,13 @@ POST /publicApi/getAssessmentParametersLocalized
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* … */ ],
   "supportedLocales": [ /* … */ ],
   "requestedLocaleKey": "AE-ar",
+  "requestedLanguageCode": "ar",
   "resolvedLocaleChain": ["AE-ar", "US-en"],
+  "resolvedLanguageChain": ["ar", "en"],
   "organizationId": 1,
   "parameters": [
     {
@@ -539,7 +660,8 @@ POST /publicApi/getAssessmentParametersLocalized
       "description": "الثواني المستغرقة للخروج من الغرفة.",
       "translations": null,
       "scoringFeedbacks": ["بطيء", "جيد", "ممتاز"],
-      "resolvedLocaleKey": "AE-ar"
+      "resolvedLocaleKey": "AE-ar",
+      "resolvedLanguageCode": "ar"
     }
   ]
 }
@@ -567,6 +689,7 @@ POST /publicApi/getAssets
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* … */ ],
   "supportedLocales": [ /* … */ ],
   "organizationId": 1,
@@ -606,10 +729,13 @@ POST /publicApi/getAssetsLocalized
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* … */ ],
   "supportedLocales": [ /* … */ ],
   "requestedLocaleKey": "AE-ar",
+  "requestedLanguageCode": "ar",
   "resolvedLocaleChain": ["AE-ar", "US-en"],
+  "resolvedLanguageChain": ["ar", "en"],
   "organizationId": 1,
   "assets": [
     {
@@ -620,7 +746,8 @@ POST /publicApi/getAssetsLocalized
       "name": "طفاية الحريق ثلاثية الأبعاد",
       "description": "نموذج طفاية ABC العام.",
       "url": "https://cdn.example/assets/extinguisher_v1.4.0_ar.glb",
-      "resolvedLocaleKey": "AE-ar"
+      "resolvedLocaleKey": "AE-ar",
+      "resolvedLanguageCode": "ar"
     }
   ]
 }
@@ -664,6 +791,7 @@ back to the root prompt.
     "assessmentModule": false
   },
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "supportedLocales": [ /* LocaleConfig[] */ ],
   "passingPercentage": 60,
   "aiChatPrompt": "أنت خبير في السلامة من الحرائق…",
@@ -714,6 +842,7 @@ POST /publicApi/getLocales
 ```json
 {
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* Region[] */ ],
   "supportedLocales": [
     {
@@ -757,6 +886,7 @@ POST /publicApi/getRegions
 {
   "organizationId": 1,
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [
     { "id": 3, "organizationId": 1, "code": "US", "displayName": "United States", "enabled": true },
     { "id": 4, "organizationId": 1, "code": "AE", "displayName": "United Arab Emirates", "enabled": true }
@@ -797,6 +927,7 @@ POST /publicApi/getLanguages
   ],
 
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "regions": [ /* Region[] */ ],
   "supportedLocales": [ /* LocaleConfig[] */ ]
 }
@@ -944,7 +1075,7 @@ Throws `"Organization not found."` if `organizationId` is unknown.
 The localized variant adds:
 
 ```json
-{ "resolvedLocaleKey": "AE-ar" }
+{ "resolvedLocaleKey": "AE-ar", "resolvedLanguageCode": "ar" }
 ```
 
 ### `TrainingParameter` / `AssessmentParameter` (default-locale, hydrated)
@@ -967,7 +1098,8 @@ The localized variants add:
 ```json
 {
   "scoringFeedbacks": ["…", "…", "…"],
-  "resolvedLocaleKey": "AE-ar"
+  "resolvedLocaleKey": "AE-ar",
+  "resolvedLanguageCode": "ar"
 }
 ```
 
@@ -1001,6 +1133,7 @@ Localized variant adds `resolvedLocaleKey`.
     "assessmentModule": false
   },
   "defaultLocaleKey": "US-en",
+  "defaultLanguageCode": "en",
   "supportedLocales": [ /* LocaleConfig[] */ ],
   "passingPercentage": 60,
   "aiChatPrompt": "…",

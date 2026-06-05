@@ -119,8 +119,11 @@ class PublicApiEndpoint extends Endpoint {
           r.organizationId.equals(organizationId) & r.enabled.equals(true),
       orderBy: (r) => r.code,
     );
+    final defaultLocaleKey =
+        config?.defaultLocaleKey ?? _systemDefaultLocaleKey;
     return {
-      'defaultLocaleKey': config?.defaultLocaleKey ?? _systemDefaultLocaleKey,
+      'defaultLocaleKey': defaultLocaleKey,
+      'defaultLanguageCode': _languageCodeFromLocaleKey(defaultLocaleKey),
       'regions': regions.map((r) => _clean(r.toJson())).toList(),
       'supportedLocales':
           supportedLocales.map((l) => _clean(l.toJson())).toList(),
@@ -129,7 +132,10 @@ class PublicApiEndpoint extends Endpoint {
 
   /// Builds the locale-resolution envelope for a localized request: the org's
   /// `_buildLocaleMeta` payload PLUS the caller-supplied `requestedLocaleKey`
-  /// and the ordered fallback chain that will be walked per item.
+  /// and the ordered fallback chain that will be walked per item. Every
+  /// locale key in the envelope is paired with the corresponding language
+  /// code (`requestedLanguageCode`, `resolvedLanguageChain`) so clients can
+  /// branch on language without re-parsing the key.
   Future<Map<String, dynamic>> _buildLocaleResolution(
     Session session,
     int organizationId,
@@ -144,7 +150,10 @@ class PublicApiEndpoint extends Endpoint {
     return {
       ...meta,
       'requestedLocaleKey': requestedLocaleKey,
+      'requestedLanguageCode': _languageCodeFromLocaleKey(requestedLocaleKey),
       'resolvedLocaleChain': chain,
+      'resolvedLanguageChain':
+          chain.map(_languageCodeFromLocaleKey).toList(),
     };
   }
 
@@ -220,6 +229,8 @@ class PublicApiEndpoint extends Endpoint {
         assessmentModule:    effective('assessment',    config.assessmentModule),
       ),
       defaultLocaleKey: config.defaultLocaleKey,
+      defaultLanguageCode:
+          _languageCodeFromLocaleKey(config.defaultLocaleKey),
       supportedLocales: supportedLocales,
       passingPercentage: config.passingPercentage,
       // Coerce nullable fields to non-null defaults so the generated
@@ -399,6 +410,8 @@ class PublicApiEndpoint extends Endpoint {
         assessmentModule:    false,
       ),
       defaultLocaleKey: _systemDefaultLocaleKey,
+      defaultLanguageCode:
+          _languageCodeFromLocaleKey(_systemDefaultLocaleKey),
       supportedLocales: supportedLocales,
       passingPercentage: 60,
       aiChatPrompt:      '',
@@ -411,8 +424,17 @@ class PublicApiEndpoint extends Endpoint {
   /// Returns theory, training parameters, and assessment parameters for
   /// [organizationId] in a single call. Top-level fields include the org's
   /// region/locale catalog (`defaultLocaleKey`, `regions`, `supportedLocales`).
-  /// Content fields inside each chapter/param/asset are populated from the
-  /// org's default-locale `*Localization` rows.
+  ///
+  /// Each theory chapter exposes its per-locale content via the
+  /// `chapterDetails` array (one entry per `TheoryChapterLocalization` row).
+  /// Each quiz question carries the default-locale text at the top with
+  /// `languageCode` set, and a `theoryTranslations` array containing only the
+  /// non-default-language variants.
+  ///
+  /// Each training/assessment parameter's top-level fields hold the
+  /// default-locale content (with `languageCode` set). The `translations`
+  /// array contains only the non-default-locale rows, each tagged with its
+  /// `languageCode`.
   Future<Map<String, dynamic>> getContentBundle(
     Session session,
     int organizationId,
@@ -441,7 +463,10 @@ class PublicApiEndpoint extends Endpoint {
     final chapters = results[0] as List<TheoryChapter>;
     final trainingParams = results[1] as List<TrainingParameter>;
     final assessmentParams = results[2] as List<AssessmentParameter>;
-    await hydrateTheoryChapters(session, chapters);
+    // Chapters: top-level title/url fields are omitted from the response, so
+    // there is no need to hydrate the !persist content fields here. Params
+    // still need hydration since the default-locale name/description show up
+    // at the top level of each parameter entry.
     await hydrateTrainingParameters(session, trainingParams);
     await hydrateAssessmentParameters(session, assessmentParams);
 
@@ -453,6 +478,8 @@ class PublicApiEndpoint extends Endpoint {
         await _assessmentLocalizationsByParam(session, assessmentParams);
 
     final meta = await _buildLocaleMeta(session, organizationId);
+    final defaultLocaleKey = meta['defaultLocaleKey'] as String;
+    final defaultLanguageCode = _languageCodeFromLocaleKey(defaultLocaleKey);
 
     return {
       ...meta,
@@ -461,25 +488,95 @@ class PublicApiEndpoint extends Endpoint {
       'theorySection': {
         'moduleTitle': org.name,
         'chapters': chapters.map((c) {
-          final json = _clean(c.toJson());
-          json['translations'] =
-              theoryLocalizationsByChapter[c.id] ?? const <dynamic>[];
-          return json;
+          return {
+            'id': c.id,
+            'organizationId': c.organizationId,
+            'chapterOrder': c.chapterOrder,
+            'chapterDetails':
+                theoryLocalizationsByChapter[c.id] ??
+                    const <Map<String, dynamic>>[],
+            'questions': _buildBundleQuestions(
+              c.questions,
+              defaultLocaleKey,
+              defaultLanguageCode,
+            ),
+          };
         }).toList(),
       },
       'trainingParameters': trainingParams.map((p) {
         final json = _clean(p.toJson());
-        json['translations'] =
-            trainingLocalizationsByParam[p.id] ?? const <dynamic>[];
+        json['languageCode'] = defaultLanguageCode;
+        json['translations'] = _filterNonDefaultLocalizations(
+          trainingLocalizationsByParam[p.id],
+          defaultLocaleKey,
+        );
         return json;
       }).toList(),
       'assessmentParameters': assessmentParams.map((p) {
         final json = _clean(p.toJson());
-        json['translations'] =
-            assessmentLocalizationsByParam[p.id] ?? const <dynamic>[];
+        json['languageCode'] = defaultLanguageCode;
+        json['translations'] = _filterNonDefaultLocalizations(
+          assessmentLocalizationsByParam[p.id],
+          defaultLocaleKey,
+        );
         return json;
       }).toList(),
     };
+  }
+
+  /// Drops any entries whose `localeKey` matches [defaultLocaleKey] so the
+  /// `translations` array in the bundle response only carries non-default
+  /// content (the default sits at the parent object's top level).
+  List<Map<String, dynamic>> _filterNonDefaultLocalizations(
+    List<Map<String, dynamic>>? localizations,
+    String defaultLocaleKey,
+  ) {
+    if (localizations == null || localizations.isEmpty) {
+      return const <Map<String, dynamic>>[];
+    }
+    return localizations
+        .where((l) => l['localeKey'] != defaultLocaleKey)
+        .toList();
+  }
+
+  /// Transforms a chapter's embedded `QuizQuestion` list for the bundle:
+  /// the question's default-locale text stays at the top with `languageCode`
+  /// set to [defaultLanguageCode], and any non-default-locale variants are
+  /// emitted under `theoryTranslations` as `{languageCode, question, answers}`.
+  List<Map<String, dynamic>> _buildBundleQuestions(
+    List<QuizQuestion>? questions,
+    String defaultLocaleKey,
+    String defaultLanguageCode,
+  ) {
+    if (questions == null || questions.isEmpty) {
+      return const <Map<String, dynamic>>[];
+    }
+    return questions.map((q) {
+      final translations = (q.translations ?? const <LocalizedQuizContent>[])
+          .where((t) {
+            // Drop the default-locale variant. Prefer the canonical localeKey
+            // match; fall back to the legacy languageCode key for old rows
+            // that pre-date the regional locale model.
+            final tLocale = t.localeKey;
+            if (tLocale != null && tLocale.isNotEmpty) {
+              return tLocale != defaultLocaleKey;
+            }
+            return t.languageCode != defaultLanguageCode;
+          })
+          .map((t) => <String, dynamic>{
+                'languageCode': t.languageCode,
+                'question': t.question,
+                'answers': t.answers,
+              })
+          .toList();
+      return <String, dynamic>{
+        'question': q.question,
+        'answers': q.answers,
+        'correctAnswer': q.correctAnswer,
+        'languageCode': defaultLanguageCode,
+        'theoryTranslations': translations,
+      };
+    }).toList();
   }
 
   /// Batch-fetches every `TheoryChapterLocalization` row for [chapters] and
@@ -666,6 +763,11 @@ class PublicApiEndpoint extends Endpoint {
 
     final result = _clean(config.toJson());
 
+    // Sibling for `defaultLocaleKey` — bare language code so clients can
+    // branch on language without re-parsing the regional locale key.
+    result['defaultLanguageCode'] =
+        _languageCodeFromLocaleKey(config.defaultLocaleKey);
+
     // The org's region catalog is not part of `ModuleConfigPublic`; merge it
     // in here so external clients see regions + locales in one response.
     final regions = await Region.db.find(
@@ -787,6 +889,8 @@ class PublicApiEndpoint extends Endpoint {
       // Forward-compat fields — present on every response so a client can
       // adopt the regional model without changing endpoints first.
       'defaultLocaleKey': config.defaultLocaleKey,
+      'defaultLanguageCode':
+          _languageCodeFromLocaleKey(config.defaultLocaleKey),
       'regions': regions.map((r) => _clean(r.toJson())).toList(),
       'supportedLocales': locales.map((l) => _clean(l.toJson())).toList(),
     };
@@ -965,6 +1069,7 @@ class PublicApiEndpoint extends Endpoint {
     return {
       'organizationId': organizationId,
       'defaultLocaleKey': meta['defaultLocaleKey'],
+      'defaultLanguageCode': meta['defaultLanguageCode'],
       'regions': meta['regions'],
       'supportedLocales': meta['supportedLocales'],
     };
@@ -1010,6 +1115,7 @@ class PublicApiEndpoint extends Endpoint {
         resolvedChapters.add({
           ..._clean(c.toJson()),
           'resolvedLocaleKey': null,
+          'resolvedLanguageCode': null,
         });
         continue;
       }
@@ -1024,9 +1130,12 @@ class PublicApiEndpoint extends Endpoint {
         videoMetadata: loc?.videoMetadata ?? c.videoMetadata,
         questions: c.questions,
       );
+      final resolvedKey = loc?.localeKey;
       resolvedChapters.add({
         ..._clean(resolved.toJson()),
-        'resolvedLocaleKey': loc?.localeKey,
+        'resolvedLocaleKey': resolvedKey,
+        'resolvedLanguageCode':
+            resolvedKey == null ? null : _languageCodeFromLocaleKey(resolvedKey),
       });
     }
     return {
@@ -1035,6 +1144,7 @@ class PublicApiEndpoint extends Endpoint {
       'moduleTitle': org.name,
       // Kept for backward compatibility with pre-envelope callers.
       'localeKey': localeKey,
+      'languageCode': _languageCodeFromLocaleKey(localeKey),
       'chapters': resolvedChapters,
     };
   }
@@ -1067,6 +1177,7 @@ class PublicApiEndpoint extends Endpoint {
         out.add({
           ..._clean(p.toJson()),
           'resolvedLocaleKey': null,
+          'resolvedLanguageCode': null,
         });
         continue;
       }
@@ -1081,10 +1192,13 @@ class PublicApiEndpoint extends Endpoint {
         scoringRules: p.scoringRules,
         translations: p.translations,
       );
+      final resolvedKey = loc?.localeKey;
       out.add({
         ..._clean(resolved.toJson()),
         'scoringFeedbacks': loc?.scoringFeedbacks,
-        'resolvedLocaleKey': loc?.localeKey,
+        'resolvedLocaleKey': resolvedKey,
+        'resolvedLanguageCode':
+            resolvedKey == null ? null : _languageCodeFromLocaleKey(resolvedKey),
       });
     }
     return {
@@ -1122,6 +1236,7 @@ class PublicApiEndpoint extends Endpoint {
         out.add({
           ..._clean(p.toJson()),
           'resolvedLocaleKey': null,
+          'resolvedLanguageCode': null,
         });
         continue;
       }
@@ -1137,10 +1252,13 @@ class PublicApiEndpoint extends Endpoint {
         scoringRules: p.scoringRules,
         translations: p.translations,
       );
+      final resolvedKey = loc?.localeKey;
       out.add({
         ..._clean(resolved.toJson()),
         'scoringFeedbacks': loc?.scoringFeedbacks,
-        'resolvedLocaleKey': loc?.localeKey,
+        'resolvedLocaleKey': resolvedKey,
+        'resolvedLanguageCode':
+            resolvedKey == null ? null : _languageCodeFromLocaleKey(resolvedKey),
       });
     }
     return {
@@ -1178,6 +1296,7 @@ class PublicApiEndpoint extends Endpoint {
         out.add({
           ..._clean(a.toJson()),
           'resolvedLocaleKey': null,
+          'resolvedLanguageCode': null,
         });
         continue;
       }
@@ -1191,9 +1310,12 @@ class PublicApiEndpoint extends Endpoint {
         description: loc?.description ?? a.description,
         module: a.module,
       );
+      final resolvedKey = loc?.localeKey;
       out.add({
         ..._clean(resolved.toJson()),
-        'resolvedLocaleKey': loc?.localeKey,
+        'resolvedLocaleKey': resolvedKey,
+        'resolvedLanguageCode':
+            resolvedKey == null ? null : _languageCodeFromLocaleKey(resolvedKey),
       });
     }
     return {

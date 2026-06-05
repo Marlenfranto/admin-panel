@@ -5,6 +5,10 @@ fields:
   contentVersion: int
   subscriptionModules: SubscriptionModules
   defaultLocaleKey: String
+  ### Bare language code derived from `defaultLocaleKey` (e.g. `IN-en` → `en`).
+  ### Defaulted to '' so legacy callers that don't set it explicitly still
+  ### serialize a non-null value.
+  defaultLanguageCode: String, default=''
   supportedLocales: List<LocaleConfig>?
   passingPercentage: int
   aiChatPrompt: String?

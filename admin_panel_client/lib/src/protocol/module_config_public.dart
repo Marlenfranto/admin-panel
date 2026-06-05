@@ -23,11 +23,12 @@ abstract class ModuleConfigPublic implements _i1.SerializableModel {
     required this.contentVersion,
     required this.subscriptionModules,
     required this.defaultLocaleKey,
+    String? defaultLanguageCode,
     this.supportedLocales,
     required this.passingPercentage,
     this.aiChatPrompt,
     this.aiChatPromptTranslations,
-  });
+  }) : defaultLanguageCode = defaultLanguageCode ?? '';
 
   factory ModuleConfigPublic({
     required String configId,
@@ -35,6 +36,7 @@ abstract class ModuleConfigPublic implements _i1.SerializableModel {
     required int contentVersion,
     required _i2.SubscriptionModules subscriptionModules,
     required String defaultLocaleKey,
+    String? defaultLanguageCode,
     List<_i3.LocaleConfig>? supportedLocales,
     required int passingPercentage,
     String? aiChatPrompt,
@@ -50,6 +52,7 @@ abstract class ModuleConfigPublic implements _i1.SerializableModel {
         jsonSerialization['subscriptionModules'],
       ),
       defaultLocaleKey: jsonSerialization['defaultLocaleKey'] as String,
+      defaultLanguageCode: jsonSerialization['defaultLanguageCode'] as String?,
       supportedLocales: jsonSerialization['supportedLocales'] == null
           ? null
           : _i5.Protocol().deserialize<List<_i3.LocaleConfig>>(
@@ -76,6 +79,11 @@ abstract class ModuleConfigPublic implements _i1.SerializableModel {
 
   String defaultLocaleKey;
 
+  /// Bare language code derived from `defaultLocaleKey` (e.g. `IN-en` → `en`).
+  /// Defaulted to '' so legacy callers that don't set it explicitly still
+  /// serialize a non-null value.
+  String defaultLanguageCode;
+
   List<_i3.LocaleConfig>? supportedLocales;
 
   int passingPercentage;
@@ -93,6 +101,7 @@ abstract class ModuleConfigPublic implements _i1.SerializableModel {
     int? contentVersion,
     _i2.SubscriptionModules? subscriptionModules,
     String? defaultLocaleKey,
+    String? defaultLanguageCode,
     List<_i3.LocaleConfig>? supportedLocales,
     int? passingPercentage,
     String? aiChatPrompt,
@@ -107,6 +116,7 @@ abstract class ModuleConfigPublic implements _i1.SerializableModel {
       'contentVersion': contentVersion,
       'subscriptionModules': subscriptionModules.toJson(),
       'defaultLocaleKey': defaultLocaleKey,
+      'defaultLanguageCode': defaultLanguageCode,
       if (supportedLocales != null)
         'supportedLocales': supportedLocales?.toJson(
           valueToJson: (v) => v.toJson(),
@@ -135,6 +145,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
     required int contentVersion,
     required _i2.SubscriptionModules subscriptionModules,
     required String defaultLocaleKey,
+    String? defaultLanguageCode,
     List<_i3.LocaleConfig>? supportedLocales,
     required int passingPercentage,
     String? aiChatPrompt,
@@ -145,6 +156,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
          contentVersion: contentVersion,
          subscriptionModules: subscriptionModules,
          defaultLocaleKey: defaultLocaleKey,
+         defaultLanguageCode: defaultLanguageCode,
          supportedLocales: supportedLocales,
          passingPercentage: passingPercentage,
          aiChatPrompt: aiChatPrompt,
@@ -161,6 +173,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
     int? contentVersion,
     _i2.SubscriptionModules? subscriptionModules,
     String? defaultLocaleKey,
+    String? defaultLanguageCode,
     Object? supportedLocales = _Undefined,
     int? passingPercentage,
     Object? aiChatPrompt = _Undefined,
@@ -173,6 +186,7 @@ class _ModuleConfigPublicImpl extends ModuleConfigPublic {
       subscriptionModules:
           subscriptionModules ?? this.subscriptionModules.copyWith(),
       defaultLocaleKey: defaultLocaleKey ?? this.defaultLocaleKey,
+      defaultLanguageCode: defaultLanguageCode ?? this.defaultLanguageCode,
       supportedLocales: supportedLocales is List<_i3.LocaleConfig>?
           ? supportedLocales
           : this.supportedLocales?.map((e0) => e0.copyWith()).toList(),
